@@ -34,7 +34,7 @@
 - Modify: `apps/web/src/layout.test.ts`
 
 - [ ] Initialize signed deterministic 3D positions from stable hashes and center them.
-- [ ] Run exactly 600 full-batch gradient-descent iterations against target distance `120 + 560 × semantic_distance`, learning rate 0.018 with linear decay, then normalize the field to a maximum radius of 520.
+- [ ] Run 1,200 full-batch gradient-descent iterations against target distance `120 + 560 × semantic_distance`, learning rate 0.018 with linear decay, then normalize the field to a maximum radius of 520. This is the documented product-method deviation after the frozen 600-step method failed to converge (`rho=0.7366`); the affected validation remains exploratory.
 - [ ] Use semantic coordinates only for top-level nodes carrying signatures; retain the existing deterministic layout for all other systems and orbital objects.
 - [ ] Validate repeatability, finite coordinates, Spearman correlation ≥ 0.80, within-empire separation, and same-empire nearest neighbors on the fixed fixture.
 

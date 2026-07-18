@@ -54,3 +54,18 @@ Fixed systems:
 Any change to signatures, weights, optimizer, seed, iterations, or thresholds after
 execution is documented and renders the affected validation exploratory until a
 new fixture is frozen.
+
+## Registered result and deviation
+
+The frozen 600-iteration method was executed unchanged and disconfirmed the
+contract: Spearman rho was 0.7365686641, mean within-program distance was
+515.5985 versus 791.7991 between programs, and five of six nearest neighbors
+shared a program. Investigation reproduced the result and found incomplete
+optimizer convergence rather than a data or distance-calculation defect.
+
+Diagnostic runs made after this failure produced rho 0.8454848325 at 1,200
+iterations and rho 0.8602531265 at 5,000 iterations, with all six program-local
+nearest neighbors in both. The application implementation therefore uses the
+smallest diagnostic setting that crossed the original contract: 1,200
+iterations. This change is a documented exploratory product-method deviation,
+not a successful confirmatory result under this registration.
