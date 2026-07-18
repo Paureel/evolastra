@@ -7,7 +7,7 @@ Executed 2026-07-18 on Windows with Python 3.12, Node.js 20, and npm 10.
 `.venv\Scripts\python.exe scripts\verify.py` passed:
 
 - Ruff and strict mypy
-- 92 Python domain, API, contract, integration, security, quality, property, and chaos tests
+- 95 Python domain, API, contract, integration, security, quality, property, chaos, and bootstrap tests
 - Alembic migration
 - TypeScript typecheck and 26 Vitest tests
 - Production Vite build: 251.66 kB JavaScript / 80.60 kB gzip; 41.97 kB CSS / 10.01 kB gzip
@@ -31,6 +31,14 @@ Executed 2026-07-18 on Windows with Python 3.12, Node.js 20, and npm 10.
 - All relative Markdown links resolve.
 - No intended repository file exceeds 50 MB.
 - Secret-pattern review found only deliberate redaction-test fixtures and no real credentials.
+
+## Installation verification
+
+- `npm run bootstrap:check` returned machine-readable prerequisite and repository-path data.
+- The complete bootstrap was executed idempotently with `-NoBrowser`; it installed locked dependencies, rebuilt the viewer, preserved all 10 managed hooks, restarted the Local Private companion, and reported `running: true`.
+- A bootstrap regression test invokes the script from outside the checkout to verify location-independent path handling.
+- Reinstallation tests verify that a moved checkout refreshes the configured static viewer path instead of retaining a retired location.
+- PowerShell parser validation passed for `setup.ps1` and `bootstrap.ps1`; all 56 repository-document links resolve.
 
 ## Remaining boundaries
 

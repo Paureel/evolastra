@@ -3,6 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "bootstrap": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1",
+    "bootstrap:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1 -CheckOnly",
     "dev": "python scripts/dev.py",
     "demo": "python scripts/dev.py --demo",
     "api": "python -m uvicorn asterism_api.main:app --app-dir apps/api --host 127.0.0.1 --port 8000 --reload",

@@ -24,6 +24,10 @@ PID_PATH = STATE_ROOT / "companion.pid"
 LOG_PATH = STATE_ROOT / "companion.log"
 
 
+def repository_web_root() -> Path:
+    return (Path(__file__).resolve().parents[3] / "apps" / "web" / "dist").resolve()
+
+
 @dataclass
 class ServiceConfig:
     instance_id: str
@@ -46,9 +50,7 @@ class ServiceConfig:
             database_path=str((root / "data" / "evolastra.db").resolve()),
             artifact_root=str((root / "artifacts").resolve()),
             codex_spool=str(Path("~/.codex/evolastra-outbox").expanduser().resolve()),
-            web_root=str(
-                (Path(__file__).resolve().parents[3] / "apps" / "web" / "dist").resolve()
-            ),
+            web_root=str(repository_web_root()),
             python=str(Path(sys.executable).resolve()),
         )
 
@@ -59,7 +61,7 @@ def load_config() -> ServiceConfig:
     raw = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     raw.setdefault(
         "web_root",
-        str((Path(__file__).resolve().parents[3] / "apps" / "web" / "dist").resolve()),
+        str(repository_web_root()),
     )
     return ServiceConfig(**raw)
 
@@ -193,6 +195,10 @@ def install_service(
     config.port = port
     config.allowed_origins = merged_origins
     config.python = str(Path(sys.executable).resolve())
+    if existing:
+        # An editable checkout may move. Reinstallation should serve the build
+        # belonging to the interpreter's active repository, not a stale path.
+        config.web_root = str(repository_web_root())
     if not (Path(config.web_root) / "index.html").is_file():
         raise RuntimeError("Build the web application before installing: npm run build")
     save_config(config)

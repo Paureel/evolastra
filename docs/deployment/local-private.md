@@ -15,7 +15,13 @@ The hook never contacts the network. It writes redacted CloudEvents to `~/.codex
 
 ## Install and start
 
-Run from an installed checkout:
+The recommended path validates prerequisites, installs locked dependencies, builds the viewer, installs hooks, and verifies the running companion:
+
+```powershell
+npm run bootstrap
+```
+
+See the [Getting Started guide](../getting-started.md) for agent instructions and troubleshooting. For manual service control from an installed checkout:
 
 ```powershell
 & .\.venv\Scripts\evolastra.exe service install

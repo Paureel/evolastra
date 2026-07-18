@@ -18,6 +18,22 @@
 
 Evolastra receives durable analytical events, projects them into a semantic evidence graph, and renders that graph through two spatial lenses: a strategic Galaxy Map for the full investigation and an orbital System View for a single analytical branch. The visualization is disposable; the append-only event log and semantic model remain the source of truth.
 
+## Start here
+
+On Windows with Python 3.12+, Node.js 20+, and repository access:
+
+```powershell
+gh repo clone Paureel/evolastra
+Set-Location evolastra
+npm run bootstrap
+```
+
+The bootstrap installs locked dependencies, builds the viewer, installs and starts the Local Private companion, configures Codex hooks, verifies the result, and opens the local viewer. Restart Codex once, approve the commands shown by `/hooks`, then run `& .\.venv\Scripts\evolastra.exe pair` to connect the browser.
+
+**Using an agent?** Ask it to read [`AGENTS.md`](AGENTS.md), or copy the ready-made prompt from the [Getting Started guide](docs/getting-started.md#-let-an-agent-set-it-up).
+
+For a demo without Codex integration, follow [Run the demo only](docs/getting-started.md#-run-the-demo-only). The complete installation guide includes prerequisites, verification checkpoints, options, and exact troubleshooting steps.
+
 ## Why Evolastra
 
 - **See the analysis happen.** Runs, branches, agents, tools, artifacts, findings, anomalies, and approvals become distinct inspectable objects.
@@ -49,7 +65,7 @@ The architecture deliberately separates three concerns:
 
 Read the [architecture overview](docs/architecture/overview.md) and [shared contract](docs/architecture/shared-contract.md) for the complete model.
 
-## Quick start
+## Manual development setup
 
 ### Prerequisites
 
@@ -60,9 +76,7 @@ Read the [architecture overview](docs/architecture/overview.md) and [shared cont
 Docker is not required.
 
 ```powershell
-git clone https://github.com/paureel/evolastra.git
-Set-Location evolastra
-powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 npm run demo
 ```
 

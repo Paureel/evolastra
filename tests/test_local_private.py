@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from dataclasses import asdict
 from pathlib import Path
 
 import pytest
@@ -164,3 +165,35 @@ def test_service_install_is_manual_start_by_default(monkeypatch: pytest.MonkeyPa
 
         assert result["autostart"] is False
         assert not startup.exists()
+
+
+def test_service_reinstall_refreshes_the_repository_web_root(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output = Path.cwd() / "output"
+    output.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=output) as directory:
+        root = Path(directory)
+        current_web = root / "current" / "dist"
+        current_web.mkdir(parents=True)
+        (current_web / "index.html").write_text("ok", encoding="utf-8")
+        config_path = root / "service.json"
+        config = ServiceConfig.default()
+        config.web_root = str(root / "retired-checkout" / "dist")
+        config_path.write_text(json.dumps(asdict(config)), encoding="utf-8")
+
+        monkeypatch.setattr("asterism_api.service.CONFIG_PATH", config_path)
+        monkeypatch.setattr("asterism_api.service.TOKEN_PATH", root / "token")
+        monkeypatch.setattr(
+            "asterism_api.service._autostart_path", lambda: root / "autostart.vbs"
+        )
+        monkeypatch.setattr("asterism_api.service.repository_web_root", lambda: current_web)
+        monkeypatch.setattr(
+            "asterism_api.codex_install.install_codex_hooks",
+            lambda **kwargs: {"installed": True},
+        )
+
+        install_service(port=8010, origins=[])
+
+        saved = json.loads(config_path.read_text(encoding="utf-8"))
+        assert saved["web_root"] == str(current_web)

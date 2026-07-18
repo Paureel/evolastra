@@ -7,6 +7,17 @@ description: Operate and connect the local-first Evolastra analysis observatory.
 
 Operate Evolastra as a static hosted viewer backed by a companion, database, Codex hooks, and files on the user's own computer.
 
+## Bootstrap from a checkout
+
+When the repository is present but Evolastra has not been installed, use the repository bootstrap instead of reconstructing package and service commands:
+
+```powershell
+npm run bootstrap:check
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -NoBrowser
+```
+
+Read the root `AGENTS.md` and `docs/getting-started.md` first. The bootstrap validates prerequisites, installs locked dependencies, builds the viewer, installs managed hooks, starts the companion, and verifies both states. If hooks changed, require one Codex restart and `/hooks` approval before claiming live capture.
+
 ## Control the companion
 
 Run the bundled controller instead of reconstructing commands:

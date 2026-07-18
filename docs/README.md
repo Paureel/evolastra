@@ -5,6 +5,7 @@ Use this index to move from product operation to implementation detail.
 ## Get started
 
 - [Repository overview](../README.md)
+- [Installation and agent setup](getting-started.md)
 - [Galaxy and System map guide](user-guide/galaxy.md)
 - [Replay](user-guide/replay.md)
 - [Artifacts](user-guide/artifacts.md)
