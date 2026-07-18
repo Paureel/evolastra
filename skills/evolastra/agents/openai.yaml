@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evolastra"
+  short_description: "Connect Codex to a local Evolastra viewer"
+  default_prompt: "Use $evolastra to start the local companion and connect this Codex session to the hosted viewer."

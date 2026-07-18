@@ -1,0 +1,9 @@
+{
+  "session_id": "session_fixture_001",
+  "transcript_path": null,
+  "cwd": "/workspace/example",
+  "hook_event_name": "SessionStart",
+  "model": "example-model",
+  "permission_mode": "default",
+  "source": "startup"
+}

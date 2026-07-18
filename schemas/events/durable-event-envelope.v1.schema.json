@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starexplorer.local/schemas/events/durable-event-envelope.v1.schema.json",
+  "title": "Asterism durable event envelope v1",
+  "description": "Persisted CloudEvents-compatible envelope. Sequence is required here; ingestion alone may omit it for server allocation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "subject",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "runid",
+    "sequence",
+    "traceid",
+    "spanid",
+    "correlationid",
+    "causationid",
+    "producerversion",
+    "privacyclass",
+    "data"
+  ],
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^evt_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+    },
+    "source": {
+      "type": "string",
+      "format": "uri-reference",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^galaxy\\.[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.v[1-9][0-9]*$",
+      "maxLength": 200
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?Z$"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "type": "string",
+      "format": "uri-reference",
+      "pattern": "^/schemas/events/(?:[a-z0-9-]+\\.v[1-9][0-9]*\\.schema|semantic-event-v[1-9][0-9]*)\\.json$"
+    },
+    "runid": {
+      "type": "string",
+      "pattern": "^run_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "traceid": {
+      "type": "string",
+      "pattern": "^(?!0{32}$)[0-9a-f]{32}$"
+    },
+    "spanid": {
+      "type": "string",
+      "pattern": "^(?!0{16}$)[0-9a-f]{16}$"
+    },
+    "correlationid": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,15}_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+    },
+    "causationid": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,15}_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+    },
+    "producerversion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "privacyclass": {
+      "type": "string",
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "data": {
+      "type": "object"
+    }
+  }
+}

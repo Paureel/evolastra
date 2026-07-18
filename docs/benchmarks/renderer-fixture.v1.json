@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "asterism-renderer-realistic-v1",
+  "seed": "asterism-observatory/renderer/v1",
+  "coordinateSpace": {
+    "width": 20000,
+    "height": 20000,
+    "positionsArePrecomputed": true,
+    "note": "Renderer comparison consumes identical coordinates. Layout performance is measured separately."
+  },
+  "fullScene": {
+    "semanticSystems": 1000,
+    "artifactsAndDatasets": 5000,
+    "typedEdges": 20000,
+    "activeAgents": 50,
+    "territories": 48,
+    "verticesPerTerritory": 64,
+    "durableEventsBehindProjection": 100000
+  },
+  "incrementalScene": {
+    "initial": {
+      "semanticSystems": 900,
+      "artifactsAndDatasets": 4500,
+      "typedEdges": 18000
+    },
+    "insertOverSeconds": 30,
+    "insert": {
+      "semanticSystems": 100,
+      "artifactsAndDatasets": 500,
+      "typedEdges": 2000
+    },
+    "metricSamplesPerSecondAtIngestion": 1000,
+    "rendererCoalesceHz": 20,
+    "agentStateChangesPerSecond": 10
+  },
+  "edgeTypeCounts": {
+    "parent": 999,
+    "depends_on": 2500,
+    "produces": 5000,
+    "consumes": 3500,
+    "supports": 2000,
+    "contradicts": 500,
+    "validates": 1500,
+    "derived_from": 2500,
+    "assigned_to": 500,
+    "handoff": 250,
+    "references": 501,
+    "reproduces": 250
+  },
+  "semanticZoom": {
+    "distant": {
+      "maximumLabels": 96,
+      "showTerritories": true,
+      "aggregateMinorEdges": true
+    },
+    "regional": {
+      "maximumLabels": 750,
+      "showSignificantArtifacts": true,
+      "showAgents": true
+    },
+    "system": {
+      "maximumLabels": 220,
+      "showLocalPlanetsAndMoons": true,
+      "showLocalLineage": true
+    }
+  },
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "devicePixelRatio": 1
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "devicePixelRatio": 2
+    }
+  ],
+  "interactionScript": {
+    "durationSeconds": 30,
+    "panSegments": 6,
+    "zoomCycles": 6,
+    "pickAttempts": 200,
+    "focusChanges": 30,
+    "reducedMotionVariant": true,
+    "highContrastVariant": true
+  }
+}

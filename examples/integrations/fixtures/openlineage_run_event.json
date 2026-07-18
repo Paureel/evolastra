@@ -1,0 +1,10 @@
+{
+  "eventTime": "2026-07-17T10:00:00Z",
+  "eventType": "START",
+  "run": {"runId": "1f4fa48e-c11b-4d32-93ca-5f3523f882a9", "facets": {}},
+  "job": {"namespace": "example.analytics", "name": "customer_churn", "facets": {}},
+  "inputs": [{"namespace": "example.raw", "name": "customers", "facets": {}}],
+  "outputs": [{"namespace": "example.curated", "name": "churn_features", "facets": {}}],
+  "producer": "https://example.invalid/producer/1.0",
+  "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent"
+}

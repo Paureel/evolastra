@@ -1,0 +1,25 @@
+{
+  "name": "evolastra-observatory-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "python scripts/dev.py",
+    "demo": "python scripts/dev.py --demo",
+    "api": "python -m uvicorn asterism_api.main:app --app-dir apps/api --host 127.0.0.1 --port 8000 --reload",
+    "web": "npm --prefix apps/web run dev",
+    "migrate": "python -m asterism_api.cli migrate",
+    "reset": "python -m asterism_api.cli reset",
+    "seed": "python -m asterism_api.cli seed",
+    "lint": "python -m ruff check . && npm --prefix apps/web run lint",
+    "typecheck": "python -m mypy apps/api && npm --prefix apps/web run typecheck",
+    "test": "python -m pytest && npm --prefix apps/web run test",
+    "test-integration": "python -m pytest tests/integrations tests/contracts",
+    "test-e2e": "npm --prefix apps/web run test:e2e",
+    "test-accessibility": "npm --prefix apps/web run test:accessibility",
+    "build": "npm --prefix apps/web run build",
+    "verify-assets": "python scripts/verify_assets.py",
+    "security": "python scripts/security_scan.py && python -m pip_audit -r requirements.lock",
+    "benchmark": "python scripts/benchmark.py",
+    "verify": "python scripts/verify.py"
+  }
+}

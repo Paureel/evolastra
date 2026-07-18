@@ -1,0 +1,30 @@
+{
+  "specversion": "1.0",
+  "id": "evt_bf1953b81f754108ab459d60f05e5fe6",
+  "source": "urn:galaxy:adapter:simulator",
+  "type": "galaxy.analysis.run.created.v1",
+  "subject": "run/run_33bd8a5551544233bfc31c327b2398e6",
+  "time": "2026-07-17T14:20:00.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "/schemas/events/run-created.v1.schema.json",
+  "runid": "run_33bd8a5551544233bfc31c327b2398e6",
+  "sequence": 1,
+  "traceid": "0af7651916cd43dd8448eb211c80319c",
+  "spanid": "b7ad6b7169203331",
+  "correlationid": "corr_b5827dc727654b7094d8953ae7bece9f",
+  "causationid": "evt_bf1953b81f754108ab459d60f05e5fe6",
+  "producerversion": "simulator/1.0.0",
+  "privacyclass": "internal",
+  "data": {
+    "run": {
+      "id": "run_33bd8a5551544233bfc31c327b2398e6",
+      "schema_version": 1,
+      "title": "Customer churn investigation",
+      "objective": "Identify reliable drivers of customer churn",
+      "status": "created",
+      "created_at": "2026-07-17T14:20:00.123Z",
+      "run_seed": 1729,
+      "privacy_classification": "internal"
+    }
+  }
+}

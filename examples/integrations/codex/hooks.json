@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [{"hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5, "statusMessage": "Recording analysis telemetry"}]}],
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}],
+    "PreToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}],
+    "PermissionRequest": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}],
+    "PostToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}],
+    "SubagentStart": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}],
+    "SubagentStop": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}],
+    "PreCompact": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}],
+    "PostCompact": [{"matcher": "*", "hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "python3 /absolute/path/to/starexplorer/integrations/codex_hooks.py capture", "commandWindows": "py -3 C:\\absolute\\path\\to\\starexplorer\\integrations\\codex_hooks.py capture", "timeout": 5}]}]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "asterism-observatory-visual-assets",
+  "reviewedAt": "2026-07-17",
+  "status": "complete-for-reviewed-repository-snapshot",
+  "scope": {
+    "scanRoots": [
+      "assets",
+      "apps/web/public/assets",
+      "apps/web/src/assets",
+      "docs/assets/media"
+    ],
+    "assetExtensions": [
+      ".avif",
+      ".bin",
+      ".fbx",
+      ".glb",
+      ".gltf",
+      ".ico",
+      ".jpeg",
+      ".jpg",
+      ".json",
+      ".ktx2",
+      ".mp3",
+      ".obj",
+      ".ogg",
+      ".otf",
+      ".png",
+      ".svg",
+      ".ttf",
+      ".wav",
+      ".webp",
+      ".woff",
+      ".woff2"
+    ]
+  },
+  "policy": {
+    "approvedLicenseIds": [
+      "LicenseRef-Asterism-First-Party",
+      "CC0-1.0",
+      "PDM-1.0",
+      "CC-BY-4.0",
+      "OFL-1.1"
+    ],
+    "caseByCaseLicenseReviewRequired": [
+      "PDM-1.0",
+      "CC-BY-4.0",
+      "OFL-1.1"
+    ],
+    "prohibitedTraits": [
+      "noncommercial",
+      "no-derivatives",
+      "share-alike-without-explicit-approval",
+      "editorial-only",
+      "unclear-authorship",
+      "unclear-license",
+      "fan-art",
+      "extracted-game-asset",
+      "franchise-imitation",
+      "unknown-generated-provenance"
+    ],
+    "checksumAlgorithm": "SHA-256"
+  },
+  "assets": []
+}

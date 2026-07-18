@@ -1,0 +1,6 @@
+{
+  "adapter_version": "codex-sdk-result/0.1.0",
+  "sdk_surface": "documented final_response/finalResponse",
+  "thread_id": "thr_fixture_001",
+  "final_response": "Fixture final response content"
+}

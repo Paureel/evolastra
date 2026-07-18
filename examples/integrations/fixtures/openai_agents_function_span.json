@@ -1,0 +1,16 @@
+{
+  "object": "trace.span",
+  "id": "span_fixture_001",
+  "trace_id": "trace_fixture_001",
+  "parent_id": null,
+  "started_at": "2026-07-17T10:00:00Z",
+  "ended_at": "2026-07-17T10:00:01Z",
+  "span_data": {
+    "type": "function",
+    "name": "lookup_customer",
+    "input": "{\"customer_id\":\"fixture\"}",
+    "output": "fixture result",
+    "mcp_data": null
+  },
+  "error": null
+}

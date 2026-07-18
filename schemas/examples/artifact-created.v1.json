@@ -1,0 +1,32 @@
+{
+  "specversion": "1.0",
+  "id": "evt_a45bb1a31df5481f9e98601e393f24ce",
+  "source": "urn:galaxy:adapter:simulator",
+  "type": "galaxy.analysis.artifact.created.v1",
+  "subject": "run/run_33bd8a5551544233bfc31c327b2398e6/artifact/art_1591ab40a089419185083f99d951bb5e",
+  "time": "2026-07-17T14:20:30.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "/schemas/events/artifact-created.v1.schema.json",
+  "runid": "run_33bd8a5551544233bfc31c327b2398e6",
+  "sequence": 3,
+  "traceid": "0af7651916cd43dd8448eb211c80319c",
+  "spanid": "b7ad6b7169203331",
+  "correlationid": "corr_b5827dc727654b7094d8953ae7bece9f",
+  "causationid": "evt_41f5a55c2e3c40788d4a2d76e6595d53",
+  "producerversion": "simulator/1.0.0",
+  "privacyclass": "internal",
+  "data": {
+    "artifact": {
+      "id": "art_1591ab40a089419185083f99d951bb5e",
+      "schema_version": 1,
+      "run_id": "run_33bd8a5551544233bfc31c327b2398e6",
+      "node_id": "node_4639b2f6c02a4cefa10b2a59d9137e93",
+      "artifact_type": "vega_lite",
+      "title": "Churn by customer tenure",
+      "mime_type": "application/vnd.vegalite.v5+json",
+      "content_hash": "sha256:7b7e4dd8f8d40de8b97a18fc19b3d23ecfb37f2d1eeef24d7c12b58e46c99baf",
+      "created_at": "2026-07-17T14:20:30.123Z",
+      "privacy_classification": "internal"
+    }
+  }
+}

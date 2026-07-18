@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="field" cx="35%" cy="28%" r="82%">
+      <stop offset="0" stop-color="#173d48"/>
+      <stop offset="0.55" stop-color="#071b26"/>
+      <stop offset="1" stop-color="#020812"/>
+    </radialGradient>
+    <radialGradient id="sun" cx="35%" cy="30%" r="70%">
+      <stop offset="0" stop-color="#fffbd1"/>
+      <stop offset="0.38" stop-color="#ffd36a"/>
+      <stop offset="1" stop-color="#c16a24"/>
+    </radialGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="2.4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <path d="M32 2.5 56.5 16v32L32 61.5 7.5 48V16z" fill="url(#field)" stroke="#75e5df" stroke-width="2"/>
+  <path d="M32 6.5 53 18v27.8L32 57.5 11 45.8V18z" fill="none" stroke="#37656d" stroke-width="1"/>
+  <ellipse cx="32" cy="32" rx="23" ry="10.5" fill="none" stroke="#79e6df" stroke-width="2.2" transform="rotate(-24 32 32)"/>
+  <path d="M8.7 36.8c4.7 9.2 18.1 13.4 30.8 9.4" fill="none" stroke="#ffd36a" stroke-linecap="round" stroke-width="1.5"/>
+  <circle cx="32" cy="32" r="9.3" fill="#ffd36a" opacity=".24" filter="url(#glow)"/>
+  <circle cx="32" cy="32" r="6.7" fill="url(#sun)" stroke="#fff2a5" stroke-width="1"/>
+  <path d="M32 20.7v22.6M20.7 32h22.6" stroke="#ffd36a" stroke-linecap="round" stroke-width="1.2" opacity=".55"/>
+  <circle cx="50.3" cy="20.8" r="3.2" fill="#020912" stroke="#a6ffff" stroke-width="1.5"/>
+  <circle cx="50.3" cy="20.8" r="1.1" fill="#a6ffff"/>
+  <circle cx="15" cy="18" r="1.2" fill="#fff2a5"/>
+</svg>

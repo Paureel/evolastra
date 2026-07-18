@@ -1,0 +1,15 @@
+viewer.example.com {
+    root * /srv/evolastra-viewer
+    encode zstd gzip
+    try_files {path} /index.html
+    file_server
+
+    header {
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src http://127.0.0.1:* http://localhost:*; worker-src 'self' blob:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Referrer-Policy no-referrer
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        -Server
+    }
+}

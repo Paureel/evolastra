@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starexplorer.local/schemas/events/artifact-created.v1.schema.json",
+  "title": "Artifact created event v1",
+  "allOf": [
+    {
+      "$ref": "./durable-event-envelope.v1.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "galaxy.analysis.artifact.created.v1"
+        },
+        "dataschema": {
+          "const": "/schemas/events/artifact-created.v1.schema.json"
+        },
+        "subject": {
+          "type": "string",
+          "pattern": "^run/run_[0-9a-f-]+/artifact/art_[0-9a-f-]+$"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "artifact"
+          ],
+          "properties": {
+            "artifact": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "id",
+                "schema_version",
+                "run_id",
+                "node_id",
+                "artifact_type",
+                "title",
+                "mime_type"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^art_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+                },
+                "schema_version": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "run_id": {
+                  "type": "string",
+                  "pattern": "^run_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+                },
+                "node_id": {
+                  "type": "string",
+                  "pattern": "^node_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+                },
+                "artifact_type": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "mime_type": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "content_hash": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "privacy_classification": {
+                  "type": "string",
+                  "enum": [
+                    "public",
+                    "internal",
+                    "confidential",
+                    "restricted"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

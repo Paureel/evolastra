@@ -1,0 +1,386 @@
+asyncapi: 3.1.0
+id: urn:starexplorer:asterism-observatory:event-protocol:v1
+info:
+  title: Asterism Observatory live event protocol
+  version: 1.0.0
+  description: >-
+    Contract for the resumable Server-Sent Events feed and validated HTTP
+    commands. REST resource endpoints, including event ingestion, remain
+    authoritative in OpenAPI. The initial local profile is single-user and
+    loopback-oriented; production authentication and tenant authorization are
+    deployment extension points rather than implied capabilities.
+  license:
+    name: Project license
+defaultContentType: application/json
+
+servers:
+  local:
+    host: 127.0.0.1:8000
+    pathname: /
+    protocol: http
+    description: >-
+      Local loopback profile. No multi-user identity is asserted. CORS and
+      trusted-host checks still restrict browser access to configured origins.
+    tags:
+      - name: local
+  productionTemplate:
+    host: '{host}'
+    pathname: /
+    protocol: https
+    description: >-
+      Deployment template. A production deployment must apply the same
+      authenticated identity and run authorization to the SSE stream and HTTP
+      commands. This document does not prescribe an identity provider.
+    variables:
+      host:
+        default: observatory.example.invalid
+        description: Deployment-owned API host.
+    security:
+      - $ref: '#/components/securitySchemes/productionBearer'
+    tags:
+      - name: production-template
+
+channels:
+  runEventStream:
+    address: /api/v1/runs/{run_id}/events/stream
+    title: Per-run durable event stream
+    summary: Resumable SSE feed ordered by per-run sequence.
+    description: >-
+      The response content type is text/event-stream. Each durable frame uses
+      the durable sequence as the SSE id, `semantic` as the SSE event, and the
+      complete structured CloudEvent JSON as data. The `after` query
+      and `Last-Event-ID` header are resume cursors. When both are valid, the
+      server uses the larger sequence. Sequence is monotonically allocated per
+      run. A detected gap is recovered before later events are applied.
+      Heartbeats are transport-only JSON and do not advance sequence.
+    parameters:
+      run_id:
+        $ref: '#/components/parameters/runId'
+    messages:
+      durableEvent:
+        $ref: '#/components/messages/durableEvent'
+      heartbeat:
+        $ref: '#/components/messages/heartbeat'
+    bindings:
+      http:
+        bindingVersion: 0.3.0
+    x-sse:
+      contentType: text/event-stream
+      id: sequence
+      event: semantic
+      data: full-cloud-event-json
+      resume:
+        queryParameter: after
+        requestHeader: Last-Event-ID
+        precedence: maximum-valid-sequence
+      retry:
+        clientPolicy: exponential-backoff-with-jitter
+      backpressure:
+        serverBatching: supported
+        clientBatching: required-for-heavy-streams
+        metricCoalescing: projection-only
+
+  runCommands:
+    address: /api/v1/runs/{run_id}/commands
+    title: Validated run commands
+    summary: HTTP POST commands kept separate from the event feed.
+    description: >-
+      The browser sends a JSON body with `{command, value?}`. Commands never
+      mutate stored events. Accepted commands may create new semantic events,
+      such as an annotation, or change disposable visualization state.
+    parameters:
+      run_id:
+        $ref: '#/components/parameters/runId'
+    messages:
+      commandRequest:
+        $ref: '#/components/messages/commandRequest'
+      commandAccepted:
+        $ref: '#/components/messages/commandAccepted'
+      commandError:
+        $ref: '#/components/messages/commandError'
+    bindings:
+      http:
+        bindingVersion: 0.3.0
+
+operations:
+  sendRunEvents:
+    action: send
+    title: Send durable run events
+    summary: Server sends ordered events and heartbeats to an SSE client.
+    description: >-
+      Open with HTTP GET. `after` is a non-negative integer query parameter.
+      `Last-Event-ID` is the most recently applied SSE id. Heartbeats preserve
+      liveness but are not CloudEvents; they do not replace durable events or
+      advance state outside sequence order.
+    channel:
+      $ref: '#/channels/runEventStream'
+    messages:
+      - $ref: '#/channels/runEventStream/messages/durableEvent'
+      - $ref: '#/channels/runEventStream/messages/heartbeat'
+    bindings:
+      http:
+        bindingVersion: 0.3.0
+    x-http-request:
+      method: GET
+      query:
+        after:
+          type: integer
+          minimum: 0
+      headers:
+        Last-Event-ID:
+          type: string
+          pattern: '^[0-9]+$'
+        Accept:
+          const: text/event-stream
+    x-error-responses:
+      '400': Invalid resume cursor.
+      '401': Authentication required in a protected deployment.
+      '403': Identity is not authorized for the run in a protected deployment.
+      '404': Run does not exist or is not visible.
+      '410': Requested history is outside the configured retention window.
+      '429': Connection or request limit exceeded; retry with backoff.
+      '500': Safe JSON error response; reconnect from the last applied id.
+
+  receiveRunCommand:
+    action: receive
+    title: Receive a run command
+    summary: Server validates an HTTP POST command from the browser.
+    description: >-
+      Supported commands are pause_animation, return_live, follow_agent,
+      set_simulator_speed, and add_annotation. The server validates command
+      authorization, body shape, run scope, and command-specific value before
+      changing projection state or appending a resulting semantic event.
+    channel:
+      $ref: '#/channels/runCommands'
+    messages:
+      - $ref: '#/channels/runCommands/messages/commandRequest'
+    bindings:
+      http:
+        method: POST
+        bindingVersion: 0.3.0
+    x-http-success:
+      status: 200
+      message:
+        $ref: '#/components/messages/commandAccepted'
+    x-error-responses:
+      '400': Malformed JSON or unsupported command.
+      '401': Authentication required in a protected deployment.
+      '403': Command is not authorized for the identity or run.
+      '404': Run or referenced agent does not exist or is not visible.
+      '409': Command conflicts with the current run or simulator state.
+      '422': Command-specific value failed validation.
+      '429': Command rate limit exceeded.
+      '500': Safe JSON error response without sensitive content.
+
+components:
+  securitySchemes:
+    productionBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Deployment-defined
+      description: >-
+        Template only. Production deployments select an identity provider and
+        enforce run-level authorization. The local profile does not claim this
+        capability.
+
+  parameters:
+    runId:
+      description: Prefixed UUIDv4 analysis-run identifier.
+      x-pattern: '^run_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$'
+
+  messages:
+    durableEvent:
+      name: durableEvent
+      title: Durable semantic CloudEvent
+      summary: A recognized or unknown durable event with a complete envelope.
+      contentType: application/json
+      payload:
+        $ref: ../../schemas/events/semantic-event-v1.json
+      x-registered-payload-schemas:
+        - $ref: ../../schemas/events/run-created.v1.schema.json
+        - $ref: ../../schemas/events/node-created.v1.schema.json
+        - $ref: ../../schemas/events/artifact-created.v1.schema.json
+      examples:
+        - name: artifactCreated
+          summary: Artifact metadata created without embedding artifact bytes.
+          payload:
+            specversion: '1.0'
+            id: evt_a45bb1a3-1df5-481f-9e98-601e393f24ce
+            source: urn:galaxy:adapter:simulator
+            type: galaxy.analysis.artifact.created.v1
+            subject: run/run_33bd8a55-5154-4233-bfc3-1c327b2398e6/artifact/art_1591ab40-a089-4191-8508-3f99d951bb5e
+            time: '2026-07-17T14:20:30.123Z'
+            datacontenttype: application/json
+            dataschema: /schemas/events/artifact-created.v1.schema.json
+            runid: run_33bd8a55-5154-4233-bfc3-1c327b2398e6
+            sequence: 3
+            traceid: 0af7651916cd43dd8448eb211c80319c
+            spanid: b7ad6b7169203331
+            correlationid: corr_b5827dc7-2765-4b70-94d8-953ae7bece9f
+            causationid: evt_41f5a55c-2e3c-4078-8d4a-2d76e6595d53
+            producerversion: simulator/1.0.0
+            privacyclass: internal
+            data:
+              artifact:
+                id: art_1591ab40-a089-4191-8508-3f99d951bb5e
+                schema_version: 1
+                run_id: run_33bd8a55-5154-4233-bfc3-1c327b2398e6
+                node_id: node_4639b2f6-c02a-4cef-a10b-2a59d9137e93
+                artifact_type: vega_lite
+                title: Churn by customer tenure
+                mime_type: application/vnd.vegalite.v5+json
+                content_hash: sha256:7b7e4dd8f8d40de8b97a18fc19b3d23ecfb37f2d1eeef24d7c12b58e46c99baf
+                created_at: '2026-07-17T14:20:30.123Z'
+                privacy_classification: internal
+
+    heartbeat:
+      name: heartbeat
+      title: Transport stream heartbeat
+      summary: Reports the latest sent sequence without advancing it.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/heartbeat'
+      examples:
+        - name: heartbeat
+          payload:
+            runid: run_33bd8a55-5154-4233-bfc3-1c327b2398e6
+            sequence: 3
+            time: '2026-07-17T14:20:35.123+00:00'
+
+    commandRequest:
+      name: commandRequest
+      title: Run command request
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/commandRequest'
+      examples:
+        - name: pauseAnimation
+          payload:
+            command: pause_animation
+            value: true
+        - name: setSimulatorSpeed
+          payload:
+            command: set_simulator_speed
+            value: 2
+        - name: followAgent
+          payload:
+            command: follow_agent
+            value: agent_0f34cba3-66f8-43b7-b346-b7ea995637f9
+
+    commandAccepted:
+      name: commandAccepted
+      title: Accepted run command
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/commandAccepted'
+
+    commandError:
+      name: commandError
+      title: Safe command error
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/commandError'
+
+  schemas:
+    commandRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - command
+      properties:
+        command:
+          type: string
+          enum:
+            - pause_animation
+            - return_live
+            - follow_agent
+            - set_simulator_speed
+            - add_annotation
+        value:
+          description: >-
+            Command-specific value. Boolean for pause_animation, null or true
+            for return_live, an agent ID for follow_agent, a positive bounded
+            number for set_simulator_speed, and sanitized text
+            for add_annotation.
+          oneOf:
+            - type: 'null'
+            - type: boolean
+            - type: number
+            - type: string
+              maxLength: 2000
+
+    commandAccepted:
+      type: object
+      additionalProperties: false
+      required:
+        - accepted
+      properties:
+        accepted:
+          type: boolean
+        command:
+          type: string
+        value:
+          type:
+            - string
+            - number
+            - boolean
+            - 'null'
+          description: Applied command value when returned by the handler.
+        scope:
+          type: string
+          description: "`client` when the command changes disposable client state."
+
+    heartbeat:
+      type: object
+      additionalProperties: false
+      required:
+        - runid
+        - sequence
+        - time
+      properties:
+        runid:
+          type: string
+          pattern: '^run_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$'
+        sequence:
+          type: integer
+          minimum: 0
+        time:
+          type: string
+          format: date-time
+
+    commandError:
+      type: object
+      additionalProperties: true
+      required:
+        - detail
+      properties:
+        detail:
+          description: Redacted validation or authorization detail.
+          oneOf:
+            - type: string
+              maxLength: 1000
+            - type: array
+              maxItems: 50
+
+  correlationIds:
+    runCorrelation:
+      description: CloudEvent correlation extension for a logical workflow.
+      location: $message.payload#/correlationid
+
+x-rest-ingestion:
+  single:
+    method: POST
+    path: /api/v1/events
+  batch:
+    method: POST
+    path: /api/v1/events/batch
+  documentation: OpenAPI
+
+x-authentication-assumptions:
+  local: >-
+    Single-user loopback profile; it does not imply multi-user authentication
+    or tenant authorization.
+  production: >-
+    The deployment must authenticate the same identity for SSE and commands,
+    authorize run access, restrict origins and trusted hosts, and return safe
+    401 or 403 error bodies without leaking run existence across tenants.

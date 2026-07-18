@@ -1,0 +1,31 @@
+{
+  "specversion": "1.0",
+  "id": "evt_41f5a55c2e3c40788d4a2d76e6595d53",
+  "source": "urn:galaxy:adapter:simulator",
+  "type": "galaxy.analysis.node.created.v1",
+  "subject": "run/run_33bd8a5551544233bfc31c327b2398e6/node/node_4639b2f6c02a4cefa10b2a59d9137e93",
+  "time": "2026-07-17T14:20:10.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "/schemas/events/node-created.v1.schema.json",
+  "runid": "run_33bd8a5551544233bfc31c327b2398e6",
+  "sequence": 2,
+  "traceid": "0af7651916cd43dd8448eb211c80319c",
+  "spanid": "b7ad6b7169203331",
+  "correlationid": "corr_b5827dc727654b7094d8953ae7bece9f",
+  "causationid": "evt_bf1953b81f754108ab459d60f05e5fe6",
+  "producerversion": "simulator/1.0.0",
+  "privacyclass": "internal",
+  "data": {
+    "node": {
+      "id": "node_4639b2f6c02a4cefa10b2a59d9137e93",
+      "schema_version": 1,
+      "run_id": "run_33bd8a5551544233bfc31c327b2398e6",
+      "parent_node_id": null,
+      "node_type": "exploration",
+      "title": "Investigate early-tenure churn",
+      "status": "created",
+      "created_at": "2026-07-17T14:20:10.123Z",
+      "promotion_reason": "Distinct analytical objective with a durable chart output"
+    }
+  }
+}

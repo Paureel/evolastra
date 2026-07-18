@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starexplorer.local/schemas/events/run-created.v1.schema.json",
+  "title": "Run created event v1",
+  "allOf": [
+    {
+      "$ref": "./durable-event-envelope.v1.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "galaxy.analysis.run.created.v1"
+        },
+        "dataschema": {
+          "const": "/schemas/events/run-created.v1.schema.json"
+        },
+        "subject": {
+          "type": "string",
+          "pattern": "^run/run_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "run"
+          ],
+          "properties": {
+            "run": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": [
+                "id",
+                "schema_version",
+                "title",
+                "objective",
+                "status",
+                "run_seed",
+                "privacy_classification"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^run_(?:[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+                },
+                "schema_version": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "objective": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "status": {
+                  "const": "created"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "run_seed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "privacy_classification": {
+                  "type": "string",
+                  "enum": [
+                    "public",
+                    "internal",
+                    "confidential",
+                    "restricted"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

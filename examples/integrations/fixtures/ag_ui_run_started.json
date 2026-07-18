@@ -1,0 +1,6 @@
+{
+  "type": "RUN_STARTED",
+  "threadId": "thread-fixture-001",
+  "runId": "run-fixture-001",
+  "input": {"messages": [{"role": "user", "content": "fixture content is redacted by default"}]}
+}

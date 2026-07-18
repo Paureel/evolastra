@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starexplorer.local/schemas/events/semantic-event-v1.json",
+  "title": "Asterism generic semantic event v1",
+  "description": "Generic local schema used by producers that do not have a registered type-specific payload schema.",
+  "$ref": "./durable-event-envelope.v1.schema.json"
+}

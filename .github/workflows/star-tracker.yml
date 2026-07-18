@@ -1,0 +1,44 @@
+name: Star tracker
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: star-tracker
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Update README star badge
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read current star count
+        id: stars
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "count=$(gh api repos/${GITHUB_REPOSITORY} --jq .stargazers_count)" >> "$GITHUB_OUTPUT"
+
+      - name: Render badge
+        run: python scripts/update_star_badge.py "${{ steps.stars.outputs.count }}"
+
+      - name: Commit badge when changed
+        run: |
+          if git diff --quiet -- docs/badges/stars.svg; then
+            echo "Star badge is current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/badges/stars.svg
+          git commit -m "chore: update star tracker"
+          git push
