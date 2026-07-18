@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { downloadExport, fetchState, importPortableAnalysis, listRuns, pairingInfo, search, sendCommand, startDemo } from "./api";
+import { downloadExport, fetchMultiplayerState, fetchState, importPortableAnalysis, listRuns, pairingInfo, search, sendCommand, startDemo } from "./api";
 import { ArtifactPreview } from "./components/ArtifactPreview";
 import { ConnectionPanel } from "./components/ConnectionPanel";
 import { Explorer } from "./components/Explorer";
 import { GalaxyCanvas } from "./components/GalaxyCanvas";
 import { Inspector } from "./components/Inspector";
 import { MapBrief } from "./components/MapBrief";
+import { MultiplayerPanel } from "./components/MultiplayerPanel";
 import { Shipyard } from "./components/Shipyard";
 import { StatusMark } from "./components/StatusMark";
 import { WorkspaceView } from "./components/WorkspaceView";
 import { useLiveProjection } from "./hooks/useLiveProjection";
 import { advanceReplay, replayStart } from "./replay";
 import { AUTH_REQUIRED_EVENT, CONNECTION_CHANGED_EVENT, getConnection } from "./connection";
-import type { Entity, GraphState, SceneEntity, ViewName } from "./types";
+import type { Entity, GraphState, MultiplayerState, SceneEntity, ViewName } from "./types";
 
 const PRIMARY_VIEWS: Array<{ id: ViewName; label: string }> = [
   { id: "galaxy", label: "Galaxy map" },
@@ -26,7 +27,7 @@ const ADVANCED_VIEWS: Array<{ id: ViewName; label: string }> = [
   { id: "findings", label: "Findings" },
   { id: "timeline", label: "Timeline" },
   { id: "agents", label: "Agents" },
-  { id: "artifacts", label: "Artifacts" },
+  { id: "artifacts", label: "Figures" },
   { id: "datasets", label: "Data" },
   { id: "metrics", label: "Metrics" },
   { id: "telemetry", label: "Telemetry" },
@@ -79,6 +80,7 @@ export default function App() {
   const [transferStatus, setTransferStatus] = useState<{ error: boolean; text: string } | null>(null);
   const [shipyardOpen, setShipyardOpen] = useState(false);
   const [shipyardBlueprintId, setShipyardBlueprintId] = useState<string | null>(null);
+  const [multiplayerOpen, setMultiplayerOpen] = useState(false);
   const portableInput = useRef<HTMLInputElement>(null);
   const demoRequested = useRef(false);
 
@@ -119,6 +121,13 @@ export default function App() {
   }, [activeRunId, runsQuery]);
 
   const live = useLiveProjection(activeRunId, connectionRevision);
+  const multiplayerQuery = useQuery({
+    queryKey: ["multiplayer", activeRunId, connectionRevision],
+    queryFn: () => fetchMultiplayerState(activeRunId!),
+    enabled: Boolean(activeRunId && connectionReady && !connectionRequired),
+    refetchInterval: 5_000,
+    retry: false,
+  });
   useEffect(() => {
     if (!live.state || selectedId) return;
     const root = live.state.nodes.find((node) => !node.parent_node_id);
@@ -188,6 +197,18 @@ export default function App() {
   const run = (runsQuery.data ?? []).find((item) => item.id === activeRunId);
   const runSeed = Number(state?.run.run_seed ?? run?.seed ?? 1);
   const streamLag = Math.max(0, (run?.last_sequence ?? live.state?.last_sequence ?? 0) - (live.state?.last_sequence ?? 0));
+  const multiplayer = multiplayerQuery.data ?? ({ enabled: false } satisfies MultiplayerState);
+  const claimColors = useMemo(() => {
+    const playerColors = new Map((multiplayer.players ?? []).map((player) => [player.id, player.color]));
+    return Object.fromEntries((multiplayer.claims ?? []).flatMap((claim) => {
+      const color = playerColors.get(claim.player_id);
+      return color ? [[claim.node_id, color]] : [];
+    }));
+  }, [multiplayer.claims, multiplayer.players]);
+  const selectedSystem = useMemo(() => {
+    const selected = scene?.entities.find((entity) => entity.id === selectedId);
+    return selected && ["home", "node"].includes(selected.kind) ? { id: selected.id, title: selected.title } : null;
+  }, [scene, selectedId]);
   const advanced = view === "advanced";
   const openShipyard = (blueprintId: string | null = null) => {
     setShipyardBlueprintId(blueprintId);
@@ -241,6 +262,10 @@ export default function App() {
           <StatusMark status={live.connection === "live" ? "running" : "failed"} label={`${live.connection} · ${streamLag} lag`} />
           <small>LOCAL DATA</small>
         </button>
+        <button className={`federation-trigger${multiplayer.enabled ? ` ${multiplayer.session?.status ?? "paused"}` : ""}`} onClick={() => setMultiplayerOpen(true)} aria-label="Open multiplayer federation">
+          <span className="federation-pips" aria-hidden="true">{(multiplayer.players ?? []).slice(0, 4).map((player) => <i key={player.id} style={{ background: player.color }} />)}{!multiplayer.enabled && <i />}</span>
+          <strong>{multiplayer.enabled ? `${multiplayer.players?.length ?? 1} players` : "Single player"}</strong><small>{multiplayer.enabled ? multiplayer.session?.status : "MULTIPLAYER"}</small>
+        </button>
         <button className="search-trigger" onClick={() => setSearchOpen(true)}><span>Search</span><kbd>Ctrl K</kbd></button>
       </header>
 
@@ -275,6 +300,7 @@ export default function App() {
                 onOpenSystem={(id) => { setSelectedId(id); setView("system"); }}
                 onOpenShipyard={() => openShipyard()}
                 shipyardEnabled={focusSystemId === scene.rootId}
+                multiplayerClaims={claimColors}
                 onBackToGalaxy={() => setView("galaxy")}
                 animated={!animationPaused}
                 reducedMotion={reducedMotion}
@@ -291,7 +317,7 @@ export default function App() {
                 onOpenAdvanced={() => setView("advanced")}
               />
             </>
-          ) : <WorkspaceView view={advancedView} state={state} runs={runsQuery.data ?? []} currentRunId={activeRunId} onSelect={setSelectedId} onOpenShipyard={(blueprintId) => openShipyard(blueprintId)} />}
+          ) : <WorkspaceView view={advancedView} state={state} runs={runsQuery.data ?? []} currentRunId={activeRunId} onSelect={setSelectedId} onOpenShipyard={(blueprintId) => openShipyard(blueprintId)} onOpenArtifact={setArtifact} />}
         </section>
         {advanced && <Inspector state={state} selectedId={selectedId} onRefresh={live.refresh} onOpenArtifact={setArtifact} onOpenSystem={(id) => { setSelectedId(id); setView("system"); }} spaceMode={null} />}
       </main>
@@ -359,6 +385,15 @@ export default function App() {
         preferredBlueprintId={shipyardBlueprintId}
         onClose={() => setShipyardOpen(false)}
         onChanged={() => { void live.refresh(); void runsQuery.refetch(); }}
+      />
+      <MultiplayerPanel
+        open={multiplayerOpen}
+        runId={activeRunId}
+        state={multiplayer}
+        selectedSystem={selectedSystem}
+        findings={state?.findings ?? []}
+        onClose={() => setMultiplayerOpen(false)}
+        onChanged={() => { void multiplayerQuery.refetch(); }}
       />
     </div>
   );

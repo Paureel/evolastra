@@ -2,15 +2,18 @@
 
 Reviewed: 2026-07-18
 Frameworks: FastAPI/Pydantic/SQLAlchemy and React/Vite/TypeScript
-Deployments rated: development loopback, Local Private, and static hosted viewer
+Deployments rated: development loopback, Local Private, private tailnet federation, and static hosted viewer
 
 ## Executive summary
 
-No critical issue was found under the verified profiles. Local Private requires bearer authorization, exchanges one-use codes for short-lived origin-bound sessions, handles private-network preflight only for exact origins, rejects non-loopback production clients, and keeps its root token out of Codex hook configuration and browser responses. The hosted deployment is static-only; remote API destinations and the centralized connector/profile were removed. Full npm and Python manifest audits report no known vulnerabilities.
+No critical issue was found under the verified profiles. Local Private requires bearer authorization, exchanges one-use codes for short-lived origin-bound sessions, handles private-network preflight only for exact origins, and keeps its root token out of Codex hook configuration and browser responses. The hosted deployment remains static-only. Optional multiplayer exposes only a federation path through Tailscale Serve and requires a separate scoped bearer; guest grants are memory-only and cannot authorize the ordinary companion API. Full npm and Python manifest audits report no known vulnerabilities.
 
 ## Critical findings
 
-None for the stated profiles. Exposing the local Python API to remote users would violate the product contract and remains explicitly unsupported.
+None for the stated profiles. Exposing the ordinary local Python API—or using a
+public Funnel—would violate the product contract and remains explicitly
+unsupported. The reviewed exception is the bounded federation route family for
+known tailnet members.
 
 ## High findings and remediation status
 

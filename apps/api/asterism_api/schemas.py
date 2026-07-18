@@ -114,6 +114,46 @@ class ShipDispatchRequest(StrictModel):
     prompt: str = Field(min_length=3, max_length=8_000)
 
 
+PLAYER_COLOR_PATTERN = r"^#[0-9A-Fa-f]{6}$"
+
+
+class MultiplayerHostRequest(StrictModel):
+    run_id: str = Field(min_length=10, max_length=80)
+    display_name: str = Field(min_length=2, max_length=80)
+    color: str = Field(pattern=PLAYER_COLOR_PATTERN)
+    share_url: str = Field(min_length=12, max_length=500)
+
+
+class MultiplayerJoinRequest(StrictModel):
+    invite_code: str = Field(min_length=40, max_length=4_000)
+    display_name: str = Field(min_length=2, max_length=80)
+    color: str = Field(pattern=PLAYER_COLOR_PATTERN)
+
+
+class MultiplayerClaimRequest(StrictModel):
+    node_id: str = Field(min_length=10, max_length=80)
+
+
+class MultiplayerPublishRequest(StrictModel):
+    finding_id: str = Field(min_length=10, max_length=80)
+
+
+class FederationJoinRequest(StrictModel):
+    display_name: str = Field(min_length=2, max_length=80)
+    color: str = Field(pattern=PLAYER_COLOR_PATTERN)
+    project_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class FederationClaimRequest(StrictModel):
+    node_id: str = Field(min_length=10, max_length=80)
+
+
+class FederationPublishRequest(StrictModel):
+    finding_id: str = Field(min_length=10, max_length=80)
+    title: str = Field(min_length=1, max_length=300)
+    summary: str = Field(min_length=1, max_length=2_000)
+
+
 class SearchResult(StrictModel):
     id: str
     run_id: str

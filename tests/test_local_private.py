@@ -61,10 +61,23 @@ def test_local_private_api_requires_root_or_paired_bearer(monkeypatch: pytest.Mo
             assert client.get("/health/live").status_code == 200
             assert client.get("/api/v1/runs").status_code == 401
             assert client.get("/api/v1/runs/not-a-run/shipyard").status_code == 401
+            assert client.get("/api/v1/multiplayer/runs/not-a-run").status_code == 401
             assert (
                 client.post(
                     "/api/v1/runs/not-a-run/shipyard/build",
                     json={"blueprint_id": "frigate"},
+                ).status_code
+                == 401
+            )
+            assert (
+                client.post(
+                    "/api/v1/multiplayer/host",
+                    json={
+                        "run_id": "run_not-a-run",
+                        "display_name": "Player",
+                        "color": "#71E6E1",
+                        "share_url": "https://host.example.ts.net",
+                    },
                 ).status_code
                 == 401
             )

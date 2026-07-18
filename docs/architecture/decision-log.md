@@ -35,3 +35,14 @@ Accepted. Managed Codex hooks perform bounded redaction and atomic local writes 
 ## ADR-009 — Centralized Hosted Team profile rejected and removed
 
 Superseded. Centralized VPS ingestion and persistence conflict with the product's local-data requirement. Public deployments contain static viewer assets only. Runtime endpoint validation and the deployment CSP limit API traffic to loopback companions; the supported Python service is local-private and rejects non-loopback clients in production.
+
+## ADR-010 — Host-authoritative tailnet federation
+
+Accepted for the Phase 1 multiplayer profile. One participant's Local Private
+companion remains authoritative for a separate collaboration overlay containing
+player identities, colors, presence, system claims, and explicitly published
+finding summaries. Tailscale Serve exposes only `/api/v1/federation` to the
+tailnet; invite and member capabilities are scoped to those routes and do not
+authorize the ordinary companion API. The canonical event log, prompts, datasets,
+artifacts, Codex credentials, and raw findings are not replicated. Guests must
+load the same portable analysis locally, and host loss pauses the session.

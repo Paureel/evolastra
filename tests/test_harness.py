@@ -11,6 +11,7 @@ from scripts.harness import (
     check_local_private_boundary,
     check_markdown_links,
     check_mermaid_accessibility,
+    check_multiplayer_boundary,
     check_plan_lifecycle,
     check_python_boundaries,
     check_web_boundaries,
@@ -115,6 +116,26 @@ def test_harness_detects_networked_or_escalated_codex_dispatch(tmp_path: Path) -
     assert all(issue.rule == "ARCH-006" for issue in issues)
     assert any("ws://" in issue.message for issue in issues)
     assert any("danger-full-access" in issue.message for issue in issues)
+
+
+def test_harness_detects_persisted_multiplayer_member_grant(tmp_path: Path) -> None:
+    package = tmp_path / "apps" / "api" / "asterism_api"
+    migration = tmp_path / "migrations" / "versions"
+    package.mkdir(parents=True)
+    migration.mkdir(parents=True)
+    (package / "multiplayer.py").write_text(
+        'host.endswith(".ts.net")\ntrust_env=False\n', encoding="utf-8"
+    )
+    (package / "multiplayer_api.py").write_text(
+        'prefix="/api/v1/federation"\n"tailscale-user-login"\ndependencies=[Depends(_tailnet_request)]\n',
+        encoding="utf-8",
+    )
+    (package / "db_models.py").write_text("member_token = Column(Text)\n", encoding="utf-8")
+    (migration / "20260718_0002_multiplayer.py").write_text("pass\n", encoding="utf-8")
+
+    issues = check_multiplayer_boundary(tmp_path)
+
+    assert any(issue.rule == "ARCH-007" and "must not be persisted" in issue.message for issue in issues)
 
 
 def test_harness_detects_incomplete_plan_metadata(tmp_path: Path) -> None:

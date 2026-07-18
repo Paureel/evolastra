@@ -1,4 +1,4 @@
-import type { Entity, GraphState, MissionReceipt, RunSummary, ShipyardState } from "./types";
+import type { Entity, GraphState, MissionReceipt, MultiplayerReadiness, MultiplayerState, RunSummary, ShipyardState } from "./types";
 import { apiAddress, authorizationHeaders, getConnection, safeEndpoint, saveConnection, signalAuthenticationRequired } from "./connection";
 
 export class ApiError extends Error {
@@ -93,6 +93,54 @@ export function dispatchShip(runId: string, shipId: string, prompt: string): Pro
     method: "POST",
     body: JSON.stringify({ prompt }),
   });
+}
+
+export function fetchMultiplayerReadiness(): Promise<MultiplayerReadiness> {
+  return request("/api/v1/multiplayer/readiness");
+}
+
+export function fetchMultiplayerState(runId: string): Promise<MultiplayerState> {
+  return request(`/api/v1/multiplayer/runs/${encodeURIComponent(runId)}`);
+}
+
+export function hostMultiplayer(runId: string, displayName: string, color: string, shareUrl: string): Promise<{ state: MultiplayerState; invite_code: string }> {
+  return request("/api/v1/multiplayer/host", {
+    method: "POST",
+    body: JSON.stringify({ run_id: runId, display_name: displayName, color, share_url: shareUrl }),
+  });
+}
+
+export function joinMultiplayer(inviteCode: string, displayName: string, color: string): Promise<MultiplayerState> {
+  return request("/api/v1/multiplayer/join", {
+    method: "POST",
+    body: JSON.stringify({ invite_code: inviteCode, display_name: displayName, color }),
+  });
+}
+
+export function renewMultiplayerInvite(runId: string): Promise<{ invite_code: string }> {
+  return request(`/api/v1/multiplayer/runs/${encodeURIComponent(runId)}/invite`, { method: "POST", body: "{}" });
+}
+
+export function claimMultiplayerSystem(runId: string, nodeId: string): Promise<MultiplayerState> {
+  return request(`/api/v1/multiplayer/runs/${encodeURIComponent(runId)}/claims`, {
+    method: "POST",
+    body: JSON.stringify({ node_id: nodeId }),
+  });
+}
+
+export function releaseMultiplayerSystem(runId: string, nodeId: string): Promise<MultiplayerState> {
+  return request(`/api/v1/multiplayer/runs/${encodeURIComponent(runId)}/claims/${encodeURIComponent(nodeId)}`, { method: "DELETE" });
+}
+
+export function publishMultiplayerFinding(runId: string, findingId: string): Promise<MultiplayerState> {
+  return request(`/api/v1/multiplayer/runs/${encodeURIComponent(runId)}/publications`, {
+    method: "POST",
+    body: JSON.stringify({ finding_id: findingId }),
+  });
+}
+
+export function leaveMultiplayer(runId: string): Promise<{ closed: boolean }> {
+  return request(`/api/v1/multiplayer/runs/${encodeURIComponent(runId)}`, { method: "DELETE" });
 }
 
 export function recordApproval(runId: string, approvalId: string, decision: "approved" | "rejected"): Promise<Record<string, unknown>> {

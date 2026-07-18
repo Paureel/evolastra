@@ -1,11 +1,11 @@
 # Evolastra Observatory threat model
 
 Reviewed: 2026-07-18
-Profiles: development loopback, Local Private companion, and static hosted viewer
+Profiles: development loopback, Local Private companion, private tailnet federation, and static hosted viewer
 
 ## Executive summary
 
-Local Private uses mandatory bearer authentication, one-use pairing codes, short-lived origin-bound browser grants, exact CORS/Host allowlists, Private Network Access preflight handling, a user-private root token, and production rejection of non-loopback clients. Ship missions cross a second local boundary through a short-lived Codex app-server child process over stdio; they use a fixed repository workspace, `workspace-write`, and `approvalPolicy: never`. The public deployment is static viewer code with no API, persistence, or Codex dispatch. Action-specific business invariants, referential integrity, resource budgets, and physical-copy retention remain material hardening areas.
+Local Private uses mandatory bearer authentication, one-use pairing codes, short-lived origin-bound browser grants, exact CORS/Host allowlists, Private Network Access preflight handling, a user-private root token, and production rejection of direct non-loopback clients. Ship missions cross a second local boundary through a short-lived Codex app-server child process over stdio. Optional multiplayer adds a narrow Tailscale Serve path with separate invite/member capabilities; it exchanges a collaboration overlay rather than project data. The public deployment is static viewer code with no API, persistence, Codex dispatch, or multiplayer relay. Action-specific business invariants, rate limits, host availability, and physical-copy retention remain material hardening areas.
 
 ## Scope and assumptions
 
@@ -16,10 +16,13 @@ In scope:
 - ingestion adapters and SDK sinks under `integrations/` and `sdk/`;
 - SQLite persistence, JSONL import, SSE, exports, preview metadata, redaction, destructive actions, and build/asset supply chain;
 - runtime and security-relevant build/test configuration in root manifests.
+- the opt-in `/api/v1/federation` route family and multiplayer overlay.
 
 Assumptions established by the shared contract:
 
 - Local Private binds to loopback for one local operator. Its browser and adapters use bearer authorization; no authentication cookies are used.
+- Multiplayer participants are known members of one operator-controlled Tailscale
+  network. Tailscale Funnel and anonymous/public joining are not supported.
 - The hosted viewer is internet-deployable static content. Its runtime endpoint policy and CSP allow API connections only to loopback.
 - Telemetry, imported JSONL, semantic fields, artifact metadata, and adapter output are untrusted data.
 - HTML, SVG, notebooks, generated code, and uploaded artifacts are never executed. The current preview is metadata/structured data only.
@@ -45,6 +48,7 @@ Open questions that change risk ranking:
 - **Adapters/SDKs:** collect external telemetry, perform bounded/default-deny redaction, spool JSONL, and emit to configured HTTP endpoints (`integrations/core.py:25-113`, `integrations/codex_hooks.py:69-139`, `sdk/python/galaxy_sdk/client.py:43-65`).
 - **Exporters:** create JSON, JSONL, PROV, OpenLineage, Obsidian ZIP, and reproduction ZIP responses in memory (`apps/api/asterism_api/api.py:355-369`, `apps/api/asterism_api/exports.py:20-154`).
 - **Shipyard/Codex dispatcher:** derives role-specific mission instructions from trusted blueprints, redacts user mission text before event persistence, and launches one signed-in Codex task through a per-mission stdio app-server process (`apps/api/asterism_api/shipyard.py`, `apps/api/asterism_api/codex_dispatch.py`).
+- **Multiplayer federation:** keeps host-authoritative players, claims, and bounded publications outside the semantic log; HTTPS `.ts.net` federation calls require a Tailscale identity header plus scoped invite/member bearer (`multiplayer.py`, `multiplayer_api.py`).
 
 ### Data flows and trust boundaries
 
@@ -53,6 +57,7 @@ Open questions that change risk ranking:
 - **FastAPI -> SQLite:** redacted event envelopes, derived state, snapshots, quarantine payloads, and minimal audits cross the ORM boundary. SQLAlchemy query construction avoids observed string-built SQL (`event_store.py:125-228`, `database.py:22-38`).
 - **FastAPI -> browser/exported files:** semantic state and event history cross JSON/SSE/download boundaries. Preview content remains data, while Obsidian export intentionally emits Markdown that must remain untrusted downstream (`api.py:346-369`, `exports.py:92-154`).
 - **FastAPI -> Codex app-server:** a validated mission prompt crosses local stdio into the user's signed-in Codex installation. The companion fixes the working directory to this repository, requests workspace-write sandboxing with no approval escalation, omits model and credential overrides, and closes the child process when the turn completes. The browser never receives or handles Codex credentials.
+- **Guest companion -> host companion:** presence, system IDs, player display identity/color, and explicitly selected finding summaries cross the private tailnet. The host stores that overlay locally. Project events, prompts, datasets, artifacts, exports, and Codex credentials do not cross this boundary. Guest member grants remain in process memory.
 - **Dependency/asset sources -> developer build:** Python/npm packages and future visual assets cross a supply-chain boundary. Python uses a hash-pinned runtime lock, npm has a committed lockfile, and visual assets currently have a complete empty manifest (`requirements.lock`, `apps/web/package-lock.json`, `docs/assets/asset-manifest.json`).
 
 #### Diagram
@@ -69,6 +74,8 @@ flowchart LR
     companion -->|ZIP and JSON exports| exports["Local exported files"]
     companion -->|JSONL over stdio| codex["Signed-in Codex app-server"]
     codex -->|Workspace-write sandbox| workspace["Fixed repository workspace"]
+    guest["Guest companion"] -->|Scoped HTTPS federation| tailnet["Tailscale Serve path"]
+    tailnet --> companion
     sources["Package and asset sources"] -->|Build inputs| build["Developer build"]
     build --> browser
 ```
@@ -87,6 +94,7 @@ flowchart LR
 | Redaction rules and privacy configuration | Failure exposes credentials or captured content broadly | C, I |
 | Source, dependencies, and visual assets | Compromise executes in developer/browser/API contexts | I, C, A |
 | Codex identity, task history, and mission prompts | Dispatch can create work and modify repository files under the local user | C, I, A |
+| Multiplayer invite/member capabilities and overlay | Controls joins, territory, presence, and deliberately published summaries | C, I, A |
 
 ## Attacker model
 
@@ -98,6 +106,7 @@ flowchart LR
 - Submit a deceptive ship mission through a paired browser session and attempt prompt injection, workspace escape, or approval escalation.
 - Cause a user to open exported Markdown/ZIP content in another tool, while that content remains untrusted.
 - Publish a compromised dependency or asset that a developer installs when reproducibility/provenance gates are absent.
+- Join the same tailnet, obtain or replay an invite/member capability, and submit hostile bounded publication text or high-rate federation operations.
 
 ### Non-capabilities
 
@@ -114,6 +123,7 @@ flowchart LR
 | JSONL import | Multipart POST | Browser/script -> multipart parser -> API | ASGI bytes and handler reads are bounded; source manifest pins multipart 0.0.31 | `main.py:22-59`; `api.py:196-218`; `requirements.txt:9` |
 | Demo/state-changing commands | Unsafe HTTP methods | Browser -> API | Protected by a bearer grant plus Origin, Host, and Fetch Metadata checks | `main.py`; `api.py` |
 | Ship build and dispatch | Paired browser POST | Browser -> API -> Codex stdio | Prompt is untrusted; blueprint is server-derived; dispatch is disabled outside the installed local companion | `api.py`; `shipyard.py`; `codex_dispatch.py` |
+| Federation join/state/claims/publications | HTTPS through Tailscale Serve | Guest companion -> host companion | Separate scoped bearer; tailnet identity gate; bounded schemas; no ordinary API authorization | `multiplayer.py`; `multiplayer_api.py` |
 | SSE | EventSource GET and `Last-Event-ID` | Browser/script -> long-lived API response | Resume supported; no connection quota/rate limit | `api.py:218-253` |
 | Search/state/export | GET routes | Browser/script -> API/DB | Large projected state and exports can amplify CPU/memory | `api.py:108-147`, `310-383` |
 | Artifact preview | Selected artifact metadata | Persisted untrusted data -> React | JSX/preformatted text; no raw HTML execution | `ArtifactPreview.tsx:3-27` |
@@ -133,6 +143,7 @@ flowchart LR
 7. **Abuse downstream Markdown:** inject YAML/Markdown/link syntax into semantic titles or findings -> export to Obsidian -> user opens it with a permissive plugin/tool -> content becomes an active social-engineering or downstream-parser surface.
 8. **Compromise the build:** exploit the missing hash-locked Python resolution or a compromised locked dependency source -> developer installs it -> malicious build/runtime code executes.
 9. **Abuse an authorized mission:** persuade a paired user to launch a malicious instruction -> Codex operates inside the repository workspace -> source or local outputs are modified within the configured sandbox. The fixed workspace and no-escalation policy limit scope but do not make an authorized mission trustworthy.
+10. **Abuse a federation capability:** obtain an invite or member grant from its recipient -> join or mutate the bounded collaboration overlay -> create misleading territory/publication state or exhaust the host with requests. Scoped routes prevent project/export/Codex access, but Phase 1 has no rate limiter or member revocation UI.
 
 ## Threat model table
 
@@ -149,6 +160,7 @@ flowchart LR
 | TM-009 | Compromised registry/source | Developer performs install/build | Supply changed/unverified package or visual asset | Developer/runtime code execution or asset-license compromise | Source/build/browser/API | Hash-locked Python and npm installs, full audits, executable source/asset scans, and first-party asset verifier | No generated distribution SBOM or signed provenance | Retain locked clean installs; add SBOM/signing/provenance review | CI audit/SBOM diff, runtime-version check, lock drift and asset checksum gates | Medium | High | medium |
 | TM-010 | Remote user in future deployment | Service is exposed beyond loopback or gains multiple users | Read/mutate any run and approval because no identity/tenant checks | Full confidentiality/integrity loss across users | All application data | Explicitly documented loopback single-user boundary | No authN/authZ/tenant isolation/TLS production profile | Block non-loopback startup by default; require a new threat model plus centralized authN, object/tenant authZ, TLS/proxy trust, CSRF/session design | Startup exposure check, auth coverage tests, tenant isolation tests | Low in verified profile | High | low |
 | TM-011 | Malicious mission author or prompt content | Attacker controls a paired session or convinces the user to launch supplied text | Instruct Codex to alter repository content, disclose workspace data in task output, or request unsupported interaction | Repository integrity loss or confidential source disclosure within the authorized workspace | Source, mission prompts, Codex task history | Pairing and bearer auth; exact origin/host checks; server-derived role envelope; fixed repository `cwd`; workspace-write sandbox; `approvalPolicy: never`; stdio only; browser receives no Codex credential (`api.py`, `shipyard.py`, `codex_dispatch.py`) | Codex app-server is experimental; authorized prompts can intentionally modify repository files; task output follows Codex retention policy | Keep dispatch local-private and opt-in; display the boundary before launch; preserve no-escalation and fixed-workspace tests; add mission cancellation and richer task status before broader deployment | Audit ship/thread IDs without raw prompts; alert on app-server protocol failures and abnormal mission duration | Medium | High | medium |
+| TM-012 | Tailnet member or leaked federation capability | Host enabled the federation path and attacker obtains an invite/member bearer | Join, claim systems, publish deceptive summaries, replay operations, or create request load | Misleading coordination state, disclosure of published summaries, host availability loss | Multiplayer overlay and local service availability | HTTPS `.ts.net` target restriction; path-only Tailscale Serve guidance; Tailscale identity header gate plus scoped high-entropy bearer; invite expiry/rotation; strict bounded schemas; project fingerprint; member grants memory-only; replay isolation tests (`multiplayer.py`, `multiplayer_api.py`) | No per-member revocation, rate limiting, host migration, or append-only federation audit; Tailscale header authenticity depends on correct Serve configuration | Add member removal/revocation and request budgets; audit overlay mutations; retain path-only Serve invariant; never support Funnel under this profile | Count joins/rejects/mutations by opaque member ID; surface last-seen and claim/publication activity to host | Medium | Medium | medium |
 
 ## Criticality calibration
 
@@ -171,6 +183,7 @@ flowchart LR
 | `apps/web/src/components/ArtifactPreview.tsx` | Untrusted preview rendering boundary | TM-007 |
 | `apps/web/index.html` | Static CSP and local API connection policy | TM-001, TM-007 |
 | `apps/api/asterism_api/shipyard.py` and `codex_dispatch.py` | Mission role construction and the Codex process/protocol boundary | TM-011 |
+| `apps/api/asterism_api/multiplayer.py` and `multiplayer_api.py` | Tailnet target validation, capabilities, and bounded collaboration operations | TM-012 |
 | `integrations/core.py` and `sdk/typescript/src/index.ts` | Divergent redaction implementations | TM-005 |
 | `integrations/codex_hooks.py` and `sdk/python/galaxy_sdk/client.py` | Spool/network/filesystem sinks | TM-005, TM-009 |
 | `requirements.lock`, `pyproject.toml`, `apps/web/package-lock.json` | Dependency reproducibility and advisories | TM-009 |
@@ -178,7 +191,7 @@ flowchart LR
 
 ## Quality check
 
-- [x] REST, multipart, SSE, preview, export, adapter spool, ship dispatch, database, and build entry points covered.
+- [x] REST, multipart, SSE, preview, export, adapter spool, ship dispatch, multiplayer federation, database, and build entry points covered.
 - [x] Browser/API, adapter/API, API/database, export/downstream, and supply-chain boundaries represented in threats.
 - [x] Runtime findings separated from build/test and future hosted risks.
 - [x] Explicit deployment assumptions from the shared contract applied without a clarification pause.

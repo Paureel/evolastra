@@ -84,7 +84,7 @@ def service_environment(config: ServiceConfig) -> dict[str, str]:
             "ASTERISM_ARTIFACT_ROOT": config.artifact_root,
             "ASTERISM_TOKEN_FILE": str(TOKEN_PATH),
             "ASTERISM_ALLOWED_ORIGINS": ",".join(config.allowed_origins),
-            "ASTERISM_ALLOWED_HOSTS": "127.0.0.1,localhost",
+            "ASTERISM_ALLOWED_HOSTS": "127.0.0.1,localhost,testserver,*.ts.net",
             "ASTERISM_CODEX_SPOOL": config.codex_spool,
             "ASTERISM_DRAIN_CODEX_SPOOL": "true",
             "ASTERISM_SERVE_WEB": "true",

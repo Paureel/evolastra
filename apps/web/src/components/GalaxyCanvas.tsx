@@ -16,6 +16,7 @@ interface GalaxyCanvasProps {
   onOpenSystem: (id: string) => void;
   onOpenShipyard: () => void;
   shipyardEnabled: boolean;
+  multiplayerClaims: Record<string, string>;
   onBackToGalaxy: () => void;
   animated: boolean;
   reducedMotion: boolean;
@@ -942,6 +943,31 @@ function drawSelection(context: CanvasRenderingContext2D, entity: PositionedEnti
   context.restore();
 }
 
+function drawMultiplayerClaim(context: CanvasRenderingContext2D, entity: PositionedEntity, color: string, zoom: number, time: number): void {
+  const radius = entity.radius + 13 / zoom;
+  context.save();
+  context.strokeStyle = rgba(color, 0.18);
+  context.lineWidth = 7 / zoom;
+  context.shadowColor = color;
+  context.shadowBlur = 12 / zoom;
+  context.beginPath();
+  context.arc(entity.x, entity.y, radius, 0, Math.PI * 2);
+  context.stroke();
+  context.strokeStyle = color;
+  context.lineWidth = 1.6 / zoom;
+  context.setLineDash([7 / zoom, 3 / zoom]);
+  context.lineDashOffset = -time * 0.008 / zoom;
+  context.beginPath();
+  context.arc(entity.x, entity.y, radius, 0, Math.PI * 2);
+  context.stroke();
+  context.setLineDash([]);
+  context.fillStyle = color;
+  context.beginPath();
+  context.arc(entity.x + radius * 0.72, entity.y - radius * 0.72, 2.8 / zoom, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+}
+
 function animateSystemLayout(layout: PositionedEntity[], time: number, enabled: boolean, seed: number): PositionedEntity[] {
   if (!enabled || time === 0) return layout;
   return layout.map((entity) => {
@@ -957,10 +983,11 @@ function animateSystemLayout(layout: PositionedEntity[], time: number, enabled: 
   });
 }
 
-export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selectedId, onSelect, onOpenSystem, onOpenShipyard, shipyardEnabled, onBackToGalaxy, animated, reducedMotion, highContrast }: GalaxyCanvasProps) {
+export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selectedId, onSelect, onOpenSystem, onOpenShipyard, shipyardEnabled, multiplayerClaims, onBackToGalaxy, animated, reducedMotion, highContrast }: GalaxyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [layout, setLayout] = useState<PositionedEntity[]>([]);
   const [orientation, setOrientation] = useState<{ yaw: number; pitch: number }>(() => ({ yaw: DEFAULT_ORIENTATION[mode].yaw, pitch: DEFAULT_ORIENTATION[mode].pitch }));
+  const [zoomLevel, setZoomLevel] = useState(1);
   const layoutRef = useRef<PositionedEntity[]>([]);
   const renderedLayoutRef = useRef<PositionedEntity[]>([]);
   const camera = useRef<Camera>({ x: 0, y: 0, zoom: 1, ...DEFAULT_ORIENTATION[mode] });
@@ -972,6 +999,10 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
   const stellarOrdinals = useMemo(() => new Map(stellarSystemIds.map((id, ordinal) => [id, ordinal])), [stellarSystemIds]);
   const unclaimedSystemCount = frontierSystemCount(claimedSystemCount);
   const defaultGalaxyZoom = galaxyCameraZoom(unclaimedSystemCount);
+  const defaultCameraZoom = mode === "galaxy" ? defaultGalaxyZoom : 1.08;
+  const zoomPercent = Math.round((zoomLevel / defaultCameraZoom) * 100);
+  const minZoomPercent = Math.ceil((0.26 / defaultCameraZoom) * 100);
+  const maxZoomPercent = Math.floor((3.4 / defaultCameraZoom) * 100);
   const frontier = useMemo(() => createFrontierField(seed, unclaimedSystemCount), [seed, unclaimedSystemCount]);
   const connectedLanes = useMemo(() => connectedHyperlanes(layout, edges), [layout, edges]);
   const frontierBridges = useMemo(
@@ -981,7 +1012,8 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
 
   useEffect(() => {
     const view = DEFAULT_ORIENTATION[mode];
-    camera.current = { x: 0, y: 0, zoom: mode === "galaxy" ? defaultGalaxyZoom : 1.08, ...view };
+    camera.current = { x: 0, y: 0, zoom: defaultCameraZoom, ...view };
+    setZoomLevel(defaultCameraZoom);
     setOrientation({ yaw: view.yaw, pitch: view.pitch });
     const worker = new Worker(new URL("../layout.worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (event: MessageEvent<PositionedEntity[]>) => {
@@ -991,7 +1023,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
     };
     worker.postMessage({ entities, seed, mode, focusSystemId });
     return () => worker.terminate();
-  }, [entities, seed, mode, focusSystemId, defaultGalaxyZoom]);
+  }, [entities, seed, mode, focusSystemId, defaultCameraZoom]);
 
   const focusTitle = useMemo(() => entities.find((entity) => entity.id === focusSystemId)?.title ?? "Run nexus", [entities, focusSystemId]);
   const focusProfile = stellarProfiles.get(focusSystemId);
@@ -1051,6 +1083,8 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
         } else if (isCentral || (mode === "galaxy" && ["home", "node"].includes(entity.kind))) drawStar(context, entity, color, pulse, current.zoom, motionTime);
         else if (["node", "artifact", "home"].includes(entity.kind)) drawPlanet(context, entity, color, current.zoom, motionTime, seed);
         else drawMarker(context, entity, color, current.zoom, motionTime);
+        const claimColor = multiplayerClaims[entity.id];
+        if (claimColor && ["home", "node"].includes(entity.kind)) drawMultiplayerClaim(context, entity, claimColor, current.zoom, motionTime);
         drawLabel(context, entity, mode, current.zoom, entity.id === selectedId);
         if (entity.id === selectedId) drawSelection(context, entity, current.zoom, motionTime);
       }
@@ -1059,7 +1093,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
     };
     frame = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(frame); observer.disconnect(); };
-  }, [animated, reducedMotion, highContrast, seed, mode, selectedId, layout, frontier, frontierBridges, connectedLanes, stellarProfiles, stellarOrdinals]);
+  }, [animated, reducedMotion, highContrast, seed, mode, selectedId, layout, frontier, frontierBridges, connectedLanes, stellarProfiles, stellarOrdinals, multiplayerClaims]);
 
   const screenToWorld = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
@@ -1078,7 +1112,15 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
   };
 
   const adjustZoom = (factor: number) => {
-    camera.current.zoom = Math.max(0.26, Math.min(3.4, camera.current.zoom * factor));
+    const next = Math.max(0.26, Math.min(3.4, camera.current.zoom * factor));
+    camera.current.zoom = next;
+    setZoomLevel(next);
+  };
+
+  const setZoomPercent = (percent: number) => {
+    const next = Math.max(0.26, Math.min(3.4, defaultCameraZoom * percent / 100));
+    camera.current.zoom = next;
+    setZoomLevel(next);
   };
 
   const rotateCamera = (yawDelta: number, pitchDelta: number) => {
@@ -1089,7 +1131,8 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
 
   const resetCamera = () => {
     const view = DEFAULT_ORIENTATION[mode];
-    camera.current = { x: 0, y: 0, zoom: mode === "galaxy" ? defaultGalaxyZoom : 1.08, ...view };
+    camera.current = { x: 0, y: 0, zoom: defaultCameraZoom, ...view };
+    setZoomLevel(defaultCameraZoom);
     setOrientation({ yaw: view.yaw, pitch: view.pitch });
   };
 
@@ -1192,9 +1235,22 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
       <output className="map-orientation" aria-label={`3D camera yaw ${angleDegrees(orientation.yaw)} degrees, tilt ${angleDegrees(orientation.pitch)} degrees; full orbit enabled`}>
         <span>3D NAV · FULL ORBIT</span><b>YAW {angleDegrees(orientation.yaw)}°</b><b>TILT {angleDegrees(orientation.pitch)}°</b>
       </output>
-      <div className="map-zoom map-camera" aria-label="3D map camera controls">
-        <button onClick={() => adjustZoom(1.18)} aria-label="Zoom in">+</button>
+      <div className="map-zoom" aria-label="Map zoom controls">
+        <span>ZOOM</span>
         <button onClick={() => adjustZoom(1 / 1.18)} aria-label="Zoom out">−</button>
+        <input
+          type="range"
+          min={minZoomPercent}
+          max={maxZoomPercent}
+          step="1"
+          value={Math.max(minZoomPercent, Math.min(maxZoomPercent, zoomPercent))}
+          onChange={(event) => setZoomPercent(Number(event.target.value))}
+          aria-label="Map zoom level"
+        />
+        <output aria-live="polite">{zoomPercent}%</output>
+        <button onClick={() => adjustZoom(1.18)} aria-label="Zoom in">+</button>
+      </div>
+      <div className="map-camera" aria-label="3D map rotation controls">
         <button onClick={() => rotateCamera(-0.14, 0)} aria-label="Rotate left">↶</button>
         <button onClick={() => rotateCamera(0.14, 0)} aria-label="Rotate right">↷</button>
         <button onClick={() => rotateCamera(0, -0.09)} aria-label="Tilt up">↑</button>

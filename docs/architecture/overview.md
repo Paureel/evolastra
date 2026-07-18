@@ -71,7 +71,11 @@ Artifacts are content-addressed files beneath a configured storage root. Metadat
 
 ## 🔐 Trust boundaries
 
-The initial profile is single-user and loopback-oriented. It does not imply production multi-user identity or tenant authorization. Production authentication and authorization are extension points.
+The default profile is single-player and loopback-oriented. Phase 1 multiplayer
+is an explicit host-authoritative overlay: Tailscale Serve exposes only the
+federation route family, while the ordinary companion API stays protected by its
+local root or paired-browser grants. It is collaboration among known tailnet
+members, not public multi-tenant hosting.
 
 - Redaction occurs before persistence, application logging, or export
 - Known secret-shaped content is denied by default
@@ -79,6 +83,32 @@ The initial profile is single-user and loopback-oriented. It does not imply prod
 - Notebook, HTML, SVG, and generated code content is never executed by preview paths
 - CORS, trusted hosts, and security headers are configured centrally
 - Risky and destructive actions require a semantic approval record
+- Federation invite and member capabilities authorize only collaboration routes
+- Raw prompts, datasets, artifacts, and member grants never enter federation persistence
+
+## 🛰️ Multiplayer federation
+
+The host keeps the canonical analysis and a small collaboration overlay in local
+SQLite. Guests load the same portable analysis locally and exchange only presence,
+player colors, system claims, and explicitly published finding summaries. A
+non-secret project fingerprint prevents accidental joins to a different analysis.
+
+```mermaid
+flowchart LR
+    accTitle: Local-first multiplayer federation
+    accDescr: A static hosted viewer talks to each player's loopback companion while scoped collaboration messages travel through Tailscale to the host companion; project data stays on participant devices.
+
+    viewer["Static viewer"] -->|Paired browser grant| local["Player companion"]
+    local -->|Local Codex and project| project[("Local analysis")]
+    local -->|Scoped member capability| tailnet["Tailscale Serve path"]
+    tailnet --> host["Host federation API"]
+    host --> overlay[("Host collaboration overlay")]
+```
+
+Multiplayer state is deliberately outside the semantic event log. Claiming a
+system or publishing a summary therefore cannot alter replay, provenance, or a
+single-player export. When the host is unreachable, guests retain the last
+overlay as a visibly paused view and cannot mutate it.
 
 ## 🎯 Determinism and ownership
 

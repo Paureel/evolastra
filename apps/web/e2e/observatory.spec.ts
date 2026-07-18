@@ -63,6 +63,28 @@ test("stellar identity persists from galaxy systems into system view", async ({ 
   await expect(page.getByRole("img", { name: /Robustness checks, a black hole/i })).toBeVisible();
 });
 
+test("map zoom is explicit and analysis artifacts open as safe figures", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
+  const zoom = page.getByRole("slider", { name: "Map zoom level" });
+  await expect(zoom).toBeVisible();
+  await zoom.fill("175");
+  await expect(page.locator(".map-zoom output")).toHaveText("175%");
+  await page.getByRole("button", { name: "Zoom out" }).click();
+  await expect(page.locator(".map-zoom output")).not.toHaveText("175%");
+
+  await page.getByRole("tab", { name: "Advanced" }).click();
+  await page.getByRole("tab", { name: "Figures" }).click();
+  await expect(page.getByRole("region", { name: "Analysis figures" })).toBeVisible();
+  const firstFigure = page.getByRole("button", { name: /^Open figure / }).first();
+  await expect(firstFigure).toBeVisible();
+  await firstFigure.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText(/preview|frequency/i).first()).toBeVisible();
+  await dialog.getByRole("button", { name: "Close preview" }).click();
+});
+
 test("command star shipyard builds core and research-unlocked vessels", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
@@ -83,6 +105,12 @@ test("command star shipyard builds core and research-unlocked vessels", async ({
   await shipyard.getByRole("button", { name: "Close shipyard" }).click();
 
   await page.getByRole("tab", { name: "Advanced" }).click();
+  await page.getByRole("tab", { name: "Figures" }).click();
+  const firstFigure = page.getByRole("button", { name: /^Open figure / }).first();
+  await expect(firstFigure).toBeVisible();
+  await firstFigure.click();
+  const figureResults = await new AxeBuilder({ page }).analyze();
+  await page.getByRole("button", { name: "Close preview" }).click();
   await page.getByRole("tab", { name: "Tech tree" }).click();
   await expect(page.getByLabel("Research tech tree")).toBeVisible();
   const specialist = page.getByRole("button", { name: "Build specialist ship" }).first();
@@ -90,6 +118,20 @@ test("command star shipyard builds core and research-unlocked vessels", async ({
   await specialist.click();
   await expect(shipyard).toBeVisible();
   await expect(shipyard.getByText("RESEARCH HULL").first()).toBeVisible();
+});
+
+test("single player opens an opt-in local-first multiplayer federation", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /Churn atlas/i })).toBeVisible();
+  await page.getByRole("button", { name: "Open multiplayer federation" }).click();
+  const federation = page.getByRole("dialog", { name: "Research federation" });
+  await expect(federation).toBeVisible();
+  await expect(federation.getByRole("tab", { name: "Host project" })).toBeVisible();
+  await expect(federation.getByRole("tab", { name: "Join project" })).toBeVisible();
+  await expect(federation.getByText("THIS DEVICE")).toBeVisible();
+  await expect(federation.getByText(/Netlify/i)).toBeVisible();
+  await federation.getByRole("button", { name: "Close multiplayer" }).click();
+  await expect(federation).not.toBeVisible();
 });
 
 test("@accessibility core surface has no serious axe violations", async ({ page }) => {
@@ -105,10 +147,19 @@ test("@accessibility core surface has no serious axe violations", async ({ page 
   await expect(page.getByRole("dialog", { name: "Build a Codex vessel" })).toBeVisible();
   const shipyardResults = await new AxeBuilder({ page }).analyze();
   await page.getByRole("button", { name: "Close shipyard" }).click();
+  await page.getByRole("button", { name: "Open multiplayer federation" }).click();
+  await expect(page.getByRole("dialog", { name: "Research federation" })).toBeVisible();
+  const federationResults = await new AxeBuilder({ page }).analyze();
+  await page.getByRole("button", { name: "Close multiplayer" }).click();
   await page.getByRole("tab", { name: "Advanced" }).click();
+  await page.getByRole("tab", { name: "Figures" }).click();
+  await page.getByRole("button", { name: /^Open figure / }).first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  const figureResults = await new AxeBuilder({ page }).analyze();
+  await page.getByRole("button", { name: "Close preview" }).click();
   await page.getByRole("tab", { name: "Tech tree" }).click();
   await expect(page.getByLabel("Research tech tree")).toBeVisible();
   const techTreeResults = await new AxeBuilder({ page }).analyze();
-  const serious = [...defaultResults.violations, ...shipyardResults.violations, ...techTreeResults.violations].filter((violation) => ["critical", "serious"].includes(violation.impact ?? ""));
+  const serious = [...defaultResults.violations, ...shipyardResults.violations, ...federationResults.violations, ...figureResults.violations, ...techTreeResults.violations].filter((violation) => ["critical", "serious"].includes(violation.impact ?? ""));
   expect(serious, serious.map((item) => `${item.id}: ${item.help}`).join("\n")).toEqual([]);
 });

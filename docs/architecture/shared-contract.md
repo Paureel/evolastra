@@ -67,6 +67,9 @@ The vertical slice projects these durable event families:
 ## Trust and privacy defaults
 
 - This initial local profile is single-user and loopback-oriented. Production multi-user authentication and tenant authorization are extension points, not falsely implied.
+- The optional Phase 1 federation extends coordination, not this semantic contract:
+  it shares presence, system claims, and explicitly published summaries through
+  scoped tailnet routes while canonical events remain local and single-writer.
 - Content capture is default-deny for known secret-shaped fields. Redaction happens before persistence and logging.
 - CORS is restricted to configured origins. Security headers and trusted hosts are enforced centrally.
 - Imported text and artifacts are untrusted data, never instructions. No notebook, HTML, SVG, or generated code is executed.

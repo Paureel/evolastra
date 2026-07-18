@@ -18,6 +18,7 @@ Audited 2026-07-17 against the original empty workspace and the implemented loca
 | Canonical domain entities | Complete, verified | Registered v1 entity/action families enforce canonical identity payloads. |
 | Append-only event store | Complete, verified | Atomic SQLite persistence/projection, unique IDs, per-run sequences, corrections, and snapshots. |
 | Streaming and resume | Complete, verified | SSE cursor resume, catch-up, heartbeat, UI batching, and reconnect behavior are covered. |
+| Multiplayer collaboration | Phase 1 complete | Host-authoritative tailnet sessions, player colors/presence, exclusive system claims, bounded finding publication, replay isolation, and paused host-loss state are implemented; member revocation, host migration, chat, and artifact transfer are deferred. |
 | Persistence and migrations | Partial | SQLite, Alembic, snapshots, quarantine, and rebuild are verified; PostgreSQL/S3 are targets only. |
 | Galaxy metaphor and deterministic layout | Complete, verified | Seeded systems, planets, agents, hyperlanes, anomalies, findings, and worker layout. |
 | Renderer benchmark and ADR | Partial | Canvas ADR and deterministic reducer benchmark exist; cross-renderer browser benchmark is documented, not fully executed. |
@@ -30,7 +31,7 @@ Audited 2026-07-17 against the original empty workspace and the implemented loca
 | Obsidian export | Complete, verified | Safe paths, manifest, stable links, collision resistance, and attachments are tested. |
 | Original visual system | Complete | Original procedural palette, typography, geometry, motion, icons, and chart treatment; no third-party assets. |
 | Backend APIs and health | Complete, verified | Versioned run/entity/export/command routes and granular health checks. |
-| Privacy and security | Complete for local profile | Redaction, limits, safe files, headers, origin gates, approval boundary, threat model, and clean audits; internet/multi-user deployment is unsupported. |
+| Privacy and security | Complete for local and Phase 1 federation profiles | Redaction, limits, safe files, headers, origin gates, scoped tailnet capabilities, memory-only guest grants, threat model, and clean audits; internet/public multi-user deployment remains unsupported. |
 | Accessibility | Substantially verified | Keyboard/text alternatives, reduced motion, contrast control, and axe serious/critical scan pass; no formal full WCAG audit. |
 | Performance targets | Partial | Reducer reaches 24,387 events/s at 100k events; browser scale and long-session memory targets remain unverified. |
 | Demonstration run | Complete, verified | Reproducible 214 semantic-event churn investigation plus four durable snapshot events, with eight branches, failures, contradictions, approvals, and unexplored paths. |

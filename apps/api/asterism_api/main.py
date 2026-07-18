@@ -21,6 +21,8 @@ from .api import public_router, router
 from .config import Settings, get_settings
 from .database import SessionLocal, init_database
 from .event_store import EventStore
+from .multiplayer_api import federation_router
+from .multiplayer_api import local_router as multiplayer_router
 
 settings = get_settings()
 
@@ -233,6 +235,8 @@ def health_telemetry() -> dict[str, object]:
 
 app.include_router(public_router)
 app.include_router(router)
+app.include_router(multiplayer_router)
+app.include_router(federation_router)
 
 
 @app.get("/schemas/events/{schema_name}", include_in_schema=False)

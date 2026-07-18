@@ -53,6 +53,33 @@ Enter the code in the browser. The returned bearer grant is bound to the request
 
 The browser talks directly to `127.0.0.1`; analysis traffic does not pass through the static host. The static host can still receive ordinary asset-request metadata such as IP address, user agent, and timestamps in its access logs.
 
+## Optional multiplayer federation
+
+Single player remains the default. For a multiplayer session, every participant
+runs their own Local Private companion and joins the same private Tailscale
+network. The host exposes only the federation path:
+
+```powershell
+tailscale serve --bg --set-path /api/v1/federation http://127.0.0.1:8000/api/v1/federation
+```
+
+Do not use Tailscale Funnel. The command leaves the companion listening on
+loopback and makes only the scoped federation path reachable inside the tailnet.
+Open **Single player → Host project** in Evolastra, enter the HTTPS `.ts.net`
+address reported by Tailscale, and share the generated invite privately.
+
+Guests load the matching `.evolastra` project on their own device before using
+**Single player → Join project**. Project bytes are not transferred by the invite.
+The guest's scoped member grant stays in companion memory; after a companion
+restart, rejoin with a fresh invite. Stop sharing with:
+
+```powershell
+tailscale serve reset
+```
+
+See the [multiplayer guide](../user-guide/multiplayer.md) for claims, publication,
+host-loss behavior, and the exact data boundary.
+
 ## Portable analyses
 
 Open **Advanced → Save / load**. **Save analysis** downloads one `.evolastra` file containing the redacted durable event history. **Load analysis** imports that file into this or another Evolastra instance and reconstructs replay, maps, findings, and provenance. The importer is bounded, accepts only the Evolastra manifest and JSONL members, and never extracts or executes archive content.

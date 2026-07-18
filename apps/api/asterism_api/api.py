@@ -191,12 +191,15 @@ def update_run(run_id: str, payload: RunPatch, session: SessionDep) -> dict[str,
 
 @router.delete("/runs/{run_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_run(run_id: str, session: SessionDep) -> Response:
+    from .multiplayer import delete_session_for_run
+
     run = get_run_or_404(session, run_id)
     store = EventStore(session)
     store.audit("run.delete", run_id, {"title": run.title})
     session.query(EventRecord).filter(EventRecord.run_id == run_id).delete()
     session.query(SnapshotRecord).filter(SnapshotRecord.run_id == run_id).delete()
     session.query(QuarantineRecord).filter(QuarantineRecord.run_id == run_id).delete()
+    delete_session_for_run(session, run_id)
     session.delete(run)
     session.commit()
     return Response(status_code=204)

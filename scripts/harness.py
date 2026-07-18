@@ -79,6 +79,12 @@ CODEX_DISPATCH_REQUIRED = (
     '"approvalPolicy": "never"',
 )
 CODEX_DISPATCH_FORBIDDEN = ("danger-full-access", "http://", "https://", "ws://", "wss://")
+MULTIPLAYER_REQUIRED = (
+    'host.endswith(".ts.net")',
+    'trust_env=False',
+    '"tailscale-user-login"',
+    'prefix="/api/v1/federation"',
+)
 
 
 @dataclass(frozen=True)
@@ -345,6 +351,37 @@ def check_codex_dispatch_boundary(root: Path) -> list[Issue]:
     return issues
 
 
+def check_multiplayer_boundary(root: Path) -> list[Issue]:
+    implementation = root / "apps" / "api" / "asterism_api" / "multiplayer.py"
+    routes = root / "apps" / "api" / "asterism_api" / "multiplayer_api.py"
+    persistence = (
+        root / "apps" / "api" / "asterism_api" / "db_models.py",
+        root / "migrations" / "versions" / "20260718_0002_multiplayer.py",
+    )
+    issues: list[Issue] = []
+    content = ""
+    for path in (implementation, routes):
+        if not path.exists():
+            issues.append(Issue("ARCH-007", relative(root, path), "multiplayer boundary file is missing"))
+        else:
+            content += path.read_text(encoding="utf-8")
+    for token in MULTIPLAYER_REQUIRED:
+        if token not in content:
+            issues.append(
+                Issue("ARCH-007", relative(root, implementation), f"required multiplayer boundary is missing: {token}")
+            )
+    if "dependencies=[Depends(_tailnet_request)]" not in content:
+        issues.append(
+            Issue("ARCH-007", relative(root, routes), "federation routes must require the tailnet request gate")
+        )
+    for path in persistence:
+        if path.exists() and "member_token" in path.read_text(encoding="utf-8"):
+            issues.append(
+                Issue("ARCH-007", relative(root, path), "raw multiplayer member grants must not be persisted")
+            )
+    return issues
+
+
 def metadata_value(content: str, label: str) -> str | None:
     match = re.search(rf"^{re.escape(label)}:\s*(.+?)\s*$", content, re.MULTILINE | re.IGNORECASE)
     return match.group(1).strip() if match else None
@@ -390,6 +427,7 @@ CHECKS = (
     ("event_schema_boundaries", check_event_schema_boundaries),
     ("local_private_boundary", check_local_private_boundary),
     ("codex_dispatch_boundary", check_codex_dispatch_boundary),
+    ("multiplayer_boundary", check_multiplayer_boundary),
     ("plan_lifecycle", check_plan_lifecycle),
 )
 

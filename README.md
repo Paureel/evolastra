@@ -36,9 +36,10 @@ For a demo without Codex integration, follow [Run the demo only](docs/getting-st
 
 ## Why Evolastra
 
-- **See the analysis happen.** Runs, branches, agents, tools, artifacts, findings, anomalies, and approvals become distinct inspectable objects.
+- **See the analysis happen.** Runs, branches, agents, tools, artifacts, findings, anomalies, and approvals become distinct inspectable objects; bounded numeric artifacts become safe local figures rather than executable uploads.
 - **Navigate in 3D.** Both maps support perspective depth, unrestricted 360° rotation, tilt, pan, zoom, and keyboard camera controls.
 - **Launch work from the map.** Build Codex vessels at the command star, unlock problem-specific hulls through research, and dispatch explicit missions into new local Codex tasks.
+- **Federate a project privately.** Opt into host-authoritative multiplayer through Tailscale, claim systems with player colors, and publish selected finding summaries while Netlify stays storage-free.
 - **Never lose the trail.** Replay, deterministic projections, typed relationships, and portable exports preserve how a conclusion was reached.
 - **Keep data local.** The companion, SQLite database, artifacts, Codex outbox, and access capability remain on the user’s machine.
 - **Integrate without lock-in.** CloudEvents, W3C trace concepts, JSONL, OpenLineage exports, SDKs, and narrow adapters provide explicit boundaries.
@@ -123,6 +124,30 @@ open the [shipyard](docs/user-guide/shipyard.md). Each launch creates a new task
 through the same signed-in Codex installation; the browser never receives Codex
 credentials.
 
+For cooperative work, open **Single player** in the command bar. The
+[multiplayer guide](docs/user-guide/multiplayer.md) explains how a host exposes
+only the federation path through Tailscale, how guests load the matching project,
+and exactly which collaboration fields are shared.
+
+### Multiplayer quick start
+
+Every participant installs Evolastra and Tailscale, joins the same private
+tailnet, and loads the same `.evolastra` analysis locally. On the host only,
+expose the bounded federation route:
+
+```powershell
+tailscale serve --bg --set-path /api/v1/federation http://127.0.0.1:8000/api/v1/federation
+```
+
+The host chooses **Single player → Host project**, enters the device's HTTPS
+`.ts.net` address, and shares the generated `EVO1…` invite privately. Guests use
+**Single player → Join project**. Stop the route after the session with
+`tailscale serve reset`.
+
+The invite contains no project bytes. Netlify remains a static host, each Codex
+ship stays under its owner's local companion, and single player continues to
+work without Tailscale. Do not use Tailscale Funnel.
+
 ## Privacy model
 
 The hosted viewer is static presentation code. It contains no API, ingestion service, database, or analytical storage. Each browser pairs directly with a loopback companion using a one-use code and receives a short-lived, origin-bound grant. Redaction occurs before local persistence.
@@ -186,7 +211,7 @@ Start with the [documentation index](docs/README.md), [repository map](docs/arch
 
 ## Project status
 
-Evolastra is an experimental, single-user, local-first observatory. SQLite is the verified persistence profile. The repository documents deferred production-scale components and verified support boundaries rather than presenting them as implemented. See the [gap matrix](docs/audit/gap-matrix.md) and [quality report](docs/audit/quality-report.md).
+Evolastra is an experimental, local-first observatory. Single player is the default; Phase 1 multiplayer is an opt-in host-authoritative overlay for known members of a private Tailscale network. SQLite is the verified persistence profile. The repository documents deferred production-scale components and verified support boundaries rather than presenting them as implemented. See the [gap matrix](docs/audit/gap-matrix.md) and [quality report](docs/audit/quality-report.md).
 
 ## License
 

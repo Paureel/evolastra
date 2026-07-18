@@ -38,6 +38,55 @@ def test_event_ingestion_is_idempotent_and_sequenced() -> None:
         assert run.state["nodes"]["node_00112233445546668899aabbccddeeff"]["title"] == "A branch"
 
 
+def test_ingestion_refreshes_a_run_loaded_before_another_session_commits() -> None:
+    with SessionLocal() as creating_session:
+        run, _ = EventStore(creating_session).create_run(
+            RunCreate(title="Concurrent run", objective="Serialize independent writers")
+        )
+        run_id = run.id
+
+    with SessionLocal() as stale_session, SessionLocal() as fresh_session:
+        stale_run = stale_session.get(type(run), run_id)
+        assert stale_run is not None and stale_run.last_sequence == 1
+        first_metric_id = "metr_11111111111141118111111111111111"
+        second_metric_id = "metr_2222222222224222a222222222222222"
+
+        first = EventStore(fresh_session).ingest(
+            make_event(
+                run_id=run_id,
+                event_type="galaxy.analysis.metric.recorded.v1",
+                subject=f"run/{run_id}/metric/{first_metric_id}",
+                data={
+                    "metric": {
+                        "id": first_metric_id,
+                        "run_id": run_id,
+                        "name": "writers",
+                        "value": 1,
+                    }
+                },
+            ).model_dump(mode="json")
+        )
+        second = EventStore(stale_session).ingest(
+            make_event(
+                run_id=run_id,
+                event_type="galaxy.analysis.metric.recorded.v1",
+                subject=f"run/{run_id}/metric/{second_metric_id}",
+                data={
+                    "metric": {
+                        "id": second_metric_id,
+                        "run_id": run_id,
+                        "name": "writers",
+                        "value": 2,
+                    }
+                },
+            ).model_dump(mode="json")
+        )
+
+        assert first.accepted and first.sequence == 2
+        assert second.accepted and second.sequence == 3
+        assert second.quarantine_id is None
+
+
 def test_out_of_order_event_is_quarantined() -> None:
     with SessionLocal() as session:
         store = EventStore(session)

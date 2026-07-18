@@ -12,7 +12,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .config import get_settings
-from .db_models import AuditRecord, EventRecord, QuarantineRecord, RunRecord, SnapshotRecord
+from .db_models import (
+    AuditRecord,
+    EventRecord,
+    MultiplayerClaimRecord,
+    MultiplayerPlayerRecord,
+    MultiplayerPublicationRecord,
+    MultiplayerSessionRecord,
+    QuarantineRecord,
+    RunRecord,
+    SnapshotRecord,
+)
 from .ids import new_id
 from .reducer import SUPPORTED_ACTIONS, initial_state, public_state, reduce_event
 from .schemas import ID_PATTERN, CloudEvent, IngestResult, RunCreate
@@ -108,6 +118,10 @@ class EventStore:
                 safe_raw, f"schema validation failed: {exc.errors(include_url=False)}"
             )
         with _ingest_lock:
+            # A request can load a run before another request commits its next
+            # event. Refresh the identity map after acquiring the process-wide
+            # writer lock so sequence allocation uses the committed head.
+            self.session.expire_all()
             try:
                 result = self._ingest_validated(event)
                 self.session.commit()
@@ -361,7 +375,20 @@ class EventStore:
         )
 
     def reset(self) -> None:
-        for model in (EventRecord, SnapshotRecord, QuarantineRecord, AuditRecord, RunRecord):
+        from .multiplayer import clear_multiplayer_runtime
+
+        clear_multiplayer_runtime()
+        for model in (
+            MultiplayerClaimRecord,
+            MultiplayerPublicationRecord,
+            MultiplayerPlayerRecord,
+            MultiplayerSessionRecord,
+            EventRecord,
+            SnapshotRecord,
+            QuarantineRecord,
+            AuditRecord,
+            RunRecord,
+        ):
             self.session.execute(delete(model))
         self.session.commit()
 

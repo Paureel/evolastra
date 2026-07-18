@@ -1,5 +1,6 @@
 import type { Entity, GraphState, RunSummary, ViewName } from "../types";
 import { buildTechTiers, type TechState } from "../techTree";
+import { ArtifactFigureThumbnail } from "./ArtifactPreview";
 import { StatusMark } from "./StatusMark";
 
 function EntityTable({ items, onSelect }: { items: Entity[]; onSelect: (id: string) => void }) {
@@ -17,7 +18,7 @@ function EntityTable({ items, onSelect }: { items: Entity[]; onSelect: (id: stri
   );
 }
 
-export function WorkspaceView({ view, state, runs, currentRunId, onSelect, onOpenShipyard }: { view: ViewName; state: GraphState; runs: RunSummary[]; currentRunId: string | null; onSelect: (id: string) => void; onOpenShipyard: (blueprintId: string) => void }) {
+export function WorkspaceView({ view, state, runs, currentRunId, onSelect, onOpenShipyard, onOpenArtifact }: { view: ViewName; state: GraphState; runs: RunSummary[]; currentRunId: string | null; onSelect: (id: string) => void; onOpenShipyard: (blueprintId: string) => void; onOpenArtifact: (artifact: Entity) => void }) {
   if (view === "tree") {
     const root = state.nodes.find((node) => !node.parent_node_id);
     const tiers = buildTechTiers(state.nodes.filter((node) => node.parent_node_id));
@@ -68,13 +69,22 @@ export function WorkspaceView({ view, state, runs, currentRunId, onSelect, onOpe
   }
   if (view === "findings") return <section className="workspace-view"><div className="workspace-title"><span className="eyebrow">EPISTEMIC WORKSPACE</span><h2>Findings and contradictions</h2><p>Validation is explicit; confident prose never substitutes for evidence.</p></div><EntityTable items={[...state.findings, ...state.claims.filter((claim) => claim.status === "disputed")]} onSelect={onSelect} /></section>;
   if (view === "timeline") return <section className="workspace-view"><div className="workspace-title"><span className="eyebrow">DURABLE EVENT TIME</span><h2>Semantic timeline</h2></div><EntityTable items={[...state.nodes, ...state.artifacts, ...state.findings, ...state.anomalies].sort((a, b) => (b._sequence ?? 0) - (a._sequence ?? 0))} onSelect={onSelect} /></section>;
+  if (view === "artifacts") return <section className="workspace-view figure-workspace" aria-label="Analysis figures">
+    <div className="workspace-title"><span className="eyebrow">SAFE SCIENTIFIC PLATES</span><h2>Figures and previews</h2><p>Rendered from bounded artifact data. No uploaded HTML, scripts, notebooks, or SVG behavior executes here.</p></div>
+    {state.artifacts.length ? <div className="figure-gallery">{state.artifacts.map((artifact, index) => <button className="figure-card" key={artifact.id} onClick={() => { onSelect(artifact.id); onOpenArtifact(artifact); }} aria-label={`Open figure ${String(artifact.title ?? artifact.id)}`}>
+      <span className="figure-card-index">FIG {String(index + 1).padStart(2, "0")}</span>
+      <ArtifactFigureThumbnail artifact={artifact} />
+      <span className="figure-card-copy"><strong>{String(artifact.title ?? artifact.id)}</strong><small>{String((artifact.preview as { row_count?: number } | undefined)?.row_count ?? "—")} rows · {String(artifact.mime_type ?? "data")}</small></span>
+      <span className="figure-card-action">Open figure <i aria-hidden="true">↗</i></span>
+    </button>)}</div> : <div className="workspace-empty"><span className="empty-orbit" /><h3>No figures yet</h3><p>Figures appear when an analysis records bounded artifact preview data.</p></div>}
+  </section>;
   if (view === "comparison") {
     const current = runs.find((run) => run.id === currentRunId);
     const other = runs.find((run) => run.id !== currentRunId);
     const keys = ["nodes", "agents", "tool_calls", "artifacts", "claims", "findings", "anomalies"];
     return <section className="workspace-view"><div className="workspace-title"><span className="eyebrow">RUN COMPARISON</span><h2>{other ? `${current?.title ?? "Current run"} ↔ ${other.title}` : "A second run is required"}</h2><p>Counts compare semantic projections; use exports for exact event-level diffing.</p></div>{other && current ? <div className="comparison-grid">{keys.map((key) => <div key={key}><span>{key.replaceAll("_", " ")}</span><strong>{current.counts[key] ?? 0}</strong><i>{(other.counts[key] ?? 0) - (current.counts[key] ?? 0) >= 0 ? "+" : ""}{(other.counts[key] ?? 0) - (current.counts[key] ?? 0)}</i><small>{other.counts[key] ?? 0} comparison</small></div>)}</div> : <div className="workspace-empty"><span className="empty-orbit" /><h3>No comparison run</h3><p>Start or import another run, then return to this view.</p></div>}</section>;
   }
-  const map: Partial<Record<ViewName, Entity[]>> = { agents: state.agents, artifacts: state.artifacts, datasets: [...state.datasets, ...state.dataset_versions], metrics: state.metrics, telemetry: state.tool_calls };
-  const names: Partial<Record<ViewName, string>> = { agents: "Agents and handoffs", artifacts: "Artifacts and previews", datasets: "Datasets and lineage", metrics: "Tokens, cost, and timing", telemetry: "Tool and operational activity" };
+  const map: Partial<Record<ViewName, Entity[]>> = { agents: state.agents, datasets: [...state.datasets, ...state.dataset_versions], metrics: state.metrics, telemetry: state.tool_calls };
+  const names: Partial<Record<ViewName, string>> = { agents: "Agents and handoffs", datasets: "Datasets and lineage", metrics: "Tokens, cost, and timing", telemetry: "Tool and operational activity" };
   return <section className="workspace-view"><div className="workspace-title"><span className="eyebrow">{view.toUpperCase()}</span><h2>{names[view] ?? view}</h2></div><EntityTable items={map[view] ?? []} onSelect={onSelect} /></section>;
 }

@@ -118,3 +118,55 @@ export interface MissionReceipt {
   turn_id: string;
   status: string;
 }
+
+export interface MultiplayerPlayer {
+  id: string;
+  display_name: string;
+  color: string;
+  role: "host" | "member";
+  online: boolean;
+  last_seen_at: string;
+}
+
+export interface MultiplayerClaim {
+  id: string;
+  node_id: string;
+  player_id: string;
+  claimed_at: string;
+}
+
+export interface MultiplayerPublication {
+  id: string;
+  finding_id: string;
+  player_id: string;
+  title: string;
+  summary: string;
+  published_at: string;
+}
+
+export interface MultiplayerState {
+  enabled: boolean;
+  session?: {
+    id: string;
+    run_id: string;
+    mode: "host" | "guest";
+    status: "active" | "paused" | "closed";
+    revision: number;
+    host_url: string;
+    project_fingerprint: string;
+    local_player_id: string;
+    title: string;
+  };
+  players?: MultiplayerPlayer[];
+  claims?: MultiplayerClaim[];
+  publications?: MultiplayerPublication[];
+  connection_error?: string;
+}
+
+export interface MultiplayerReadiness {
+  tailscale_installed: boolean;
+  tailnet_ready: boolean;
+  suggested_share_url: string | null;
+  serve_command: string;
+  stores_project_data: boolean;
+}

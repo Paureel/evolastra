@@ -16,6 +16,7 @@ explicit architecture decision, updated documentation, and updated enforcement.
 | `ARCH-004` | Durable event schemas contain semantic and operational facts, never visualization state. | Event schema properties are checked for camera, animation, viewport, and coordinate fields. |
 | `ARCH-005` | The Local Private runtime binds loopback only. | Runtime Python and PowerShell sources reject `0.0.0.0`. |
 | `ARCH-006` | Codex ship missions use local stdio, a fixed workspace-write sandbox, and no approval escalation. | The harness checks the app-server argv and thread-start policy and rejects network transports or danger-full-access. |
+| `ARCH-007` | Multiplayer shares only a bounded collaboration overlay through authenticated Tailscale federation routes. Remote targets must be HTTPS `.ts.net`, federation routes require a tailnet gate plus scoped bearer, and raw member grants stay in memory. | The harness checks transport, route, and persistence source boundaries; API tests verify replay isolation and authorization. |
 
 Repository-operability rules use `HARNESS-*` IDs:
 

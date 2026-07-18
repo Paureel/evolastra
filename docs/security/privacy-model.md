@@ -24,6 +24,7 @@ The authoritative database, artifact directory, Codex outbox, exports, and root 
 | Audit data | Action, target, fixed actor, redacted details | SQLite audit table | Minimal but incomplete action coverage |
 | Configuration | Database URL, artifact root, allowed origins/hosts, capture flag | Environment/`.env` | Operator-controlled; `.env` should not be committed |
 | Exports | Complete events, semantic summaries, lineage, Markdown, reproduction data | User-selected files outside application control | Portable copy; local deletion cannot recall it |
+| Multiplayer overlay | Player display names/colors, presence, system IDs, and deliberately published finding summaries | Host companion SQLite; last host snapshot on guest companion | Opt-in; no raw prompts, datasets, artifacts, or full event stream |
 
 The privacy labels `public`, `internal`, `confidential`, and `restricted` are validated on run/event envelopes (`apps/api/asterism_api/schemas.py:22-27`, `36-57`). They are descriptive metadata in the current profile; they do not trigger encryption, authorization, retention, or export restrictions.
 
@@ -34,6 +35,10 @@ The privacy labels `public`, `internal`, `confidential`, and `restricted` are va
 3. Valid events are copied into the append-only event table, mutable semantic projection, and periodic full-state snapshots (`event_store.py:170-226`).
 4. State and event data can leave the service through REST, SSE, search, preview metadata, and exports (`apps/api/asterism_api/api.py:132-176`, `268-303`, `360-430`).
 5. The React client renders textual content through JSX or `<pre>` rather than HTML interpretation (`apps/web/src/components/ArtifactPreview.tsx:12-27`).
+6. In multiplayer, a guest companion sends bounded collaboration operations to
+   the host through an HTTPS `.ts.net` route. The Netlify viewer is not in this
+   path. Invite secrets are user-carried; host stores only their digest, while
+   guest member grants stay in process memory and disappear on restart.
 
 ## Existing controls
 
@@ -46,6 +51,9 @@ The privacy labels `public`, `internal`, `confidential`, and `restricted` are va
 - Production mode disables interactive API docs (`main.py:28-36`).
 - API responses use `no-referrer`, nosniff, frame denial, restricted Permissions Policy, and a deny-by-default API CSP (`main.py:91-117`).
 - Unsafe cross-origin state changes and over-limit actual ASGI body bytes are rejected before routing (`main.py:22-59`, `91-108`).
+- Federation calls require both a Tailscale Serve identity header and a scoped
+  invite/member bearer. Those capabilities do not authorize ordinary run,
+  event, export, pairing, or Codex routes.
 
 ## Retention and deletion
 
@@ -90,6 +98,16 @@ The endpoint may be described as logical run deletion, not secure erasure or rec
 5. **Medium — exports replicate data without a manifest of sensitivity/retention:** reproduction and CloudEvents exports can contain the full redacted history.
 6. **Low in local profile — no encryption at rest:** SQLite relies on OS account/filesystem protection. Encryption/key management becomes necessary if the deployment or device-risk assumptions change.
 
-## Remote API exposure is unsupported
+## Narrow remote collaboration exception
 
-The static viewer may be internet-accessible, but the Python API must not be. Any future proposal for remote or multi-user ingestion requires a new architecture decision and privacy review; it is outside the current product contract. CORS is not an authorization control.
+The static viewer may be internet-accessible, but the ordinary Python API remains
+loopback-only. The sole supported remote exception is the Phase 1 federation
+route family exposed to an operator-controlled tailnet with Tailscale Serve. It
+accepts only presence, claims, and bounded publication summaries; it does not
+provide remote ingestion, exports, pairing, Codex dispatch, project download, or
+artifact access. Tailscale identity headers are a transport gate, not the only
+authorization control: every request also needs a scoped capability.
+
+Tailscale Funnel, public reverse proxies, shared server databases, and direct
+non-loopback binding remain unsupported. Any broader exposure requires a new
+architecture decision and privacy review. CORS is not an authorization control.
