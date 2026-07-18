@@ -1,6 +1,6 @@
 # Pre-registration: STAD multiplayer semantic-frontier method validation
 
-**Frozen at commit:** pending freeze commit
+**Frozen at commit:** `ce2bd292a9c1f49d5fb2bd5c37eadd7cbf1f3c48`
 **Question doc:** `docs/science-superpowers/questions/2026-07-19-stad-multiplayer-semantic-frontiers.md`
 **Analysis plan:** `docs/science-superpowers/plans/2026-07-19-stad-multiplayer-semantic-frontiers.md`
 
