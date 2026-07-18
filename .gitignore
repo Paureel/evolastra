@@ -62,9 +62,10 @@ pnpm-debug.log*
 .playwright-cli/
 playwright-report/
 blob-report/
-apps/web/test-results/
+test-results/
 
 # Local observatory state and generated exports
+.evolastra/
 data/
 apps/web/data/
 *.db
@@ -74,6 +75,7 @@ apps/web/data/
 *.sqlite3
 artifacts/
 exports/
+*.pid
 
 # Private or licensed scientific working data
 stad_data/
