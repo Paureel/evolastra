@@ -60,6 +60,14 @@ def test_local_private_api_requires_root_or_paired_bearer(monkeypatch: pytest.Mo
         with TestClient(main_module.app) as client:
             assert client.get("/health/live").status_code == 200
             assert client.get("/api/v1/runs").status_code == 401
+            assert client.get("/api/v1/runs/not-a-run/shipyard").status_code == 401
+            assert (
+                client.post(
+                    "/api/v1/runs/not-a-run/shipyard/build",
+                    json={"blueprint_id": "frigate"},
+                ).status_code
+                == 401
+            )
             preflight = client.options(
                 "/api/v1/runs",
                 headers={

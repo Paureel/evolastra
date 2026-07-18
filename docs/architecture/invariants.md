@@ -15,6 +15,7 @@ explicit architecture decision, updated documentation, and updated enforcement.
 | `ARCH-003` | Deterministic browser-domain modules do not depend on React components, hooks, or API clients. | The harness checks TypeScript import direction. |
 | `ARCH-004` | Durable event schemas contain semantic and operational facts, never visualization state. | Event schema properties are checked for camera, animation, viewport, and coordinate fields. |
 | `ARCH-005` | The Local Private runtime binds loopback only. | Runtime Python and PowerShell sources reject `0.0.0.0`. |
+| `ARCH-006` | Codex ship missions use local stdio, a fixed workspace-write sandbox, and no approval escalation. | The harness checks the app-server argv and thread-start policy and rejects network transports or danger-full-access. |
 
 Repository-operability rules use `HARNESS-*` IDs:
 

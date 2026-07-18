@@ -7,6 +7,7 @@ import { Explorer } from "./components/Explorer";
 import { GalaxyCanvas } from "./components/GalaxyCanvas";
 import { Inspector } from "./components/Inspector";
 import { MapBrief } from "./components/MapBrief";
+import { Shipyard } from "./components/Shipyard";
 import { StatusMark } from "./components/StatusMark";
 import { WorkspaceView } from "./components/WorkspaceView";
 import { useLiveProjection } from "./hooks/useLiveProjection";
@@ -76,6 +77,8 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Array<{ id: string; entity_type: string; title: string; context: string }>>([]);
   const [transferStatus, setTransferStatus] = useState<{ error: boolean; text: string } | null>(null);
+  const [shipyardOpen, setShipyardOpen] = useState(false);
+  const [shipyardBlueprintId, setShipyardBlueprintId] = useState<string | null>(null);
   const portableInput = useRef<HTMLInputElement>(null);
   const demoRequested = useRef(false);
 
@@ -186,6 +189,10 @@ export default function App() {
   const runSeed = Number(state?.run.run_seed ?? run?.seed ?? 1);
   const streamLag = Math.max(0, (run?.last_sequence ?? live.state?.last_sequence ?? 0) - (live.state?.last_sequence ?? 0));
   const advanced = view === "advanced";
+  const openShipyard = (blueprintId: string | null = null) => {
+    setShipyardBlueprintId(blueprintId);
+    setShipyardOpen(true);
+  };
   const startOrPauseReplay = () => {
     if (replayPlaying) {
       setReplayPlaying(false);
@@ -266,6 +273,8 @@ export default function App() {
                 selectedId={selectedId}
                 onSelect={setSelectedId}
                 onOpenSystem={(id) => { setSelectedId(id); setView("system"); }}
+                onOpenShipyard={() => openShipyard()}
+                shipyardEnabled={focusSystemId === scene.rootId}
                 onBackToGalaxy={() => setView("galaxy")}
                 animated={!animationPaused}
                 reducedMotion={reducedMotion}
@@ -278,10 +287,11 @@ export default function App() {
                 seed={runSeed}
                 mode={view === "system" ? "system" : "galaxy"}
                 onOpenSystem={(id) => { setSelectedId(id); setView("system"); }}
+                onOpenShipyard={() => openShipyard()}
                 onOpenAdvanced={() => setView("advanced")}
               />
             </>
-          ) : <WorkspaceView view={advancedView} state={state} runs={runsQuery.data ?? []} currentRunId={activeRunId} onSelect={setSelectedId} />}
+          ) : <WorkspaceView view={advancedView} state={state} runs={runsQuery.data ?? []} currentRunId={activeRunId} onSelect={setSelectedId} onOpenShipyard={(blueprintId) => openShipyard(blueprintId)} />}
         </section>
         {advanced && <Inspector state={state} selectedId={selectedId} onRefresh={live.refresh} onOpenArtifact={setArtifact} onOpenSystem={(id) => { setSelectedId(id); setView("system"); }} spaceMode={null} />}
       </main>
@@ -342,6 +352,13 @@ export default function App() {
           setActiveRunId(null);
           void runsQuery.refetch();
         }}
+      />
+      <Shipyard
+        open={shipyardOpen}
+        runId={activeRunId}
+        preferredBlueprintId={shipyardBlueprintId}
+        onClose={() => setShipyardOpen(false)}
+        onChanged={() => { void live.refresh(); void runsQuery.refetch(); }}
       />
     </div>
   );

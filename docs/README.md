@@ -7,6 +7,7 @@ Use this index to move from product operation to implementation detail.
 - [Repository overview](../README.md)
 - [Installation and agent setup](getting-started.md)
 - [Galaxy and System map guide](user-guide/galaxy.md)
+- [Shipyard and Codex missions](user-guide/shipyard.md)
 - [Replay](user-guide/replay.md)
 - [Artifacts](user-guide/artifacts.md)
 - [Findings](user-guide/findings.md)

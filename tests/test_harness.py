@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from scripts.harness import (
+    check_codex_dispatch_boundary,
     check_event_schema_boundaries,
     check_local_private_boundary,
     check_markdown_links,
@@ -101,6 +102,19 @@ def test_harness_detects_public_network_binding(tmp_path: Path) -> None:
     issues = check_local_private_boundary(tmp_path)
 
     assert any(issue.rule == "ARCH-005" for issue in issues)
+
+
+def test_harness_detects_networked_or_escalated_codex_dispatch(tmp_path: Path) -> None:
+    path = tmp_path / "apps" / "api" / "asterism_api" / "codex_dispatch.py"
+    path.parent.mkdir(parents=True)
+    path.write_text('COMMAND = ["app-server", "--listen", "ws://127.0.0.1", "danger-full-access"]\n', encoding="utf-8")
+
+    issues = check_codex_dispatch_boundary(tmp_path)
+
+    assert issues
+    assert all(issue.rule == "ARCH-006" for issue in issues)
+    assert any("ws://" in issue.message for issue in issues)
+    assert any("danger-full-access" in issue.message for issue in issues)
 
 
 def test_harness_detects_incomplete_plan_metadata(tmp_path: Path) -> None:

@@ -22,7 +22,7 @@ test("live galaxy and system maps, synchronized views, search, and replay", asyn
   await expect(page.getByLabel("Advanced views")).toBeVisible();
   await page.getByRole("tab", { name: "Tech tree" }).click();
   await expect(page.getByLabel("Research tech tree")).toBeVisible();
-  await page.getByRole("treeitem", { name: /Researched Data ingress/i }).click();
+  await page.getByRole("button", { name: /Researched Data ingress/i }).click();
   await expect(page.getByRole("complementary", { name: "node inspector" }).getByRole("heading", { name: "Data ingress" })).toBeVisible();
   await page.getByRole("tab", { name: "Findings" }).click();
   await expect(page.getByRole("heading", { name: "Findings and contradictions" })).toBeVisible();
@@ -63,15 +63,52 @@ test("stellar identity persists from galaxy systems into system view", async ({ 
   await expect(page.getByRole("img", { name: /Robustness checks, a black hole/i })).toBeVisible();
 });
 
+test("command star shipyard builds core and research-unlocked vessels", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
+  await page.getByRole("tab", { name: "System view" }).click();
+  const systemMap = page.getByRole("img", { name: /Evolastra system view/i });
+  await expect(systemMap).toBeVisible();
+  const box = await systemMap.boundingBox();
+  expect(box).not.toBeNull();
+  await systemMap.click({ position: { x: box!.width / 2, y: box!.height / 2 } });
+
+  const shipyard = page.getByRole("dialog", { name: "Build a Codex vessel" });
+  await expect(shipyard).toBeVisible();
+  await expect(shipyard.getByRole("button", { name: /CORE HULL Frigate/ })).toBeVisible();
+  await expect(shipyard.getByRole("button", { name: /CORE HULL Mothership/ })).toBeVisible();
+  await expect(shipyard.getByRole("button", { name: /CORE HULL Colony ship/ })).toBeVisible();
+  await shipyard.getByRole("button", { name: "Build Frigate" }).click();
+  await expect(shipyard.getByRole("option", { name: /Frigate \d{2}/ }).last()).toBeAttached();
+  await shipyard.getByRole("button", { name: "Close shipyard" }).click();
+
+  await page.getByRole("tab", { name: "Advanced" }).click();
+  await page.getByRole("tab", { name: "Tech tree" }).click();
+  await expect(page.getByLabel("Research tech tree")).toBeVisible();
+  const specialist = page.getByRole("button", { name: "Build specialist ship" }).first();
+  await expect(specialist).toBeVisible();
+  await specialist.click();
+  await expect(shipyard).toBeVisible();
+  await expect(shipyard.getByText("RESEARCH HULL").first()).toBeVisible();
+});
+
 test("@accessibility core surface has no serious axe violations", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/");
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
   const defaultResults = await new AxeBuilder({ page }).analyze();
+  await page.getByRole("tab", { name: "System view" }).click();
+  const systemMap = page.getByRole("img", { name: /Evolastra system view/i });
+  const systemBox = await systemMap.boundingBox();
+  expect(systemBox).not.toBeNull();
+  await systemMap.click({ position: { x: systemBox!.width / 2, y: systemBox!.height / 2 } });
+  await expect(page.getByRole("dialog", { name: "Build a Codex vessel" })).toBeVisible();
+  const shipyardResults = await new AxeBuilder({ page }).analyze();
+  await page.getByRole("button", { name: "Close shipyard" }).click();
   await page.getByRole("tab", { name: "Advanced" }).click();
   await page.getByRole("tab", { name: "Tech tree" }).click();
   await expect(page.getByLabel("Research tech tree")).toBeVisible();
   const techTreeResults = await new AxeBuilder({ page }).analyze();
-  const serious = [...defaultResults.violations, ...techTreeResults.violations].filter((violation) => ["critical", "serious"].includes(violation.impact ?? ""));
+  const serious = [...defaultResults.violations, ...shipyardResults.violations, ...techTreeResults.violations].filter((violation) => ["critical", "serious"].includes(violation.impact ?? ""));
   expect(serious, serious.map((item) => `${item.id}: ${item.help}`).join("\n")).toEqual([]);
 });

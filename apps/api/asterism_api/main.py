@@ -78,6 +78,9 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        from .codex_dispatch import shutdown_codex_missions
+
+        shutdown_codex_missions()
         if drain_task is not None:
             drain_task.cancel()
             try:

@@ -11,8 +11,14 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .access import pairing_broker, require_api_access
+from .codex_dispatch import (
+    CodexDispatchError,
+    MissionReceipt,
+    dispatch_codex_mission,
+    find_codex_executable,
+)
 from .config import get_settings
-from .database import get_session
+from .database import SessionLocal, get_session
 from .db_models import EventRecord, QuarantineRecord, RunRecord, SnapshotRecord
 from .event_store import EventStore, event_json, make_event
 from .exports import (
@@ -32,7 +38,10 @@ from .schemas import (
     PairingExchange,
     RunCreate,
     RunPatch,
+    ShipBuildRequest,
+    ShipDispatchRequest,
 )
+from .shipyard import blueprint_catalog, find_blueprint, mission_prompt, ship_name
 from .simulator import set_speed, start_demo
 
 public_router = APIRouter(prefix="/api/v1")
@@ -453,6 +462,195 @@ def command(run_id: str, payload: CommandRequest, session: SessionDep) -> dict[s
         result = EventStore(session).ingest(event.model_dump(mode="json"))
         return result.model_dump(mode="json")
     return {"accepted": True, "command": payload.command, "value": payload.value, "scope": "client"}
+
+
+def _state_values(state: dict[str, Any], key: str) -> list[dict[str, Any]]:
+    value = state.get(key, {})
+    if isinstance(value, dict):
+        return [item for item in value.values() if isinstance(item, dict)]
+    if isinstance(value, list):
+        return [item for item in value if isinstance(item, dict)]
+    return []
+
+
+def _mission_completed(
+    *, run_id: str, ship_id: str, thread_id: str, turn_id: str, status_value: str, error: str | None
+) -> None:
+    with SessionLocal() as session:
+        run = session.get(RunRecord, run_id)
+        if run is None:
+            return
+        agents = run.state.get("agents", {})
+        current = agents.get(ship_id) if isinstance(agents, dict) else None
+        if not isinstance(current, dict):
+            return
+        completed = status_value == "completed"
+        agent = {
+            **current,
+            "status": "completed" if completed else "failed",
+            "codex_thread_id": thread_id,
+            "codex_turn_id": turn_id,
+            "mission_completed_at": datetime.now(UTC).isoformat(),
+            "error_summary": error,
+        }
+        event = make_event(
+            run_id=run_id,
+            event_type=(
+                "galaxy.analysis.agent.completed.v1"
+                if completed
+                else "galaxy.analysis.agent.failed.v1"
+            ),
+            subject=f"run/{run_id}/agent/{ship_id}",
+            data={"agent": agent},
+            source="urn:galaxy:shipyard",
+        )
+        EventStore(session).ingest(event.model_dump(mode="json"))
+
+
+@router.get("/runs/{run_id}/shipyard")
+def get_shipyard(run_id: str, session: SessionDep) -> dict[str, Any]:
+    run = get_run_or_404(session, run_id)
+    settings = get_settings()
+    ships = [
+        agent
+        for agent in _state_values(run.state, "agents")
+        if agent.get("framework") == "evolastra-shipyard"
+    ]
+    return {
+        "blueprints": [blueprint.public() for blueprint in blueprint_catalog(run.state)],
+        "ships": ships,
+        "dispatch_enabled": settings.codex_dispatch_enabled,
+        "codex_available": bool(settings.codex_dispatch_enabled and find_codex_executable()),
+        "safety": {
+            "transport": "local-stdio",
+            "sandbox": "workspace-write",
+            "approval_policy": "never",
+            "workspace_fixed": True,
+        },
+    }
+
+
+@router.post("/runs/{run_id}/shipyard/build", status_code=status.HTTP_201_CREATED)
+def build_ship(
+    run_id: str, payload: ShipBuildRequest, session: SessionDep
+) -> dict[str, Any]:
+    from .ids import new_id
+
+    run = get_run_or_404(session, run_id)
+    blueprint = find_blueprint(run.state, payload.blueprint_id)
+    if blueprint is None:
+        raise HTTPException(status_code=409, detail="This ship blueprint is not unlocked")
+    agents = _state_values(run.state, "agents")
+    root = next((node for node in _state_values(run.state, "nodes") if not node.get("parent_node_id")), None)
+    ship_id = new_id("agent")
+    agent = {
+        "id": ship_id,
+        "schema_version": 1,
+        "run_id": run_id,
+        "parent_agent_id": None,
+        "name": ship_name(blueprint, agents),
+        "role": blueprint.role,
+        "model": "configured-codex-default",
+        "provider": "openai-codex",
+        "framework": "evolastra-shipyard",
+        "status": "created",
+        "current_node_id": str(root.get("id") if root else run_id),
+        "capabilities": list(blueprint.capabilities),
+        "permissions_profile": "workspace-write-no-escalation",
+        "tool_access_profile": ["codex-app-server"],
+        "ship_blueprint_id": blueprint.id,
+        "ship_hull": blueprint.hull,
+        "blueprint_source_node_id": blueprint.source_node_id,
+        "built_at": datetime.now(UTC).isoformat(),
+    }
+    event = make_event(
+        run_id=run_id,
+        event_type="galaxy.analysis.agent.created.v1",
+        subject=f"run/{run_id}/agent/{ship_id}",
+        data={"agent": agent},
+        source="urn:galaxy:shipyard",
+    )
+    result = EventStore(session).ingest(event.model_dump(mode="json"))
+    if not result.accepted:
+        raise HTTPException(status_code=409, detail=result.reason or "Ship could not be built")
+    return {"ship": agent, "event": result.model_dump(mode="json")}
+
+
+@router.post("/runs/{run_id}/ships/{ship_id}/dispatch", status_code=status.HTTP_202_ACCEPTED)
+def dispatch_ship(
+    run_id: str, ship_id: str, payload: ShipDispatchRequest, session: SessionDep
+) -> dict[str, Any]:
+    run = get_run_or_404(session, run_id)
+    settings = get_settings()
+    if not settings.codex_dispatch_enabled:
+        raise HTTPException(
+            status_code=409,
+            detail="Codex dispatch is available only through the installed Local Private companion",
+        )
+    agents = run.state.get("agents", {})
+    ship = agents.get(ship_id) if isinstance(agents, dict) else None
+    if not isinstance(ship, dict) or ship.get("framework") != "evolastra-shipyard":
+        raise HTTPException(status_code=404, detail="Ship not found")
+    if ship.get("status") == "running":
+        raise HTTPException(status_code=409, detail="This ship already has an active mission")
+    blueprint = find_blueprint(run.state, str(ship.get("ship_blueprint_id") or ""))
+    if blueprint is None:
+        raise HTTPException(status_code=409, detail="The ship's blueprint is no longer available")
+    prompt = mission_prompt(
+        blueprint=blueprint,
+        ship=ship,
+        run={**run.state.get("run", {}), "title": run.title, "objective": run.objective},
+        user_prompt=payload.prompt,
+    )
+    workspace = settings.codex_workspace_root.expanduser().resolve()
+    if not (workspace / ".git").exists():
+        raise HTTPException(status_code=409, detail="The configured Codex workspace is not a Git repository")
+
+    def record_started(receipt: MissionReceipt) -> None:
+        started = {
+            **ship,
+            "status": "running",
+            "current_task": f"Codex mission {receipt.thread_id}",
+            "prompt": payload.prompt,
+            "codex_thread_id": receipt.thread_id,
+            "codex_turn_id": receipt.turn_id,
+            "mission_started_at": datetime.now(UTC).isoformat(),
+        }
+        event = make_event(
+            run_id=run_id,
+            event_type="galaxy.analysis.agent.started.v1",
+            subject=f"run/{run_id}/agent/{ship_id}",
+            data={"agent": started},
+            source="urn:galaxy:shipyard",
+        )
+        result = EventStore(session).ingest(event.model_dump(mode="json"))
+        if not result.accepted:
+            raise HTTPException(status_code=409, detail=result.reason or "Mission could not be recorded")
+
+    try:
+        receipt = dispatch_codex_mission(
+            ship_id=ship_id,
+            cwd=workspace,
+            prompt=prompt,
+            started=record_started,
+            completion=lambda completed_receipt, mission_status, mission_error: _mission_completed(
+                run_id=run_id,
+                ship_id=ship_id,
+                thread_id=completed_receipt.thread_id,
+                turn_id=completed_receipt.turn_id,
+                status_value=mission_status,
+                error=mission_error,
+            ),
+        )
+    except CodexDispatchError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    return {
+        "accepted": True,
+        "ship_id": ship_id,
+        "thread_id": receipt.thread_id,
+        "turn_id": receipt.turn_id,
+        "status": "running",
+    }
 
 
 @router.post("/runs/{run_id}/approvals/{approval_id}")

@@ -56,6 +56,11 @@ The live feed is `GET /api/v1/runs/{run_id}/events/stream?after=<sequence>`. Eac
 
 Clients resume with the `after` query parameter or `Last-Event-ID`. When both are present, the server uses the larger valid sequence so a stale URL cannot move a client backwards. Transport heartbeats keep idle connections observable and report `{runid, sequence, time}` without entering the durable event log. Commands use `POST /api/v1/runs/{run_id}/commands` with a validated `{command, value?}` body; the stream is intentionally unidirectional.
 
+User-authorized ship missions are a separate paired control path. The companion
+persists the built vessel as an agent, starts a new Codex thread and turn through
+app-server stdio, and records lifecycle updates back into the parent run. Codex
+credentials and app-server transport never enter the browser.
+
 Ingestion and animation are separate. Pausing animation does not stop event receipt or persistence. On return to live, the client catches up from its last applied sequence and coalesces high-rate metric updates before touching React state.
 
 ## 💾 Persistence and storage

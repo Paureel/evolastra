@@ -7,12 +7,12 @@ Executed 2026-07-18 on Windows with Python 3.12, Node.js 20, and npm 10.
 `.venv\Scripts\python.exe scripts\verify.py` passed:
 
 - Ruff and strict mypy
-- Eight repository harness checks covering navigation, links, accessible diagrams, architecture, privacy, and plan state
-- 105 Python domain, API, contract, integration, security, quality, property, chaos, bootstrap, and harness tests
+- Nine repository harness checks covering navigation, links, accessible diagrams, architecture, privacy, Codex dispatch, and plan state
+- 110 Python domain, API, contract, integration, security, quality, property, chaos, bootstrap, shipyard, and harness tests
 - Alembic migration
-- TypeScript typecheck and 26 Vitest tests
-- Production Vite build: 251.83 kB JavaScript / 80.69 kB gzip; 41.97 kB CSS / 10.01 kB gzip
-- Three Playwright scenarios covering live views, search, replay, stellar identity, and an axe serious/critical scan
+- TypeScript typecheck and 27 Vitest tests
+- Production Vite build: 259.43 kB JavaScript / 82.66 kB gzip; 52.12 kB CSS / 12.06 kB gzip
+- Four Playwright scenarios covering live views, search, replay, stellar identity, ship construction, research hull unlocks, and an axe serious/critical scan
 - Asset manifest and focused source-security scans
 - npm audit and Python locked-requirements audit: no known vulnerabilities
 
@@ -24,6 +24,14 @@ Executed 2026-07-18 on Windows with Python 3.12, Node.js 20, and npm 10.
 - The frontier minimum-spanning tree and local-neighbor lanes were visually inspected at 1728 x 960.
 - Direct browser drags carried the Galaxy view from 33° to 181° tilt and the System view from 28° to 175°, both beyond the former 70° stop.
 - Browser verification reported zero console errors.
+
+## Two-way shipyard verification
+
+- A Frigate, Mothership, and Colony ship are always available; completed tech-tree nodes deterministically add problem-specific specialist hulls.
+- Browser verification opened the drydock from the command star, commissioned a core vessel, and opened an unlocked research hull from the tech tree.
+- API tests verify pairing protection, durable ship lifecycle events, default-deny prompt capture, and the no-model-override / workspace-write / no-escalation app-server contract.
+- A verification-only mission was launched through the installed signed-in Codex CLI over stdio. The turn completed successfully and persisted as a local Codex rollout without modifying the repository.
+- The shipyard and tech tree have no Axe serious or critical accessibility violations.
 
 ## Publication boundary
 

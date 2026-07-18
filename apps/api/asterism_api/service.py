@@ -91,6 +91,8 @@ def service_environment(config: ServiceConfig) -> dict[str, str]:
             "ASTERISM_WEB_ROOT": config.web_root,
             "ASTERISM_COMPANION_PORT": str(config.port),
             "ASTERISM_INSTANCE_ID": config.instance_id,
+            "ASTERISM_CODEX_DISPATCH_ENABLED": "true",
+            "ASTERISM_CODEX_WORKSPACE_ROOT": str(repository_web_root().parents[2]),
         }
     )
     return environment

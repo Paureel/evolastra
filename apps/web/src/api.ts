@@ -1,4 +1,4 @@
-import type { GraphState, RunSummary } from "./types";
+import type { Entity, GraphState, MissionReceipt, RunSummary, ShipyardState } from "./types";
 import { apiAddress, authorizationHeaders, getConnection, safeEndpoint, saveConnection, signalAuthenticationRequired } from "./connection";
 
 export class ApiError extends Error {
@@ -74,6 +74,24 @@ export function sendCommand(runId: string, command: string, value?: string | num
   return request(`/api/v1/runs/${encodeURIComponent(runId)}/commands`, {
     method: "POST",
     body: JSON.stringify({ command, value: value ?? null }),
+  });
+}
+
+export function fetchShipyard(runId: string): Promise<ShipyardState> {
+  return request<ShipyardState>(`/api/v1/runs/${encodeURIComponent(runId)}/shipyard`);
+}
+
+export function buildShip(runId: string, blueprintId: string): Promise<{ ship: Entity }> {
+  return request<{ ship: Entity }>(`/api/v1/runs/${encodeURIComponent(runId)}/shipyard/build`, {
+    method: "POST",
+    body: JSON.stringify({ blueprint_id: blueprintId }),
+  });
+}
+
+export function dispatchShip(runId: string, shipId: string, prompt: string): Promise<MissionReceipt> {
+  return request(`/api/v1/runs/${encodeURIComponent(runId)}/ships/${encodeURIComponent(shipId)}/dispatch`, {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
   });
 }
 

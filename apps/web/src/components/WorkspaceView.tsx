@@ -17,7 +17,7 @@ function EntityTable({ items, onSelect }: { items: Entity[]; onSelect: (id: stri
   );
 }
 
-export function WorkspaceView({ view, state, runs, currentRunId, onSelect }: { view: ViewName; state: GraphState; runs: RunSummary[]; currentRunId: string | null; onSelect: (id: string) => void }) {
+export function WorkspaceView({ view, state, runs, currentRunId, onSelect, onOpenShipyard }: { view: ViewName; state: GraphState; runs: RunSummary[]; currentRunId: string | null; onSelect: (id: string) => void; onOpenShipyard: (blueprintId: string) => void }) {
   if (view === "tree") {
     const root = state.nodes.find((node) => !node.parent_node_id);
     const tiers = buildTechTiers(state.nodes.filter((node) => node.parent_node_id));
@@ -32,10 +32,10 @@ export function WorkspaceView({ view, state, runs, currentRunId, onSelect }: { v
         <div className="tech-tree-summary" aria-label="Technology status summary"><span><i className="tech-dot completed" />{counts.completed} researched</span><span><i className="tech-dot researching" />{counts.researching} active</span><span><i className="tech-dot available" />{counts.available} available</span><span><i className="tech-dot locked" />{counts.locked} locked</span></div>
       </div>
       <div className="tech-tree-scroll">
-        <div className="tech-tree-map" role="tree" aria-label="Technology dependencies" style={{ gridTemplateColumns: `220px repeat(${tiers.length}, minmax(190px, 1fr))`, minWidth: `${220 + tiers.length * 224}px` }}>
+        <div className="tech-tree-map" role="region" aria-label="Technology dependencies" style={{ gridTemplateColumns: `220px repeat(${tiers.length}, minmax(190px, 1fr))`, minWidth: `${220 + tiers.length * 224}px` }}>
           <div className="tech-nexus-column">
             <span className="tech-tier-label"><b>Research nexus</b><small>Objective</small></span>
-            {root && <button role="treeitem" className="tech-node tech-nexus researching" onClick={() => onSelect(root.id)}>
+            {root && <button className="tech-node tech-nexus researching" onClick={() => onSelect(root.id)}>
               <span className="tech-node-glyph" aria-hidden="true"><i>✧</i></span>
               <span className="tech-node-copy"><small>PRIMARY DIRECTIVE</small><strong>{root.title}</strong><span>{Math.round((root.progress ?? 0) * 100)}% complete</span></span>
               <i className="tech-port" aria-hidden="true" />
@@ -45,12 +45,10 @@ export function WorkspaceView({ view, state, runs, currentRunId, onSelect }: { v
             <div className="tech-tier" role="group" aria-label={tier.label} key={tier.id}>
               <span className="tech-tier-label"><b>{tier.label}</b><small>Tier {tierIndex + 1}</small></span>
               <div className="tech-tier-nodes">
-                {tier.nodes.map((node) => (
+                {tier.nodes.map((node) => <div className="tech-node-stack" key={node.id}>
                   <button
-                    role="treeitem"
                     aria-disabled={node.techState === "locked"}
                     className={`tech-node ${node.techState}`}
-                    key={node.id}
                     onClick={() => { if (node.techState !== "locked") onSelect(node.id); }}
                   >
                     <i className="tech-connector-in" aria-hidden="true" />
@@ -59,7 +57,8 @@ export function WorkspaceView({ view, state, runs, currentRunId, onSelect }: { v
                     <span className="tech-progress" aria-hidden="true"><i style={{ width: `${Math.round((node.progress ?? 0) * 100)}%` }} /></span>
                     <i className="tech-port" aria-hidden="true" />
                   </button>
-                ))}
+                  {node.techState === "completed" && <button className="tech-build-button" onClick={() => onOpenShipyard(`specialist:${node.id}`)}>Build specialist ship</button>}
+                </div>)}
               </div>
             </div>
           ))}

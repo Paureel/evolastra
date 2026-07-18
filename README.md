@@ -38,6 +38,7 @@ For a demo without Codex integration, follow [Run the demo only](docs/getting-st
 
 - **See the analysis happen.** Runs, branches, agents, tools, artifacts, findings, anomalies, and approvals become distinct inspectable objects.
 - **Navigate in 3D.** Both maps support perspective depth, unrestricted 360° rotation, tilt, pan, zoom, and keyboard camera controls.
+- **Launch work from the map.** Build Codex vessels at the command star, unlock problem-specific hulls through research, and dispatch explicit missions into new local Codex tasks.
 - **Never lose the trail.** Replay, deterministic projections, typed relationships, and portable exports preserve how a conclusion was reached.
 - **Keep data local.** The companion, SQLite database, artifacts, Codex outbox, and access capability remain on the user’s machine.
 - **Integrate without lock-in.** CloudEvents, W3C trace concepts, JSONL, OpenLineage exports, SDKs, and narrow adapters provide explicit boundaries.
@@ -116,6 +117,11 @@ Restart Codex, review the managed hooks through `/hooks`, and pair a browser tab
 ```
 
 The included [`evolastra` Codex skill](skills/evolastra/SKILL.md) can install, start, pair, and diagnose the companion. See [Codex hooks](docs/integration/codex-hooks.md) and [Local Private deployment](docs/deployment/local-private.md) for operational details.
+
+Once paired, enter the starting System View and click its central command star to
+open the [shipyard](docs/user-guide/shipyard.md). Each launch creates a new task
+through the same signed-in Codex installation; the browser never receives Codex
+credentials.
 
 ## Privacy model
 

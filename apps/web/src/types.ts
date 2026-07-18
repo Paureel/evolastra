@@ -86,3 +86,35 @@ export interface PositionedEntity extends SceneEntity {
   angle: number;
   depth?: number;
 }
+
+export interface ShipBlueprint {
+  id: string;
+  name: string;
+  hull: "frigate" | "mothership" | "colony" | "specialist";
+  role: string;
+  description: string;
+  capabilities: string[];
+  source_node_id?: string | null;
+  source_title?: string | null;
+}
+
+export interface ShipyardState {
+  blueprints: ShipBlueprint[];
+  ships: Entity[];
+  dispatch_enabled: boolean;
+  codex_available: boolean;
+  safety: {
+    transport: string;
+    sandbox: string;
+    approval_policy: string;
+    workspace_fixed: boolean;
+  };
+}
+
+export interface MissionReceipt {
+  accepted: boolean;
+  ship_id: string;
+  thread_id: string;
+  turn_id: string;
+  status: string;
+}

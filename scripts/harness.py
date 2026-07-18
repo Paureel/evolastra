@@ -71,6 +71,14 @@ MERMAID_BLOCK = re.compile(r"```mermaid\s*\n([\s\S]*?)```", re.IGNORECASE)
 IMPORT_SOURCE = re.compile(r"^\s*import(?:\s+type)?[\s\S]*?\sfrom\s+[\"']([^\"']+)[\"']", re.MULTILINE)
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 ALL_INTERFACES = ".".join(("0", "0", "0", "0"))
+CODEX_DISPATCH_REQUIRED = (
+    '"app-server"',
+    '"--listen"',
+    '"stdio://"',
+    '"sandbox": "workspace-write"',
+    '"approvalPolicy": "never"',
+)
+CODEX_DISPATCH_FORBIDDEN = ("danger-full-access", "http://", "https://", "ws://", "wss://")
 
 
 @dataclass(frozen=True)
@@ -319,6 +327,24 @@ def check_local_private_boundary(root: Path) -> list[Issue]:
     return issues
 
 
+def check_codex_dispatch_boundary(root: Path) -> list[Issue]:
+    path = root / "apps" / "api" / "asterism_api" / "codex_dispatch.py"
+    if not path.exists():
+        return [Issue("ARCH-006", relative(root, path), "Codex dispatch boundary is missing")]
+    content = path.read_text(encoding="utf-8")
+    issues = [
+        Issue("ARCH-006", relative(root, path), f"required Codex boundary is missing: {token}")
+        for token in CODEX_DISPATCH_REQUIRED
+        if token not in content
+    ]
+    issues.extend(
+        Issue("ARCH-006", relative(root, path), f"Codex dispatch uses forbidden transport or permission: {token}")
+        for token in CODEX_DISPATCH_FORBIDDEN
+        if token in content
+    )
+    return issues
+
+
 def metadata_value(content: str, label: str) -> str | None:
     match = re.search(rf"^{re.escape(label)}:\s*(.+?)\s*$", content, re.MULTILINE | re.IGNORECASE)
     return match.group(1).strip() if match else None
@@ -363,6 +389,7 @@ CHECKS = (
     ("web_boundaries", check_web_boundaries),
     ("event_schema_boundaries", check_event_schema_boundaries),
     ("local_private_boundary", check_local_private_boundary),
+    ("codex_dispatch_boundary", check_codex_dispatch_boundary),
     ("plan_lifecycle", check_plan_lifecycle),
 )
 

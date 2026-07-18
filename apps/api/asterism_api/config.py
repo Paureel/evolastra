@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     )
     max_request_bytes: int = 5 * 1024 * 1024
     capture_content: bool = False
+    codex_dispatch_enabled: bool = False
+    codex_workspace_root: Path = Path.cwd()
 
     @field_validator("allowed_origins", "allowed_hosts", mode="before")
     @classmethod

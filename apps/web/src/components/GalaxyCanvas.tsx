@@ -14,6 +14,8 @@ interface GalaxyCanvasProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onOpenSystem: (id: string) => void;
+  onOpenShipyard: () => void;
+  shipyardEnabled: boolean;
   onBackToGalaxy: () => void;
   animated: boolean;
   reducedMotion: boolean;
@@ -955,7 +957,7 @@ function animateSystemLayout(layout: PositionedEntity[], time: number, enabled: 
   });
 }
 
-export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selectedId, onSelect, onOpenSystem, onBackToGalaxy, animated, reducedMotion, highContrast }: GalaxyCanvasProps) {
+export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selectedId, onSelect, onOpenSystem, onOpenShipyard, shipyardEnabled, onBackToGalaxy, animated, reducedMotion, highContrast }: GalaxyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [layout, setLayout] = useState<PositionedEntity[]>([]);
   const [orientation, setOrientation] = useState<{ yaw: number; pitch: number }>(() => ({ yaw: DEFAULT_ORIENTATION[mode].yaw, pitch: DEFAULT_ORIENTATION[mode].pitch }));
@@ -1139,7 +1141,8 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
           event.currentTarget.style.cursor = "";
           if (moved < 5) {
             const hit = hitAt(event.clientX, event.clientY);
-            if (hit) onSelect(hit.id);
+            if (hit && mode === "system" && shipyardEnabled && hit.id === focusSystemId) onOpenShipyard();
+            else if (hit) onSelect(hit.id);
           }
           event.currentTarget.releasePointerCapture(event.pointerId);
         }}
@@ -1165,6 +1168,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
             const systemId = selected && ["home", "node"].includes(selected.kind) ? selected.id : selected?.kind === "agent" ? selected.parentId : null;
             if (systemId) onOpenSystem(systemId);
           }
+          if (event.key === "Enter" && mode === "system" && shipyardEnabled && selectedId === focusSystemId) onOpenShipyard();
           const key = event.key.toLowerCase();
           if (["a", "d", "w", "s", "+", "=", "-", "_"].includes(key)) event.preventDefault();
           if (key === "a") rotateCamera(-0.12, 0);
@@ -1207,7 +1211,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
         <div className="map-legend" aria-hidden="true"><i className="legend-complete" /> complete <i className="legend-active" /> active <i className="legend-disputed" /> disputed</div>
       )}
       {mode === "galaxy" && <div className="canvas-hint map-frontier-hint">Drag to rotate · Shift-drag to pan · scroll to zoom · double-click to enter</div>}
-      <div className="canvas-hint">{mode === "galaxy" ? "Drag to rotate · Shift-drag to pan · scroll to zoom" : "Drag to rotate · Shift-drag to pan · W/A/S/D camera · Home resets"}</div>
+      <div className="canvas-hint">{mode === "galaxy" ? "Drag to rotate · Shift-drag to pan · scroll to zoom" : shipyardEnabled ? "Click command star for shipyard · W/A/S/D camera · Home resets" : "Drag to rotate · Shift-drag to pan · W/A/S/D camera · Home resets"}</div>
     </div>
   );
 }

@@ -106,6 +106,14 @@ class ApprovalRequest(StrictModel):
     note: str = Field(default="", max_length=2_000)
 
 
+class ShipBuildRequest(StrictModel):
+    blueprint_id: str = Field(min_length=3, max_length=120)
+
+
+class ShipDispatchRequest(StrictModel):
+    prompt: str = Field(min_length=3, max_length=8_000)
+
+
 class SearchResult(StrictModel):
     id: str
     run_id: str
