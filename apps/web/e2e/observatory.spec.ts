@@ -51,12 +51,15 @@ test("stellar identity persists from galaxy systems into system view", async ({ 
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
   await page.getByRole("tab", { name: "Advanced" }).click();
   await page.getByRole("button", { name: "Contract friction completed" }).click();
-  await page.getByRole("tab", { name: "System view" }).click();
+  const inspector = page.getByRole("complementary", { name: "node inspector" });
+  await expect(inspector.getByRole("heading", { name: "Contract friction" })).toBeVisible();
+  await inspector.getByRole("button", { name: "Enter system view" }).click();
   await expect(page.getByRole("img", { name: /Contract friction, a pulsar/i })).toBeVisible();
 
   await page.getByRole("tab", { name: "Advanced" }).click();
   await page.getByRole("button", { name: "Robustness checks completed" }).click();
-  await page.getByRole("tab", { name: "System view" }).click();
+  await expect(inspector.getByRole("heading", { name: "Robustness checks" })).toBeVisible();
+  await inspector.getByRole("button", { name: "Enter system view" }).click();
   await expect(page.getByRole("img", { name: /Robustness checks, a black hole/i })).toBeVisible();
 });
 
