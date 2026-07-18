@@ -1,19 +1,28 @@
-## Summary
+# Pull request
 
-Describe the user-visible outcome and the reason for the change.
+_Repository-native change contract and verification record_
 
-## Verification
+---
 
-- [ ] Focused tests pass
-- [ ] `npm run verify` passes, or an explicit exception is documented
-- [ ] New behavior has regression coverage
+## 🎯 Outcome
 
-## Data and security
+What observable behavior or repository capability changed?
 
-- [ ] No credentials, pairing state, local databases, private datasets, or generated exports are included
-- [ ] Canonical events remain free of camera and visualization state
-- [ ] Privacy, redaction, and hosted-viewer boundaries remain intact
+## 🛡️ Ownership and invariants
 
-## Visual changes
+- Nearest `AGENTS.md` read:
+- Architecture invariants affected:
+- Decision or plan link, if cross-cutting:
 
-If applicable, include before/after captures and describe keyboard, reduced-motion, and high-contrast behavior.
+## ✅ Validation
+
+- [ ] Focused regression test
+- [ ] `npm run check`
+- [ ] `npm run verify`
+- [ ] Documentation updated or not applicable
+- [ ] No credentials, local state, generated exports, or private data staged
+
+## 📋 Evidence
+
+List exact commands and results. Include screenshots only when they materially
+verify user-visible behavior.

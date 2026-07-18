@@ -1,80 +1,84 @@
 # Agent instructions for Evolastra
 
-_Repository-wide setup and engineering contract for coding agents_
+_Repository-wide navigation and engineering contract for coding agents_
 
 ---
 
-## 📋 First actions
+This file is the repository entry point, not an encyclopedia. Follow the links
+that match the surface you are changing and prefer executable repository facts
+over assumptions.
 
-When asked to install, start, connect, or diagnose Evolastra:
+## 🎯 Start every task
 
-1. Read this file and [`docs/getting-started.md`](docs/getting-started.md).
-2. Confirm the checkout is on Windows and run the non-mutating prerequisite check:
+1. Run `npm run doctor` after setup, or `npm run bootstrap:check` before setup.
+2. Read the [repository map](docs/architecture/repository-map.md).
+3. Read the nearest nested `AGENTS.md` for the files in scope.
+4. For cross-cutting or multi-session work, create an active plan from
+   [the plan template](docs/plans/template.md).
+5. Run the smallest relevant test while editing, then `npm run check`.
 
-   ```powershell
-   npm run bootstrap:check
-   ```
+## 📍 Knowledge map
 
-3. Install and start Evolastra without opening a browser from the agent session:
+| Need | Read |
+| --- | --- |
+| Product and install | [README](README.md), [Getting started](docs/getting-started.md) |
+| System boundaries | [Architecture overview](docs/architecture/overview.md), [invariants](docs/architecture/invariants.md) |
+| Where a change belongs | [Repository map](docs/architecture/repository-map.md) |
+| Agent feedback loop | [Harness guide](docs/development/harness.md) |
+| Tests and release gate | [Testing strategy](docs/development/testing.md) |
+| Local-private security | [Privacy model](docs/security/privacy-model.md), [threat model](docs/security/threat-model.md) |
+| Active and completed work | [Plans](docs/plans/README.md) |
 
-   ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -NoBrowser
-   ```
+Local instructions:
 
-4. Verify both states:
+- [API companion](apps/api/AGENTS.md)
+- [Web observatory](apps/web/AGENTS.md)
+- [Event schemas](schemas/AGENTS.md)
+- [Tests](tests/AGENTS.md)
 
-   ```powershell
-   & .\.venv\Scripts\evolastra.exe service status
-   & .\.venv\Scripts\evolastra.exe codex status
-   ```
+## 🛡️ Non-negotiable invariants
 
-5. If hooks were newly installed or changed, tell the user to restart Codex once, open `/hooks`, and approve the Evolastra commands. Do not claim that the current session is captured when it began before hook activation.
-6. Generate a pairing code only when the user is ready to enter it:
-
-   ```powershell
-   & .\.venv\Scripts\evolastra.exe pair
-   ```
-
-7. Report the viewer URL, companion state, hook state, registered origins, and autostart state. Never report or read the root companion token.
-
-## 🔐 Preserve the privacy boundary
-
-- Keep the API, database, outbox, tokens, and analysis artifacts on loopback and local storage.
+- Durable events and the semantic projection are authoritative; spatial views
+  are disposable projections.
+- Corrections append new events. Never rewrite durable analytical history.
+- Operational telemetry records execution facts; it does not promote semantic
+  findings.
+- Coordinates, camera state, and animation stay out of canonical event schemas.
+- The companion, database, outbox, tokens, and analysis artifacts stay local and
+  loopback-only unless the user explicitly authorizes an architecture change.
 - Never read, print, copy, or expose `~/.evolastra/companion-token`.
-- Never commit `.env`, databases, pairing state, private datasets, generated exports, or `stad_data/`.
-- Never add a remote API, serverless ingestion route, telemetry exporter, or cloud database without explicit authorization to change the local-only architecture.
-- Treat one-use pairing codes as short-lived credentials: show them only to the requesting user and never store them.
-- Do not run `npm run reset` or uninstall hooks/services unless the user explicitly requests that state change.
+- Never commit credentials, databases, pairing state, generated exports, private
+  datasets, or `stad_data/`.
 
-## 🔧 Development workflow
+These rules are mapped to executable checks in
+[architecture invariants](docs/architecture/invariants.md). If a check blocks an
+intentional architecture change, update the decision record, documentation,
+check, and regression tests together; do not route around the check.
 
-For ordinary development after bootstrap:
-
-```powershell
-npm run demo
-```
-
-Use `npm run dev` for an empty observatory. Before committing a change, run the focused tests for the affected surface and then:
+## 🔧 Supported commands
 
 ```powershell
-npm run verify
+npm run doctor        # tools and installed dependency diagnosis
+npm run harness       # repository knowledge and architecture invariants
+npm run check         # fast preflight: harness, static checks, unit tests
+npm run verify        # complete release gate including browser and audits
 ```
 
-Preserve these boundaries:
+For a fresh Windows checkout:
 
-- Operational telemetry records execution facts.
-- The semantic graph records analytical meaning and provenance.
-- The visualization projection owns coordinates, camera state, and animation.
-- Corrections are new events; durable history is not rewritten.
+```powershell
+npm run bootstrap:check
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -NoBrowser
+```
 
-## ✅ Completion criteria
+After hook installation or changes, tell the user to restart Codex once and
+approve the managed commands in `/hooks`. Generate a one-use browser pairing
+code only when the user is ready with `.\.venv\Scripts\evolastra.exe pair`.
 
-An installation task is complete only when:
+## ✅ Definition of done
 
-- `service status` reports `installed: true` and `running: true`.
-- `codex status` reports all managed hook events installed, unless `-NoHooks` was explicitly requested.
-- The user has been told about any required Codex restart and `/hooks` approval.
-- The browser pairing step is explained without exposing the root token.
-- No private data or credentials were added to Git.
-
-Use the bundled [`evolastra` skill](skills/evolastra/SKILL.md) when it is available; its controller is preferred for diagnosis and state repair.
+- Focused regression coverage passes.
+- `npm run check` passes during iteration.
+- `npm run verify` passes before handoff or push.
+- User-facing behavior, decisions, and active plan state are updated.
+- `git diff --check` is clean and no local/private data is staged.

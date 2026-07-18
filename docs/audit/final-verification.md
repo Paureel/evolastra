@@ -7,10 +7,11 @@ Executed 2026-07-18 on Windows with Python 3.12, Node.js 20, and npm 10.
 `.venv\Scripts\python.exe scripts\verify.py` passed:
 
 - Ruff and strict mypy
-- 95 Python domain, API, contract, integration, security, quality, property, chaos, and bootstrap tests
+- Eight repository harness checks covering navigation, links, accessible diagrams, architecture, privacy, and plan state
+- 105 Python domain, API, contract, integration, security, quality, property, chaos, bootstrap, and harness tests
 - Alembic migration
 - TypeScript typecheck and 26 Vitest tests
-- Production Vite build: 251.66 kB JavaScript / 80.60 kB gzip; 41.97 kB CSS / 10.01 kB gzip
+- Production Vite build: 251.83 kB JavaScript / 80.69 kB gzip; 41.97 kB CSS / 10.01 kB gzip
 - Three Playwright scenarios covering live views, search, replay, stellar identity, and an axe serious/critical scan
 - Asset manifest and focused source-security scans
 - npm audit and Python locked-requirements audit: no known vulnerabilities
@@ -29,16 +30,19 @@ Executed 2026-07-18 on Windows with Python 3.12, Node.js 20, and npm 10.
 - Local databases, pairing state, virtual environments, caches, test output, exports, and the private CNA working dataset are excluded by `.gitignore`.
 - Only two curated browser captures are retained as repository documentation assets.
 - All relative Markdown links resolve.
+- Every supported Mermaid diagram exposes an accessibility title and description.
 - No intended repository file exceeds 50 MB.
 - Secret-pattern review found only deliberate redaction-test fixtures and no real credentials.
 
 ## Installation verification
 
 - `npm run bootstrap:check` returned machine-readable prerequisite and repository-path data.
+- `npm run doctor` confirmed supported tool versions, the repository-local Python environment, frontend dependencies, and optional GitHub CLI.
+- Root development and release commands pin `.venv\Scripts\python.exe`; a regression test prevents fallback to an incompatible global Python.
 - The complete bootstrap was executed idempotently with `-NoBrowser`; it installed locked dependencies, rebuilt the viewer, preserved all 10 managed hooks, restarted the Local Private companion, and reported `running: true`.
 - A bootstrap regression test invokes the script from outside the checkout to verify location-independent path handling.
 - Reinstallation tests verify that a moved checkout refreshes the configured static viewer path instead of retaining a retired location.
-- PowerShell parser validation passed for `setup.ps1` and `bootstrap.ps1`; all 56 repository-document links resolve.
+- PowerShell parser validation passed for `setup.ps1` and `bootstrap.ps1`; all repository-document links resolve.
 
 ## Remaining boundaries
 

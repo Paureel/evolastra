@@ -47,12 +47,15 @@ For a demo without Codex integration, follow [Run the demo only](docs/getting-st
 
 ```mermaid
 flowchart LR
-    A[Agents and analysis tools] --> B[Validated CloudEvents]
-    B --> C[(Append-only local event log)]
-    C --> D[Deterministic semantic projection]
-    D --> E[Resumable live stream]
-    E --> F[3D Galaxy and System views]
-    C --> G[Replay and portable exports]
+    accTitle: Evolastra Event Projection Flow
+    accDescr: Agents emit validated events into an append-only local log that drives deterministic semantic projection, live 3D views, replay, and portable exports.
+
+    agents[Agents and analysis tools] --> validate[Validated CloudEvents]
+    validate --> event_log[(Append-only local event log)]
+    event_log --> project[Deterministic semantic projection]
+    project --> stream[Resumable live stream]
+    stream --> views[3D Galaxy and System views]
+    event_log --> exports[Replay and portable exports]
 ```
 
 The architecture deliberately separates three concerns:
@@ -140,6 +143,9 @@ The [integration matrix](docs/integration/README.md) distinguishes implemented, 
 ## Development
 
 ```powershell
+npm run doctor       # diagnose tools and installed dependencies
+npm run harness      # repository knowledge and architecture invariants
+npm run check        # fast preflight without browser/audit work
 npm run verify       # complete release gate
 npm run benchmark    # deterministic reducer benchmark
 npm run lint
@@ -150,6 +156,12 @@ npm run security
 ```
 
 Database helpers are `npm run migrate`, `npm run reset`, and `npm run seed`.
+
+Coding agents start with [`AGENTS.md`](AGENTS.md), follow the nearest local
+instructions, and use the [repository harness](docs/development/harness.md).
+Cross-cutting work is captured as a [versioned plan](docs/plans/README.md), while
+architecture boundaries are checked automatically instead of living only in
+prose.
 
 ## Repository map
 
@@ -164,7 +176,7 @@ tests/          Domain, contract, security, quality, property, chaos tests
 docs/           Architecture, deployment, integration, security, user guides
 ```
 
-Start with the [documentation index](docs/README.md), [contribution guide](CONTRIBUTING.md), and [testing strategy](docs/development/testing.md).
+Start with the [documentation index](docs/README.md), [repository map](docs/architecture/repository-map.md), [contribution guide](CONTRIBUTING.md), and [testing strategy](docs/development/testing.md).
 
 ## Project status
 

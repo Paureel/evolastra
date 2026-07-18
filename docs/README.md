@@ -22,6 +22,8 @@ Use this index to move from product operation to implementation detail.
 ## Understand the system
 
 - [Architecture overview](architecture/overview.md)
+- [Repository map](architecture/repository-map.md)
+- [Executable architecture invariants](architecture/invariants.md)
 - [Shared contract](architecture/shared-contract.md)
 - [Semantic model](architecture/semantic-model.md)
 - [Visualization model](architecture/visualization-model.md)
@@ -40,6 +42,8 @@ Use this index to move from product operation to implementation detail.
 ## Develop and verify
 
 - [Contributing](../CONTRIBUTING.md)
+- [Agent engineering harness](development/harness.md)
+- [Versioned plans](plans/README.md)
 - [Testing and release gate](development/testing.md)
 - [Performance](development/performance.md)
 - [Security policy](../SECURITY.md)

@@ -57,13 +57,16 @@ Open questions that change risk ranking:
 
 ```mermaid
 flowchart LR
-    W["Local browser"] -->|HTTP and SSE| A["FastAPI service"]
-    P["Local adapters"] -->|Events and JSONL| A
-    A -->|ORM writes| D["SQLite store"]
-    A -->|Preview metadata| W
-    A -->|ZIP and JSON exports| F["Local exported files"]
-    S["Package and asset sources"] -->|Build inputs| B["Developer build"]
-    B --> W
+    accTitle: Evolastra Trust Boundaries
+    accDescr: Local browsers and adapters communicate with the loopback companion, which writes local storage and exports, while external package sources are confined to the developer build path.
+
+    browser["Local browser"] -->|HTTP and SSE| companion["FastAPI service"]
+    adapters["Local adapters"] -->|Events and JSONL| companion
+    companion -->|ORM writes| database["SQLite store"]
+    companion -->|Preview metadata| browser
+    companion -->|ZIP and JSON exports| exports["Local exported files"]
+    sources["Package and asset sources"] -->|Build inputs| build["Developer build"]
+    build --> browser
 ```
 
 ## Assets and security objectives

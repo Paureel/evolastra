@@ -22,10 +22,18 @@ npm run demo
 ## Before opening a pull request
 
 ```powershell
+npm run check
 npm run verify
 ```
 
-The release gate covers Python linting and typing, the complete test suite, frontend typing and tests, the production build, browser checks, dependency audits, asset verification, and the focused security scan.
+`npm run check` is the fast preflight for repository invariants, linting, typing,
+and unit tests. The release gate adds the production build, browser checks,
+dependency audits, asset verification, and focused security scan.
+
+Read the nearest nested `AGENTS.md` before changing a major surface. Use a
+[versioned plan](docs/plans/README.md) for cross-cutting or multi-session work,
+and follow the [repository map](docs/architecture/repository-map.md) when a
+change's owner is unclear.
 
 Use a descriptive branch and conventional commit-style subject where practical, for example `feat(map): add depth-aware lane labels`.
 

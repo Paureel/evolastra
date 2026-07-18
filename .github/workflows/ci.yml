@@ -35,6 +35,9 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
 
+      - name: Check repository harness
+        run: python scripts/harness.py check
+
       - name: Install locked dependencies
         shell: pwsh
         run: .\scripts\setup.ps1

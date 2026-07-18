@@ -19,6 +19,14 @@ npm run verify
 python -m pytest tests/quality tests/property tests/chaos -q -rxX
 ```
 
+For the normal agent feedback ladder, use:
+
+```powershell
+npm run harness  # repository shape and architecture boundaries
+npm run check    # harness, static checks, Python and frontend unit tests
+npm run verify   # full release gate
+```
+
 Expected failures must have a defect ID and a narrow assertion. An unexpected pass is actionable: remove the marker only after the fix and its surrounding regression suite have been verified.
 
 ## 🧪 Test layers

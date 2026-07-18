@@ -45,7 +45,7 @@ package-dir = {asterism_api = "apps/api/asterism_api", integrations = "integrati
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --strict-markers"
+addopts = "-q --strict-markers --basetemp=.pytest-tmp"
 asyncio_mode = "auto"
 
 [tool.ruff]
