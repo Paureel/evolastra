@@ -9,7 +9,7 @@ Executed 2026-07-18 on Windows with Python 3.12, Node.js 20, and npm 10.
 - Ruff and strict mypy
 - 92 Python domain, API, contract, integration, security, quality, property, and chaos tests
 - Alembic migration
-- TypeScript typecheck and 25 Vitest tests
+- TypeScript typecheck and 26 Vitest tests
 - Production Vite build: 251.66 kB JavaScript / 80.60 kB gzip; 41.97 kB CSS / 10.01 kB gzip
 - Three Playwright scenarios covering live views, search, replay, stellar identity, and an axe serious/critical scan
 - Asset manifest and focused source-security scans
@@ -17,10 +17,11 @@ Executed 2026-07-18 on Windows with Python 3.12, Node.js 20, and npm 10.
 
 ## 3D map and graph verification
 
-- Deterministic tests verify stable `z` coordinates and yaw/pitch perspective projection.
+- Deterministic tests verify stable `z` coordinates, full 360° yaw/pitch perspective projection, angle wrapping, and return-to-origin after a complete turn.
 - Breadth-first traversal verifies that claimed systems, all 200 generated frontier systems, and their bridges form one connected component.
+- Radial-distribution checks verify that at least twelve unclaimed systems occupy the inner approach region while the frontier still reaches beyond 1,050 world units.
 - The frontier minimum-spanning tree and local-neighbor lanes were visually inspected at 1728 x 960.
-- Direct browser drags changed yaw and tilt in both Galaxy and System views.
+- Direct browser drags carried the Galaxy view from 33° to 181° tilt and the System view from 28° to 175°, both beyond the former 70° stop.
 - Browser verification reported zero console errors.
 
 ## Publication boundary

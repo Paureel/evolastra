@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { layoutScene, stableHash } from "./layout";
 import { createFrontierField, DEFAULT_UNCLAIMED_SYSTEMS, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfile, stellarProfilesFor, territoryGrowth } from "./galaxyFrontier";
 import { connectedHyperlanes } from "./mapGraph";
-import { projectLayout3D, projectPoint3D } from "./spatial";
+import { angleDegrees, normalizeAngle, projectLayout3D, projectPoint3D } from "./spatial";
 import type { SceneEntity } from "./types";
 
 const fixture: SceneEntity[] = [
@@ -25,6 +25,19 @@ describe("deterministic layout", () => {
     const near = projectPoint3D({ x: 100, y: -120, z: 0 }, { yaw: 0, pitch: 0.5, focalLength: 900 });
     const far = projectPoint3D({ x: 100, y: 120, z: 0 }, { yaw: 0, pitch: 0.5, focalLength: 900 });
     expect(near.scale).toBeGreaterThan(far.scale);
+  });
+
+  it("supports complete camera rotations without a pitch horizon clamp", () => {
+    const point = { x: 85, y: 140, z: 32 };
+    const camera = { yaw: 0.32, pitch: 0.58, focalLength: 1_400 };
+    const front = projectPoint3D(point, camera);
+    const upsideDown = projectPoint3D(point, { ...camera, pitch: camera.pitch + Math.PI });
+    const fullTurn = projectPoint3D(point, { ...camera, pitch: camera.pitch + Math.PI * 2 });
+    expect(upsideDown.y).not.toBeCloseTo(front.y);
+    expect(fullTurn.x).toBeCloseTo(front.x);
+    expect(fullTurn.y).toBeCloseTo(front.y);
+    expect(normalizeAngle(Math.PI * 2 + 0.4)).toBeCloseTo(0.4);
+    expect(angleDegrees(-Math.PI / 2)).toBe(270);
   });
 
   it("keeps existing entity coordinates stable when a satellite is added", () => {
@@ -61,7 +74,9 @@ describe("deterministic layout", () => {
     expect(frontier.lanes.length).toBeGreaterThan(DEFAULT_UNCLAIMED_SYSTEMS);
     expect(frontier).toEqual(createFrontierField(42));
     const radii = frontier.systems.map((system) => Math.hypot(system.x, system.y / 0.62));
-    expect(Math.min(...radii)).toBeGreaterThan(620);
+    expect(Math.min(...radii)).toBeGreaterThan(200);
+    expect(Math.min(...radii)).toBeLessThan(300);
+    expect(radii.filter((radius) => radius < 620).length).toBeGreaterThanOrEqual(12);
     expect(Math.max(...radii)).toBeGreaterThan(1_050);
   });
 

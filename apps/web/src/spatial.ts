@@ -25,8 +25,13 @@ export const DEFAULT_ORIENTATION = {
   system: { yaw: -0.22, pitch: 0.48, focalLength: 950 },
 } as const;
 
-export function clampPitch(pitch: number): number {
-  return Math.max(0.08, Math.min(1.22, pitch));
+export function normalizeAngle(angle: number): number {
+  const turn = Math.PI * 2;
+  return ((angle + Math.PI) % turn + turn) % turn - Math.PI;
+}
+
+export function angleDegrees(angle: number): number {
+  return Math.round(((normalizeAngle(angle) * 180) / Math.PI + 360) % 360);
 }
 
 export function projectPoint3D(point: SpatialPoint, camera: SpatialCamera): ProjectedPoint {

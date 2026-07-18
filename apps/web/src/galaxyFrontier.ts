@@ -86,10 +86,17 @@ export function createFrontierField(seed: number, count = DEFAULT_UNCLAIMED_SYST
   const fieldScale = Math.sqrt(Math.max(DEFAULT_UNCLAIMED_SYSTEMS, count) / DEFAULT_UNCLAIMED_SYSTEMS);
   const innerRadius = 680 * fieldScale;
   const outerRadius = 1120 * fieldScale;
+  const approachCount = Math.min(count, Math.max(14, Math.round(count * 0.1)));
+  const outerCount = Math.max(1, count - approachCount);
   const systems = Array.from({ length: count }, (_, index): FrontierSystem => {
-    const progress = (index + 0.5) / Math.max(1, count);
     const angle = index * goldenAngle + unit(`frontier-angle:${index}`, seed) * 0.58;
-    const radius = Math.sqrt(innerRadius ** 2 + progress * (outerRadius ** 2 - innerRadius ** 2)) + (unit(`frontier-radius:${index}`, seed) - 0.5) * 76;
+    const approach = index < approachCount;
+    const progress = approach
+      ? (index + 0.45) / approachCount
+      : (index - approachCount + 0.5) / outerCount;
+    const radius = approach
+      ? 220 + progress ** 0.82 * (innerRadius - 250) + (unit(`frontier-radius:${index}`, seed) - 0.5) * 34
+      : Math.sqrt(innerRadius ** 2 + progress * (outerRadius ** 2 - innerRadius ** 2)) + (unit(`frontier-radius:${index}`, seed) - 0.5) * 76;
     return {
       id: `uncharted-${index.toString().padStart(3, "0")}`,
       x: Math.cos(angle) * radius,

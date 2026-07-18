@@ -21,11 +21,11 @@ Evolastra receives durable analytical events, projects them into a semantic evid
 ## Why Evolastra
 
 - **See the analysis happen.** Runs, branches, agents, tools, artifacts, findings, anomalies, and approvals become distinct inspectable objects.
-- **Navigate in 3D.** Both maps support perspective depth, drag rotation, tilt, pan, zoom, and keyboard camera controls.
+- **Navigate in 3D.** Both maps support perspective depth, unrestricted 360° rotation, tilt, pan, zoom, and keyboard camera controls.
 - **Never lose the trail.** Replay, deterministic projections, typed relationships, and portable exports preserve how a conclusion was reached.
 - **Keep data local.** The companion, SQLite database, artifacts, Codex outbox, and access capability remain on the user’s machine.
 - **Integrate without lock-in.** CloudEvents, W3C trace concepts, JSONL, OpenLineage exports, SDKs, and narrow adapters provide explicit boundaries.
-- **Stay connected.** Claimed systems and the generated frontier are built as a single traversable hyperlane graph—no isolated islands.
+- **Stay connected.** A sparse inner frontier flows out from the command star, while claimed systems and the full generated field remain one traversable hyperlane graph—no isolated islands.
 
 ## How it works
 

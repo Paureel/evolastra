@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createFrontierField, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfilesFor, territoryGrowth, type FrontierBridge, type FrontierField, type StellarProfile } from "../galaxyFrontier";
 import { stableHash } from "../layout";
 import { connectedHyperlanes, type ConnectedLane } from "../mapGraph";
-import { clampPitch, DEFAULT_ORIENTATION, projectFrontier3D, projectLayout3D, projectPoint3D, type SpatialCamera } from "../spatial";
+import { angleDegrees, DEFAULT_ORIENTATION, normalizeAngle, projectFrontier3D, projectLayout3D, projectPoint3D, type SpatialCamera } from "../spatial";
 import type { EdgeEntity, PositionedEntity, SceneEntity, SpaceMapMode } from "../types";
 
 interface GalaxyCanvasProps {
@@ -1080,8 +1080,8 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
   };
 
   const rotateCamera = (yawDelta: number, pitchDelta: number) => {
-    camera.current.yaw += yawDelta;
-    camera.current.pitch = clampPitch(camera.current.pitch + pitchDelta);
+    camera.current.yaw = normalizeAngle(camera.current.yaw + yawDelta);
+    camera.current.pitch = normalizeAngle(camera.current.pitch + pitchDelta);
     setOrientation({ yaw: camera.current.yaw, pitch: camera.current.pitch });
   };
 
@@ -1127,8 +1127,8 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
             camera.current.x = drag.current.cameraX + deltaX;
             camera.current.y = drag.current.cameraY + deltaY;
           } else {
-            camera.current.yaw = drag.current.yaw + deltaX * 0.006;
-            camera.current.pitch = clampPitch(drag.current.pitch + deltaY * 0.0045);
+            camera.current.yaw = normalizeAngle(drag.current.yaw + deltaX * 0.006);
+            camera.current.pitch = normalizeAngle(drag.current.pitch + deltaY * 0.006);
             setOrientation({ yaw: camera.current.yaw, pitch: camera.current.pitch });
           }
         }}
@@ -1185,8 +1185,8 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
         <small>{mode === "galaxy" ? `${claimedSystemCount} charted systems · ${entities.filter((entity) => entity.kind === "agent").length} agent vessels` : `${focusProfile?.label ?? "star"} · ${Math.max(0, layout.length - 1)} tracked bodies`}</small>
       </div>
       {mode === "system" && <button className="map-back" onClick={onBackToGalaxy}><span aria-hidden="true">←</span> Galaxy map</button>}
-      <output className="map-orientation" aria-label={`3D camera yaw ${Math.round((orientation.yaw * 180) / Math.PI)} degrees, tilt ${Math.round((orientation.pitch * 180) / Math.PI)} degrees`}>
-        <span>3D NAV</span><b>YAW {Math.round((((orientation.yaw * 180) / Math.PI) % 360 + 360) % 360)}°</b><b>TILT {Math.round((orientation.pitch * 180) / Math.PI)}°</b>
+      <output className="map-orientation" aria-label={`3D camera yaw ${angleDegrees(orientation.yaw)} degrees, tilt ${angleDegrees(orientation.pitch)} degrees; full orbit enabled`}>
+        <span>3D NAV · FULL ORBIT</span><b>YAW {angleDegrees(orientation.yaw)}°</b><b>TILT {angleDegrees(orientation.pitch)}°</b>
       </output>
       <div className="map-zoom map-camera" aria-label="3D map camera controls">
         <button onClick={() => adjustZoom(1.18)} aria-label="Zoom in">+</button>
