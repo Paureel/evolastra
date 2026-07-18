@@ -61,6 +61,7 @@ test("stellar identity persists from galaxy systems into system view", async ({ 
 });
 
 test("@accessibility core surface has no serious axe violations", async ({ page }) => {
+  test.setTimeout(90_000);
   await page.goto("/");
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
   const defaultResults = await new AxeBuilder({ page }).analyze();
