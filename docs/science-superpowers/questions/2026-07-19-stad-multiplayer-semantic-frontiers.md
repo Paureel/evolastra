@@ -28,3 +28,39 @@
 **Scope & exclusions:** This exercise demonstrates exploratory collaboration and semantic geography. It does not infer causality, treatment response, survival benefit, or clinical utility from CNA data alone. It does not represent actual independent human players, transmit raw project data, or make novelty claims. No map position becomes canonical analytical evidence. External expression, dependency, pharmacology, and independent-cohort validation remain required before biological promotion.
 
 **Open questions for prior-work survey:** Which lightweight semantic-distance formulation is most interpretable for a deterministic browser map; how to distinguish same-arm physical co-gain from functional co-dependency; which collateral-loss and synthetic-lethal mechanisms are independently supported in gastric cancer; and which validation modalities best separate dosage effects from passenger CNAs.
+
+## Prior-work grounding
+
+- The TCGA gastric adenocarcinoma study established molecularly heterogeneous
+  disease classes and recurrent copy-number programs; this simulation is an
+  extension of that descriptive landscape, not a new molecular taxonomy
+  (TCGA Research Network, *Nature* 2014, PMID 25079317,
+  https://doi.org/10.1038/nature13480).
+- GISTIC2.0 formalizes the distinction between focal recurrent alteration and
+  broad passenger background. The present gene-level matrix lacks segmentation,
+  purity, and ploidy, so every nominated dependency retains focality and dosage
+  confirmation as a required validation step (Mermel et al., *Genome Biology*
+  2011, PMID 21527027, https://doi.org/10.1186/gb-2011-12-4-r41).
+- CCNE1 amplification has been independently observed in gastric cancer, but its
+  recurrence is not itself evidence for drug sensitivity (Ooi et al., *Human
+  Pathology* 2017, PMID 27864121, https://doi.org/10.1016/j.humpath.2016.10.025;
+  Huang et al., *Pathology Research and Practice* 2019, PMID 31178228,
+  https://doi.org/10.1016/j.prp.2019.152434).
+- ARID1A synthetic-lethal strategies are an active therapeutic research area;
+  the program therefore names matched perturbation tests and treats a missing
+  selective response as a falsifier (Zhang et al., *Cancer Gene Therapy* 2024,
+  PMID 38040871, https://doi.org/10.1038/s41417-023-00706-y; Li et al.,
+  *Frontiers in Oncology* 2023, PMID 36890819,
+  https://doi.org/10.3389/fonc.2023.1136248).
+- For co-alterations, physical linkage, chromosome-arm gain, and overall CNA
+  burden are mandatory alternative explanations. Pairwise odds ratios are used
+  only to nominate a program; combination efficacy remains untested.
+- For semantic geography, the adopted method is a transparent weighted Jaccard
+  dissimilarity over declared categorical features followed by deterministic
+  stress minimization. No biological inference is made from the embedding; it
+  is validated only for preservation of its declared input distances.
+
+There is no defensible prior biological effect size for this interface
+simulation. The biological outputs remain exploratory. The spatial method is
+validated on a fixed six-system fixture and by exact distance-order criteria,
+not by inferential power.
