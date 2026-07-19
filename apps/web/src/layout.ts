@@ -10,6 +10,114 @@ export function stableHash(value: string, seed = 0): number {
   return hash >>> 0;
 }
 
+export interface StableGalaxyPosition {
+  x: number;
+  y: number;
+  z: number;
+  angle: number;
+}
+
+export type GalaxyPositionRegistry = Map<string, StableGalaxyPosition>;
+
+function isGalaxySystem(entity: PositionedEntity): boolean {
+  return entity.kind === "home" || entity.kind === "node";
+}
+
+/**
+ * Keeps coordinates already issued to galaxy systems immutable for the life of
+ * a run projection. New systems inherit the best-fit coordinate frame of the
+ * visible anchors, so semantic layout can expand without moving prior systems.
+ */
+export function stabilizeGalaxyLayout(
+  nextLayout: PositionedEntity[],
+  registry: GalaxyPositionRegistry,
+): PositionedEntity[] {
+  const rawSystems = new Map(
+    nextLayout.filter(isGalaxySystem).map((entity) => [entity.id, entity]),
+  );
+  const anchors = [...rawSystems.values()].flatMap((entity) => {
+    const stable = registry.get(entity.id);
+    return stable ? [{ raw: entity, stable }] : [];
+  });
+
+  const rawCenter = anchors.length
+    ? anchors.reduce((center, anchor) => ({
+        x: center.x + anchor.raw.x / anchors.length,
+        y: center.y + anchor.raw.y / anchors.length,
+        z: center.z + anchor.raw.z / anchors.length,
+      }), { x: 0, y: 0, z: 0 })
+    : { x: 0, y: 0, z: 0 };
+  const stableCenter = anchors.length
+    ? anchors.reduce((center, anchor) => ({
+        x: center.x + anchor.stable.x / anchors.length,
+        y: center.y + anchor.stable.y / anchors.length,
+        z: center.z + anchor.stable.z / anchors.length,
+      }), { x: 0, y: 0, z: 0 })
+    : { x: 0, y: 0, z: 0 };
+
+  let scaleCos = 1;
+  let scaleSin = 0;
+  if (anchors.length > 1) {
+    let dot = 0;
+    let cross = 0;
+    let rawMagnitude = 0;
+    for (const anchor of anchors) {
+      const rawX = anchor.raw.x - rawCenter.x;
+      const rawY = anchor.raw.y - rawCenter.y;
+      const stableX = anchor.stable.x - stableCenter.x;
+      const stableY = anchor.stable.y - stableCenter.y;
+      dot += rawX * stableX + rawY * stableY;
+      cross += rawX * stableY - rawY * stableX;
+      rawMagnitude += rawX * rawX + rawY * rawY;
+    }
+    if (rawMagnitude > 1e-6) {
+      scaleCos = dot / rawMagnitude;
+      scaleSin = cross / rawMagnitude;
+    }
+  }
+
+  const align = (entity: PositionedEntity): StableGalaxyPosition => {
+    if (!anchors.length) {
+      return { x: entity.x, y: entity.y, z: entity.z, angle: entity.angle };
+    }
+    const rawX = entity.x - rawCenter.x;
+    const rawY = entity.y - rawCenter.y;
+    const x = stableCenter.x + scaleCos * rawX - scaleSin * rawY;
+    const y = stableCenter.y + scaleSin * rawX + scaleCos * rawY;
+    return {
+      x,
+      y,
+      z: stableCenter.z + entity.z - rawCenter.z,
+      angle: Math.atan2(y, x),
+    };
+  };
+
+  const stableSystems = new Map<string, PositionedEntity>();
+  for (const entity of rawSystems.values()) {
+    const position = registry.get(entity.id) ?? align(entity);
+    if (!registry.has(entity.id)) registry.set(entity.id, position);
+    stableSystems.set(entity.id, { ...entity, ...position });
+  }
+
+  return nextLayout.map((entity) => {
+    const stableSystem = stableSystems.get(entity.id);
+    if (stableSystem) return stableSystem;
+    if (entity.kind !== "agent" || !entity.parentId) return entity;
+    const rawParent = rawSystems.get(entity.parentId);
+    const stableParent = stableSystems.get(entity.parentId);
+    if (!rawParent || !stableParent) return entity;
+    const x = stableParent.x + entity.x - rawParent.x;
+    const y = stableParent.y + entity.y - rawParent.y;
+    return {
+      ...entity,
+      x,
+      y,
+      z: stableParent.z + entity.z - rawParent.z,
+      angle: Math.atan2(stableParent.y - y, stableParent.x - x),
+    };
+  });
+}
+
 function layoutGalaxy(entities: SceneEntity[], seed: number): PositionedEntity[] {
   const positions = new Map<string, PositionedEntity>();
   const home = entities.find((entity) => entity.kind === "home");

@@ -15,20 +15,20 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: ".\\.venv\\Scripts\\python.exe -m uvicorn asterism_api.main:app --app-dir apps\\api --host 127.0.0.1 --port 8000",
+      command: ".\\.venv\\Scripts\\python.exe -m uvicorn asterism_api.main:app --app-dir apps\\api --host 127.0.0.1 --port 8011",
       cwd: "../..",
       env: {
         ASTERISM_DATABASE_URL: "sqlite:///./apps/web/test-results/e2e.db",
         ASTERISM_ARTIFACT_ROOT: "./apps/web/test-results/artifacts",
       },
-      url: "http://127.0.0.1:8000/health/ready",
-      reuseExistingServer: true,
+      url: "http://127.0.0.1:8011/health/ready",
+      reuseExistingServer: false,
       timeout: 30_000,
     },
     {
       command: "npm run dev",
       url: "http://127.0.0.1:5173",
-      reuseExistingServer: true,
+      reuseExistingServer: false,
       timeout: 30_000,
     },
   ],

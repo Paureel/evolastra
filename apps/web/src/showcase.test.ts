@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import stadShowcaseJson from "../public/demo/stad-three-empires-v1.json";
+import { sceneFromState } from "./App";
+import { layoutScene, stabilizeGalaxyLayout } from "./layout";
 import { parsePublicShowcase, PUBLIC_SHOWCASE_PATH, searchPublicShowcase, showcaseMultiplayerAtState, showcasePhaseLabel, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
 
 const bundle = {
@@ -49,6 +52,36 @@ describe("public showcase", () => {
     expect(second.nodes).toHaveLength(2);
     expect(showcaseMultiplayerAtState(bundle, first).claims).toEqual([]);
     expect(showcaseMultiplayerAtState(bundle, second).claims).toHaveLength(1);
+    expect(showcaseMultiplayerAtState(bundle, showcaseStateAtSequence(bundle, 3)).claims)
+      .toEqual(showcaseMultiplayerAtState(bundle, second).claims);
+  });
+
+  it("keeps the actual three-empire STAD systems and prior owners fixed through every phase", () => {
+    const stadBundle = parsePublicShowcase(stadShowcaseJson as unknown as PublicShowcaseBundle);
+    const seed = stadBundle.run.seed;
+    const finalScene = sceneFromState(showcaseStateAtSequence(stadBundle, null)).entities;
+    const registry = new Map();
+    const initial = stabilizeGalaxyLayout(layoutScene(finalScene, seed, "galaxy"), registry);
+    const initialSystems = new Map(
+      initial.filter((entity) => entity.kind === "home" || entity.kind === "node").map((entity) => [entity.id, entity]),
+    );
+    const seenOwners = new Map<string, string>();
+
+    for (let sequence = 1; sequence <= stadBundle.replay.last_sequence; sequence += 1) {
+      const state = showcaseStateAtSequence(stadBundle, sequence);
+      const scene = sceneFromState(state).entities;
+      const positioned = stabilizeGalaxyLayout(layoutScene(scene, seed, "galaxy"), registry);
+      for (const system of positioned.filter((entity) => entity.kind === "home" || entity.kind === "node")) {
+        const expected = initialSystems.get(system.id);
+        expect(system).toMatchObject({ x: expected?.x, y: expected?.y, z: expected?.z });
+      }
+      for (const claim of showcaseMultiplayerAtState(stadBundle, state).claims ?? []) {
+        expect(claim.player_id).toBe(seenOwners.get(claim.node_id) ?? claim.player_id);
+        seenOwners.set(claim.node_id, claim.player_id);
+      }
+    }
+
+    expect(seenOwners.size).toBe(10);
   });
 
   it("searches the visible projection without a companion request", () => {

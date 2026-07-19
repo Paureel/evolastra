@@ -109,6 +109,10 @@ Never convert a flaky or poorly understood test into an expected failure. A fail
 
 Playwright verifies live demo growth, synchronized views, search, replay/return-live, and an axe scan with no serious or critical violations. The remaining recommended coverage is:
 
+The Playwright harness owns an isolated development API on loopback port 8011
+and selects it through session-scoped browser state. It never reuses or mutates
+an installed paired companion on the production default port 8000.
+
 - Disconnect/resume and export downloads in Chromium and Firefox
 - Full keyboard-only navigation through tree, search, inspectors, dialogs, and approvals
 - Manual screen-reader checks

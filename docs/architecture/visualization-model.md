@@ -68,7 +68,7 @@ layout approximates those distances. Signature fields are analytical labels;
 the resulting coordinates, stress, and neighborhood geometry remain disposable
 projection state.
 
-Cluster-local relaxation has a fixed iteration budget, stable ordering, and seeded randomness. Incremental updates limit movement so existing positions retain the user's mental map. User pins constrain the derived layout but remain projection-only state.
+Cluster-local relaxation has a fixed iteration budget, stable ordering, and seeded randomness. The client keeps a run-scoped registry of every system position it has issued. Recomputed layouts are aligned to those anchors, existing coordinates remain exact, and only newly discovered systems receive new positions. Timeline rewind and replay therefore cannot move an already revealed system. User pins constrain the derived layout but remain projection-only state.
 
 ## 3D camera and connected topology
 

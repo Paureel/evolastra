@@ -336,6 +336,7 @@ export default function App() {
                 entities={scene.entities}
                 edges={state.edges}
                 seed={runSeed}
+                projectionScope={run?.id ?? activeRunId ?? "pending-run"}
                 mode={view === "system" ? "system" : "galaxy"}
                 focusSystemId={focusSystemId}
                 selectedId={selectedId}

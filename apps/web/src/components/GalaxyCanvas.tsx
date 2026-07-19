@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { syncCanvasBackingStore } from "../canvasBackingStore";
 import { createFrontierField, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfilesFor, type FrontierBridge, type FrontierField, type StellarProfile } from "../galaxyFrontier";
 import layoutWorkerUrl from "../layout.worker.ts?worker&url";
-import { stableHash } from "../layout";
+import { stableHash, stabilizeGalaxyLayout, type GalaxyPositionRegistry } from "../layout";
 import { connectedHyperlanes, type ConnectedLane } from "../mapGraph";
 import { angleDegrees, DEFAULT_ORIENTATION, normalizeAngle, projectFrontier3D, projectGalaxyPlaneLayout, projectLayout3D, projectPoint3D, type SpatialCamera } from "../spatial";
 import { buildTerritoryRegions, projectTerritoryPoint, territorySystemsForLayout, territoryTransitionLayers, type TerritoryRegion } from "../territoryProjection";
@@ -12,6 +12,7 @@ interface GalaxyCanvasProps {
   entities: SceneEntity[];
   edges: EdgeEntity[];
   seed: number;
+  projectionScope: string;
   mode: SpaceMapMode;
   focusSystemId: string;
   selectedId: string | null;
@@ -1007,13 +1008,15 @@ function animateSystemLayout(layout: PositionedEntity[], time: number, enabled: 
   });
 }
 
-export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selectedId, onSelect, onOpenSystem, onOpenShipyard, shipyardEnabled, multiplayerClaims, onBackToGalaxy, animated, reducedMotion, highContrast }: GalaxyCanvasProps) {
+export function GalaxyCanvas({ entities, edges, seed, projectionScope, mode, focusSystemId, selectedId, onSelect, onOpenSystem, onOpenShipyard, shipyardEnabled, multiplayerClaims, onBackToGalaxy, animated, reducedMotion, highContrast }: GalaxyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [layout, setLayout] = useState<PositionedEntity[]>([]);
   const [orientation, setOrientation] = useState<{ yaw: number; pitch: number }>(() => ({ yaw: DEFAULT_ORIENTATION[mode].yaw, pitch: DEFAULT_ORIENTATION[mode].pitch }));
   const [zoomLevel, setZoomLevel] = useState(1);
   const layoutRef = useRef<PositionedEntity[]>([]);
   const renderedLayoutRef = useRef<PositionedEntity[]>([]);
+  const stableGalaxyPositionsRef = useRef<GalaxyPositionRegistry>(new Map());
+  const stableGalaxyScopeRef = useRef("");
   const territoryTransitionRef = useRef<{ previous: TerritoryRegion[]; current: TerritoryRegion[]; startedAt: number; signature: string }>({ previous: [], current: [], startedAt: 0, signature: "" });
   const camera = useRef<Camera>({ x: 0, y: 0, zoom: 1, ...DEFAULT_ORIENTATION[mode] });
   const drag = useRef<{ x: number; y: number; cameraX: number; cameraY: number; yaw: number; pitch: number; mode: "rotate" | "pan" } | null>(null);
@@ -1055,18 +1058,26 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
   }, [cameraScope, defaultCameraZoom, mode]);
 
   useEffect(() => {
+    const nextScope = `${projectionScope}:${seed}`;
+    if (stableGalaxyScopeRef.current !== nextScope) {
+      stableGalaxyPositionsRef.current.clear();
+      stableGalaxyScopeRef.current = nextScope;
+    }
     const worker = new Worker(
       trustedLayoutWorkerUrl(new URL(layoutWorkerUrl, window.location.origin)),
       { type: "module" },
     );
     worker.onmessage = (event: MessageEvent<PositionedEntity[]>) => {
-      layoutRef.current = event.data;
-      renderedLayoutRef.current = event.data;
-      setLayout(event.data);
+      const nextLayout = mode === "galaxy"
+        ? stabilizeGalaxyLayout(event.data, stableGalaxyPositionsRef.current)
+        : event.data;
+      layoutRef.current = nextLayout;
+      renderedLayoutRef.current = nextLayout;
+      setLayout(nextLayout);
     };
     worker.postMessage({ entities, seed, mode, focusSystemId });
     return () => worker.terminate();
-  }, [entities, seed, mode, focusSystemId]);
+  }, [entities, seed, projectionScope, mode, focusSystemId]);
 
   useEffect(() => {
     if (territoryTransitionRef.current.signature === territorySnapshot.signature) return;

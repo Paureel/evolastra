@@ -1,8 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.beforeEach(async ({ request }) => {
-  const response = await request.post("http://127.0.0.1:8000/api/v1/demo/start?speed=50", { data: {} });
+const TEST_API_ORIGIN = "http://127.0.0.1:8011";
+
+test.beforeEach(async ({ page, request }) => {
+  await page.addInitScript((endpoint) => {
+    window.sessionStorage.setItem("evolastra.api.endpoint", endpoint);
+  }, TEST_API_ORIGIN);
+  const response = await request.post(`${TEST_API_ORIGIN}/api/v1/demo/start?speed=50`, { data: {} });
   expect(response.ok()).toBeTruthy();
 });
 
