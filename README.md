@@ -112,8 +112,9 @@ non-executable reproduction bundle.
 ## Start here
 
 Just want to look around? Open the hosted app and choose **Explore public demo**.
-The finished three-empire STAD expedition, replay, aggregate figures, and
-territories load without installation or pairing and are visibly read-only.
+The finished three-empire Stomach Adenocarcinoma (STAD) Copy Number Alteration
+(CNA) expedition, twelve-phase replay, aggregate figures, and territories load
+without installation or pairing and are visibly read-only.
 
 On Windows with Python 3.12+, Node.js 20+, and repository access:
 

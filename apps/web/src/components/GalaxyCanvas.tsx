@@ -1020,6 +1020,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
   const keyboardIndex = useRef(0);
   const stellarSystemIds = useMemo(() => entities.filter((entity) => entity.kind === "home" || entity.kind === "node").map((entity) => entity.id), [entities]);
   const claimedSystemCount = stellarSystemIds.length;
+  const territorialEmpireCount = new Set(Object.values(multiplayerClaims)).size;
   const stellarProfiles = useMemo(() => stellarProfilesFor(stellarSystemIds, seed), [stellarSystemIds, seed]);
   const stellarOrdinals = useMemo(() => new Map(stellarSystemIds.map((id, ordinal) => [id, ordinal])), [stellarSystemIds]);
   const unclaimedSystemCount = frontierSystemCount(claimedSystemCount);
@@ -1193,7 +1194,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
         ref={canvasRef}
         className="galaxy-canvas"
         role="img"
-        aria-label={mode === "galaxy" ? `Rotatable 3D Evolastra galaxy map with ${claimedSystemCount} claimed analysis systems and ${unclaimedSystemCount} connected unclaimed frontier systems.` : `Rotatable 3D Evolastra system view for ${focusTitle}, a ${focusProfile?.label ?? "star"}, with ${Math.max(0, layout.length - 1)} orbital objects.`}
+        aria-label={mode === "galaxy" ? `Rotatable 3D Evolastra galaxy map with ${claimedSystemCount} claimed analysis systems, ${territorialEmpireCount} territorial empires, and ${unclaimedSystemCount} connected unclaimed frontier systems.` : `Rotatable 3D Evolastra system view for ${focusTitle}, a ${focusProfile?.label ?? "star"}, with ${Math.max(0, layout.length - 1)} orbital objects.`}
         tabIndex={0}
         onDoubleClick={(event) => {
           if (mode !== "galaxy") return;

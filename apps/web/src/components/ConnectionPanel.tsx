@@ -54,7 +54,7 @@ export function ConnectionPanel({ open, required, onClose, onConnected, onExplor
         <h2 id="connection-title">Enter Evolastra</h2>
         <div className="showcase-launch">
           <span className="showcase-empires" aria-hidden="true"><i /><i /><i /></span>
-          <div><small>NO PAIRING REQUIRED · READ ONLY</small><h3>Three-empire STAD expedition</h3><p>Explore the finished map, six hypotheses, aggregate figures, and replay.</p></div>
+          <div><small>NO PAIRING REQUIRED · READ ONLY</small><h3>Three-empire STAD expedition</h3><p><strong>STAD: Stomach Adenocarcinoma.</strong> Explore a twelve-phase Copy Number Alteration (CNA) analysis with six hypotheses, aggregate figures, and three expanding empires.</p></div>
           <button className="showcase-button" disabled={demoLoading || connecting} onClick={() => void exploreDemo()}>{demoLoading ? "Loading expedition…" : "Explore public demo"}</button>
         </div>
         <div className="connection-divider"><span>OR CONNECT LOCAL CODEX</span></div>

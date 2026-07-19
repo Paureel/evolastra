@@ -109,10 +109,11 @@ Enter the displayed one-use code in the browser. Pairing creates a short-lived, 
 ## ⚡ Run the demo only
 
 The easiest option needs no local setup: open the hosted viewer and choose
-**Explore public demo**. It loads the one curated, aggregate-only STAD
-three-empire expedition from the static host. You can rotate and zoom the map,
-replay its four research phases, inspect all six figures, and open the federation
-roster. Shipbuilding, publishing, import/export, and other mutations are disabled.
+**Explore public demo**. It loads the one curated, aggregate-only Stomach
+Adenocarcinoma (STAD) Copy Number Alteration (CNA) three-empire expedition from
+the static host. You can rotate and zoom the map, replay its twelve named
+research phases, inspect all six figures, and watch the three territories emerge.
+Shipbuilding, publishing, import/export, and other mutations are disabled.
 
 For the separate mutable local seed demo without Codex hooks:
 

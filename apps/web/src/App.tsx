@@ -15,7 +15,7 @@ import { useLiveProjection } from "./hooks/useLiveProjection";
 import { advanceReplay, replayStart } from "./replay";
 import { AUTH_REQUIRED_EVENT, CONNECTION_CHANGED_EVENT, getConnection } from "./connection";
 import { parseSemanticSignature } from "./semanticLayout";
-import { loadPublicShowcase, searchPublicShowcase, showcaseMultiplayerAtState, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
+import { loadPublicShowcase, searchPublicShowcase, showcaseMultiplayerAtState, showcasePhaseLabel, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
 import type { Entity, GraphState, MultiplayerState, SceneEntity, ViewName } from "./types";
 
 const PRIMARY_VIEWS: Array<{ id: ViewName; label: string }> = [
@@ -365,9 +365,15 @@ export default function App() {
           <button className="quiet-button live-button" onClick={returnLive} disabled={replaySequence === null}>Live</button>
         </div>
         <label className="timeline-range">
-          <output aria-live="polite">{replaySequence === null ? "LIVE EVENT HORIZON" : `${replayPlaying ? "PLAYING" : "REPLAY PAUSED"} · EVENT ${replaySequence} / ${latestSequence}`}</output>
-          <input type="range" min={1} max={latestSequence} value={replaySequence ?? latestSequence} onChange={(event) => { setReplayPlaying(false); setReplaySequence(Number(event.target.value)); }} aria-label="Replay sequence" />
-          <small>Event 1</small><small>Event {latestSequence}</small>
+          <output aria-live="polite">{showcase && replaySequence === null
+            ? `PUBLIC EXPEDITION · ${latestSequence} PHASES COMPLETE`
+            : showcase && replaySequence !== null
+              ? `${replayPlaying ? "PLAYING" : "REPLAY PAUSED"} · PHASE ${replaySequence} / ${latestSequence} · ${showcasePhaseLabel(showcase, replaySequence)}`
+              : replaySequence === null
+                ? "LIVE EVENT HORIZON"
+                : `${replayPlaying ? "PLAYING" : "REPLAY PAUSED"} · EVENT ${replaySequence} / ${latestSequence}`}</output>
+          <input type="range" min={1} max={latestSequence} value={replaySequence ?? latestSequence} onChange={(event) => { setReplayPlaying(false); setReplaySequence(Number(event.target.value)); }} aria-label={showcaseActive ? "Replay phase" : "Replay sequence"} />
+          <small>{showcaseActive ? "Phase" : "Event"} 1</small><small>{showcaseActive ? "Phase" : "Event"} {latestSequence}</small>
         </label>
         <div className="display-controls">
           <label className="replay-speed">REPLAY <select value={replayRate} onChange={(event) => setReplayRate(Number(event.target.value))} aria-label="Replay speed"><option value="1">1×</option><option value="4">4×</option><option value="12">12×</option></select></label>

@@ -3,6 +3,12 @@ import type { Entity, GraphState, MultiplayerState, RunSummary } from "./types";
 export const PUBLIC_SHOWCASE_PATH = "/demo/stad-three-empires-v1.json";
 export const PUBLIC_SHOWCASE_ID = "stad-three-empires-v1";
 
+export interface PublicShowcaseReplayPhase {
+  sequence: number;
+  label: string;
+  node_ids: string[];
+}
+
 export interface PublicShowcaseBundle {
   schema_version: 1;
   id: typeof PUBLIC_SHOWCASE_ID;
@@ -12,6 +18,10 @@ export interface PublicShowcaseBundle {
   run: RunSummary;
   state: GraphState;
   multiplayer: MultiplayerState;
+  replay: {
+    last_sequence: number;
+    phases: PublicShowcaseReplayPhase[];
+  };
 }
 
 const ENTITY_COLLECTIONS = [
@@ -44,6 +54,11 @@ export function parsePublicShowcase(value: unknown): PublicShowcaseBundle {
   if (!isRecord(value.multiplayer) || value.multiplayer.enabled !== true) {
     throw new Error("The public showcase federation is incomplete.");
   }
+  if (!isRecord(value.replay) || value.replay.last_sequence !== state.last_sequence || !Array.isArray(value.replay.phases)
+    || value.replay.phases.length !== state.last_sequence
+    || value.replay.phases.some((phase, index) => !isRecord(phase) || phase.sequence !== index + 1 || typeof phase.label !== "string" || !Array.isArray(phase.node_ids))) {
+    throw new Error("The public showcase replay is incomplete.");
+  }
   return value as unknown as PublicShowcaseBundle;
 }
 
@@ -53,20 +68,39 @@ export async function loadPublicShowcase(): Promise<PublicShowcaseBundle> {
   return parsePublicShowcase(await response.json());
 }
 
-function visibleAt(entity: Entity, sequence: number): boolean {
-  return Number(entity._sequence ?? 1) <= sequence;
+function nodePhaseMap(bundle: PublicShowcaseBundle): Map<string, number> {
+  return new Map(bundle.replay.phases.flatMap((phase) => phase.node_ids.map((id) => [id, phase.sequence])));
+}
+
+function entityPhase(entity: Entity, nodePhases: Map<string, number>, latest: number): number {
+  const ownPhase = nodePhases.get(entity.id);
+  if (ownPhase) return ownPhase;
+  const relatedPhases = ["node_id", "current_node_id", "parent_node_id", "source_id", "target_id"]
+    .map((key) => entity[key])
+    .filter((value): value is string => typeof value === "string")
+    .flatMap((id) => nodePhases.has(id) ? [nodePhases.get(id)!] : []);
+  if (relatedPhases.length) return Math.max(...relatedPhases);
+  return Math.max(1, Math.min(latest, Number(entity._sequence ?? 1)));
 }
 
 export function showcaseStateAtSequence(bundle: PublicShowcaseBundle, requestedSequence: number | null): GraphState {
   const latest = bundle.state.last_sequence;
   const sequence = requestedSequence === null ? latest : Math.max(1, Math.min(latest, Math.floor(requestedSequence)));
+  const nodePhases = nodePhaseMap(bundle);
   const state = { ...bundle.state } as GraphState;
   for (const key of ENTITY_COLLECTIONS) {
-    (state as unknown as Record<string, unknown>)[key] = bundle.state[key].filter((entity) => visibleAt(entity, sequence));
+    (state as unknown as Record<string, unknown>)[key] = bundle.state[key]
+      .map((entity) => ({ ...entity, _sequence: entityPhase(entity, nodePhases, latest) }))
+      .filter((entity) => Number(entity._sequence) <= sequence);
   }
   state.last_sequence = sequence;
   state.event_count = ENTITY_COLLECTIONS.reduce((total, key) => total + state[key].length, 0);
   return state;
+}
+
+export function showcasePhaseLabel(bundle: PublicShowcaseBundle, sequence: number): string {
+  const bounded = Math.max(1, Math.min(bundle.replay.last_sequence, Math.floor(sequence)));
+  return bundle.replay.phases[bounded - 1]?.label ?? `Phase ${bounded}`;
 }
 
 export function showcaseMultiplayerAtState(bundle: PublicShowcaseBundle, state: GraphState): MultiplayerState {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePublicShowcase, PUBLIC_SHOWCASE_PATH, searchPublicShowcase, showcaseMultiplayerAtState, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
+import { parsePublicShowcase, PUBLIC_SHOWCASE_PATH, searchPublicShowcase, showcaseMultiplayerAtState, showcasePhaseLabel, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
 
 const bundle = {
   schema_version: 1,
@@ -23,13 +23,23 @@ const bundle = {
     claims: [{ id: "demo_claim_myc", node_id: "demo_node_myc", player_id: "demo_player_gold", claimed_at: "2026-07-19T00:00:00Z" }],
     publications: [{ id: "demo_publication_myc", finding_id: "demo_finding_myc", player_id: "demo_player_gold", title: "MYC", summary: "Aggregate result", published_at: "2026-07-19T00:00:00Z" }],
   },
+  replay: {
+    last_sequence: 3,
+    phases: [
+      { sequence: 1, label: "Research nexus", node_ids: ["demo_node_capital"] },
+      { sequence: 2, label: "MYC direction", node_ids: ["demo_node_myc"] },
+      { sequence: 3, label: "Synthesis", node_ids: [] },
+    ],
+  },
 } as PublicShowcaseBundle;
 
 describe("public showcase", () => {
   it("loads only the one fixed same-origin asset", () => {
     expect(PUBLIC_SHOWCASE_PATH).toBe("/demo/stad-three-empires-v1.json");
     expect(parsePublicShowcase(bundle)).toBe(bundle);
+    expect(showcasePhaseLabel(bundle, 2)).toBe("MYC direction");
     expect(() => parsePublicShowcase({ ...bundle, id: "another-demo" })).toThrow(/not recognized/);
+    expect(() => parsePublicShowcase({ ...bundle, replay: { last_sequence: 3, phases: [] } })).toThrow(/replay is incomplete/);
   });
 
   it("replays entities and federation claims by their public phase", () => {

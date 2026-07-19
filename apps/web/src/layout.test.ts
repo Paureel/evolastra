@@ -70,6 +70,29 @@ describe("deterministic layout", () => {
     expect(metrics.sameProgramNearestNeighbors).toBe(6);
   });
 
+  it("keeps nested semantic research branches visible on the galaxy map", () => {
+    const nested: SceneEntity[] = [
+      { id: "node_nested_home", title: "STAD", kind: "home", status: "completed" },
+      { id: "node_nested_atlas", title: "Amplified atlas", kind: "node", status: "completed", parentId: "node_nested_home" },
+      {
+        id: "node_nested_hypothesis",
+        title: "MYC to ATR",
+        kind: "node",
+        status: "completed",
+        parentId: "node_nested_atlas",
+        semanticSignature: STAD_SEMANTIC_FIXTURE[0].semanticSignature,
+      },
+    ];
+
+    const positioned = layoutScene(nested, 7319, "galaxy");
+
+    expect(positioned.map((entity) => entity.id)).toEqual(expect.arrayContaining([
+      "node_nested_home",
+      "node_nested_atlas",
+      "node_nested_hypothesis",
+    ]));
+  });
+
   it("opens a selected branch as a distinct orbital system", () => {
     const system = layoutScene(fixture, 42, "system", "node_branch001");
     expect(system.find((entity) => entity.id === "node_branch001")).toMatchObject({ x: 0, y: 0, radius: 31 });

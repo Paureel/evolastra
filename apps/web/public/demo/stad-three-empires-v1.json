@@ -11,9 +11,9 @@
     "status": "completed",
     "seed": 7319,
     "privacy_class": "public",
-    "last_sequence": 4,
+    "last_sequence": 12,
     "created_at": "2026-07-19T09:00:00Z",
-    "updated_at": "2026-07-19T09:04:00Z",
+    "updated_at": "2026-07-19T09:12:00Z",
     "counts": {
       "nodes": 13,
       "agents": 3,
@@ -72,6 +72,15 @@
         "node_type": "analysis",
         "status": "completed",
         "progress": 1,
+        "semantic_signature": {
+          "program": "amplification-dependency",
+          "alteration_direction": "gain",
+          "genes": ["MYC", "CCNE1"],
+          "cytobands": ["8q24.21", "19q12"],
+          "mechanisms": ["replication-stress", "cell-cycle"],
+          "therapeutic_modalities": ["ATR-inhibition", "CDK2-inhibition"],
+          "validation_modalities": ["focality", "dosage"]
+        },
         "_sequence": 2
       },
       {
@@ -122,6 +131,15 @@
         "node_type": "analysis",
         "status": "completed",
         "progress": 1,
+        "semantic_signature": {
+          "program": "deletion-vulnerability",
+          "alteration_direction": "loss",
+          "genes": ["CDKN2A", "ARID1A"],
+          "cytobands": ["9p21.3", "1p36.11"],
+          "mechanisms": ["checkpoint-loss", "chromatin-remodeling"],
+          "therapeutic_modalities": ["checkpoint-dependency", "ATR-inhibition"],
+          "validation_modalities": ["focality", "restoration"]
+        },
         "_sequence": 3
       },
       {
@@ -172,6 +190,15 @@
         "node_type": "analysis",
         "status": "completed",
         "progress": 1,
+        "semantic_signature": {
+          "program": "co-alteration-combination",
+          "alteration_direction": "co-gain",
+          "genes": ["ERBB2", "CCNE1", "TERT", "RICTOR"],
+          "cytobands": ["17q12", "19q12", "5p15.33", "5p13.1"],
+          "mechanisms": ["combination-dependency", "receptor-signaling", "mTORC2-signaling"],
+          "therapeutic_modalities": ["HER2-blockade", "mTORC2-inhibition"],
+          "validation_modalities": ["burden-adjustment", "combination-response"]
+        },
         "_sequence": 4
       },
       {
@@ -548,8 +575,25 @@
       { "id": "demo_edge_synthesis_cdkn2a", "source_id": "demo_node_vulnerability_synthesis", "target_id": "demo_node_cdkn2a_checkpoint", "edge_type": "integrates", "_sequence": 4 }
     ],
     "unknown_events": [],
-    "last_sequence": 4,
+    "last_sequence": 12,
     "event_count": 51
+  },
+  "replay": {
+    "last_sequence": 12,
+    "phases": [
+      { "sequence": 1, "label": "Research nexus", "node_ids": ["demo_node_capital"] },
+      { "sequence": 2, "label": "Cohort and matrix integrity", "node_ids": ["demo_node_matrix_qc"] },
+      { "sequence": 3, "label": "Recurrent focal landscape", "node_ids": ["demo_node_recurrence"] },
+      { "sequence": 4, "label": "Amplification Dominion capital", "node_ids": ["demo_node_amplified_drivers"] },
+      { "sequence": 5, "label": "MYC–ATR direction", "node_ids": ["demo_node_myc_atr"] },
+      { "sequence": 6, "label": "CCNE1–CDK2/PKMYT1 direction", "node_ids": ["demo_node_ccne1_cdk2"] },
+      { "sequence": 7, "label": "Loss Cartographers capital", "node_ids": ["demo_node_suppressor_losses"] },
+      { "sequence": 8, "label": "CDKN2A checkpoint direction", "node_ids": ["demo_node_cdkn2a_checkpoint"] },
+      { "sequence": 9, "label": "ARID1A synthetic-lethality direction", "node_ids": ["demo_node_arid1a_atr"] },
+      { "sequence": 10, "label": "Constellation Pact capital", "node_ids": ["demo_node_coalterations"] },
+      { "sequence": 11, "label": "ERBB2–CCNE1 combination direction", "node_ids": ["demo_node_erbb2_ccne1"] },
+      { "sequence": 12, "label": "TERT–RICTOR and therapeutic synthesis", "node_ids": ["demo_node_tert_rictor", "demo_node_vulnerability_synthesis"] }
+    ]
   },
   "multiplayer": {
     "enabled": true,
@@ -558,7 +602,7 @@
       "run_id": "demo_run_stad_three_empires",
       "mode": "host",
       "status": "active",
-      "revision": 4,
+      "revision": 12,
       "host_url": "",
       "project_fingerprint": "public-showcase",
       "local_player_id": "demo_player_gold",
@@ -572,10 +616,13 @@
     ],
     "claims": [
       { "id": "demo_claim_capital", "node_id": "demo_node_capital", "player_id": "demo_player_gold", "claimed_at": "2026-07-19T09:01:00Z" },
+      { "id": "demo_claim_amplified_capital", "node_id": "demo_node_amplified_drivers", "player_id": "demo_player_gold", "claimed_at": "2026-07-19T09:04:00Z" },
       { "id": "demo_claim_myc", "node_id": "demo_node_myc_atr", "player_id": "demo_player_gold", "claimed_at": "2026-07-19T09:02:00Z" },
       { "id": "demo_claim_ccne1", "node_id": "demo_node_ccne1_cdk2", "player_id": "demo_player_gold", "claimed_at": "2026-07-19T09:02:00Z" },
+      { "id": "demo_claim_loss_capital", "node_id": "demo_node_suppressor_losses", "player_id": "demo_player_cyan", "claimed_at": "2026-07-19T09:07:00Z" },
       { "id": "demo_claim_cdkn2a", "node_id": "demo_node_cdkn2a_checkpoint", "player_id": "demo_player_cyan", "claimed_at": "2026-07-19T09:03:00Z" },
       { "id": "demo_claim_arid1a", "node_id": "demo_node_arid1a_atr", "player_id": "demo_player_cyan", "claimed_at": "2026-07-19T09:03:00Z" },
+      { "id": "demo_claim_coalteration_capital", "node_id": "demo_node_coalterations", "player_id": "demo_player_purple", "claimed_at": "2026-07-19T09:10:00Z" },
       { "id": "demo_claim_erbb2_ccne1", "node_id": "demo_node_erbb2_ccne1", "player_id": "demo_player_purple", "claimed_at": "2026-07-19T09:04:00Z" },
       { "id": "demo_claim_tert_rictor", "node_id": "demo_node_tert_rictor", "player_id": "demo_player_purple", "claimed_at": "2026-07-19T09:04:00Z" }
     ],

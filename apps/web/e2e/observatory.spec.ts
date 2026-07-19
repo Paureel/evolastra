@@ -142,11 +142,14 @@ test("public three-empire showcase loads without pairing and remains read only",
   await page.getByRole("button", { name: "Connection and local data status" }).click();
   const entry = page.getByRole("dialog", { name: "Enter Evolastra" });
   await expect(entry.getByRole("button", { name: "Explore public demo" })).toBeVisible();
+  await expect(entry.getByText(/STAD: Stomach Adenocarcinoma/i)).toBeVisible();
+  await expect(entry.getByText(/Copy Number Alteration \(CNA\) analysis/i)).toBeVisible();
   await entry.getByRole("button", { name: "Explore public demo" }).click();
 
   await expect(page.getByRole("heading", { name: "STAD CNA · Three-Empire Expedition" })).toBeVisible();
   await expect(page.getByText("PUBLIC SHOWCASE · THREE EMPIRES")).toBeVisible();
   await expect(page.getByRole("button", { name: "Open multiplayer federation" })).toContainText("3 players");
+  await expect(page.getByRole("img", { name: /13 claimed analysis systems, 3 territorial empires/i })).toBeVisible();
 
   await page.getByRole("button", { name: "Open multiplayer federation" }).click();
   const federation = page.getByRole("dialog", { name: "Three-empire expedition" });
@@ -163,8 +166,14 @@ test("public three-empire showcase loads without pairing and remains read only",
   await expect(page.getByRole("button", { name: /^Open figure / })).toHaveCount(6);
   await page.getByRole("tab", { name: "Tech tree" }).click();
   await expect(page.getByRole("button", { name: "Build specialist ship" })).toHaveCount(0);
-  const replay = page.getByRole("slider", { name: "Replay sequence" });
-  await expect(replay).toHaveAttribute("max", "4");
+  const replay = page.getByRole("slider", { name: "Replay phase" });
+  await expect(replay).toHaveAttribute("max", "12");
+  await replay.fill("7");
+  await expect(page.getByText(/PHASE 7 \/ 12 · Loss Cartographers capital/i)).toBeVisible();
+  await replay.fill("10");
+  await expect(page.getByText(/PHASE 10 \/ 12 · Constellation Pact capital/i)).toBeVisible();
+  await page.getByRole("tab", { name: "Galaxy map" }).click();
+  await expect(page.getByRole("img", { name: /10 claimed analysis systems, 3 territorial empires/i })).toBeVisible();
 });
 
 test("@accessibility core surface has no serious axe violations", async ({ page }) => {

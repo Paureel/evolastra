@@ -13,6 +13,9 @@ describe("ConnectionPanel", () => {
     const explore = vi.fn().mockResolvedValue(undefined);
     render(<ConnectionPanel open required onClose={vi.fn()} onConnected={vi.fn()} onExploreDemo={explore} />);
 
+    expect(screen.getByText(/STAD: Stomach Adenocarcinoma/i)).toBeInTheDocument();
+    expect(screen.getByText(/Copy Number Alteration \(CNA\) analysis/i)).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("button", { name: "Explore public demo" }));
 
     await waitFor(() => expect(explore).toHaveBeenCalledOnce());

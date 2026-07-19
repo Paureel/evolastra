@@ -429,6 +429,26 @@ def check_public_showcase_boundary(root: Path) -> list[Issue]:
     run = payload.get("run", {}) if isinstance(payload, dict) else {}
     if not isinstance(run, dict) or run.get("privacy_class") != "public":
         issues.append(Issue("ARCH-008", relative(root, path), "public showcase run must use the public privacy class"))
+    state = payload.get("state", {}) if isinstance(payload, dict) else {}
+    replay = payload.get("replay", {}) if isinstance(payload, dict) else {}
+    phases = replay.get("phases", []) if isinstance(replay, dict) else []
+    if not isinstance(state, dict) or state.get("last_sequence") != 12 or not isinstance(replay, dict) or replay.get("last_sequence") != 12:
+        issues.append(Issue("ARCH-008", relative(root, path), "public showcase must expose the complete twelve-phase replay"))
+    if not isinstance(phases, list) or len(phases) != 12 or any(
+        not isinstance(phase, dict)
+        or phase.get("sequence") != index
+        or not isinstance(phase.get("label"), str)
+        or not isinstance(phase.get("node_ids"), list)
+        for index, phase in enumerate(phases, start=1)
+    ):
+        issues.append(Issue("ARCH-008", relative(root, path), "public showcase replay phases must be ordered, named, and mapped to systems"))
+    multiplayer = payload.get("multiplayer", {}) if isinstance(payload, dict) else {}
+    players = multiplayer.get("players", []) if isinstance(multiplayer, dict) else []
+    claims = multiplayer.get("claims", []) if isinstance(multiplayer, dict) else []
+    player_ids = {player.get("id") for player in players if isinstance(player, dict)} if isinstance(players, list) else set()
+    claim_owners = {claim.get("player_id") for claim in claims if isinstance(claim, dict)} if isinstance(claims, list) else set()
+    if len(player_ids) != 3 or claim_owners != player_ids:
+        issues.append(Issue("ARCH-008", relative(root, path), "public showcase must contain visible claims for exactly three empires"))
 
     def inspect(value: Any, location: str = "$") -> None:
         if isinstance(value, dict):

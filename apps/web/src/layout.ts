@@ -17,13 +17,12 @@ function layoutGalaxy(entities: SceneEntity[], seed: number): PositionedEntity[]
     positions.set(home.id, { ...home, x: -18, y: 12, z: 0, radius: 17, angle: 0 });
   }
   const nodes = entities.filter((entity) => entity.kind === "node");
-  const topLevel = nodes.filter((entity) => !entity.parentId || entity.parentId === home?.id);
   const semanticPositions = semanticCoordinates(
-    topLevel.flatMap((entity) => entity.semanticSignature ? [{ id: entity.id, semanticSignature: entity.semanticSignature }] : []),
+    nodes.flatMap((entity) => entity.semanticSignature ? [{ id: entity.id, semanticSignature: entity.semanticSignature }] : []),
     seed,
   );
 
-  topLevel.forEach((entity) => {
+  nodes.forEach((entity) => {
     const semantic = semanticPositions.get(entity.id);
     if (semantic) {
       positions.set(entity.id, {
@@ -31,6 +30,21 @@ function layoutGalaxy(entities: SceneEntity[], seed: number): PositionedEntity[]
         ...semantic,
         radius: 8 + Math.min(4, (entity.progress ?? 0) * 4),
         angle: Math.atan2(semantic.y, semantic.x),
+      });
+      return;
+    }
+    const parent = entity.parentId ? positions.get(entity.parentId) : undefined;
+    if (parent) {
+      const slot = stableHash(entity.id, seed) % 360;
+      const angle = (slot / 180) * Math.PI;
+      const distance = 64 + stableHash(`${entity.id}:branch`, seed) % 38;
+      positions.set(entity.id, {
+        ...entity,
+        x: parent.x + Math.cos(angle) * distance,
+        y: parent.y + Math.sin(angle) * distance * 0.72,
+        z: parent.z + ((stableHash(`${entity.id}:depth`, seed) % 10_000) / 10_000 - 0.5) * 36,
+        radius: 8 + Math.min(4, (entity.progress ?? 0) * 4),
+        angle,
       });
       return;
     }
