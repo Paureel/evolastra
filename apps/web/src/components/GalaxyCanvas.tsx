@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { syncCanvasBackingStore } from "../canvasBackingStore";
 import { createFrontierField, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfilesFor, territoryGrowth, type FrontierBridge, type FrontierField, type StellarProfile } from "../galaxyFrontier";
 import { stableHash } from "../layout";
 import { connectedHyperlanes, type ConnectedLane } from "../mapGraph";
@@ -1099,9 +1100,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      syncCanvasBackingStore(canvas, context, rect.width, rect.height, dpr);
     };
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);

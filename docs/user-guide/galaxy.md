@@ -25,4 +25,4 @@ nearby systems. A claim is still a collaboration overlay: it does not rewrite
 the system's scientific event history or move a system independently of its
 semantic signature.
 
-Pause animation affects rendering only. Event ingestion and the live projection continue. Reduced-motion and high-contrast controls are in the lower dock.
+Pause animation affects rendering only. Event ingestion and the live projection continue. During live updates and replay, the last complete map frame remains visible until the next timestep is ready, so semantic changes do not flash through an empty canvas. Reduced-motion and high-contrast controls are in the lower dock.

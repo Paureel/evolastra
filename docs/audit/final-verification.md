@@ -10,8 +10,8 @@ Executed 2026-07-19 on Windows with Python 3.12, Node.js 20, and npm 10.
 - Ten repository harness checks covering navigation, links, accessible diagrams, architecture, privacy, Codex dispatch, multiplayer boundaries, and plan state
 - 122 Python domain, API, contract, integration, security, quality, property, chaos, bootstrap, shipyard, multiplayer, simulation, and harness tests
 - Alembic migration
-- TypeScript typecheck and 35 Vitest tests
-- Production Vite build: 282.28 kB JavaScript / 88.74 kB gzip; 72.59 kB CSS / 15.81 kB gzip
+- TypeScript typecheck and 37 Vitest tests
+- Production Vite build: 282.37 kB JavaScript / 88.79 kB gzip; 72.59 kB CSS / 15.81 kB gzip
 - Six Playwright scenarios covering live views, search, replay, stellar identity, ship construction, research hull unlocks, multiplayer entry, explicit map zoom, safe figures, and an axe serious/critical scan
 - Asset manifest and focused source-security scans
 - npm audit and Python locked-requirements audit: no known vulnerabilities
@@ -50,6 +50,16 @@ Executed 2026-07-19 on Windows with Python 3.12, Node.js 20, and npm 10.
 - A local end-to-end check against the completed STAD CNA run found all six bounded
   analysis figures, opened the CNA plate at 185% map zoom, and reported no browser
   console errors.
+
+## Replay frame-continuity verification
+
+- Canvas backing-store dimensions are assigned only when the CSS viewport or
+  device-pixel ratio actually changes. Replay/layout effect restarts preserve
+  the last complete bitmap instead of clearing it to black.
+- Deterministic tests cover unchanged and changed viewport sizes. A headed
+  browser replay of the STAD run sampled 180 consecutive rendered frames across
+  timestep changes and observed zero blank frames and zero application console
+  errors.
 
 ## Three-empire STAD simulation verification
 
