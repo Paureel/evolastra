@@ -129,6 +129,7 @@ def run_summary(record: RunRecord) -> dict[str, Any]:
         "seed": record.seed,
         "privacy_class": record.privacy_class,
         "source_adapters": record.source_adapters,
+        "tags": state.get("run", {}).get("tags", []),
         "last_sequence": record.last_sequence,
         "created_at": record.created_at.isoformat(),
         "updated_at": record.updated_at.isoformat(),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { sceneFromState } from "./App";
-import type { GraphState } from "./types";
+import { sceneFromState, userVisibleRuns } from "./App";
+import type { GraphState, RunSummary } from "./types";
 
 describe("scene projection", () => {
   it("places projected tool calls under their Codex turn", () => {
@@ -20,5 +20,18 @@ describe("scene projection", () => {
       parentId: "node_turn",
       status: "completed",
     }));
+  });
+
+  it("hides seeded development demos from production run selection", () => {
+    const summary = (id: string, tags: string[]): RunSummary => ({
+      id, tags, title: id, objective: id, status: "completed", seed: 1,
+      privacy_class: "internal", last_sequence: 1, created_at: "2026-07-19T00:00:00Z",
+      updated_at: "2026-07-19T00:00:00Z", counts: {},
+    });
+    const real = summary("real-analysis", []);
+    const seeded = summary("churn-fixture", ["seeded-demo", "churn"]);
+
+    expect(userVisibleRuns([seeded, real])).toEqual([real]);
+    expect(userVisibleRuns([seeded, real], true)).toEqual([seeded, real]);
   });
 });

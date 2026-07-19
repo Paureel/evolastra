@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { downloadExport, fetchMultiplayerState, fetchState, importPortableAnalysis, listRuns, pairingInfo, search, sendCommand, startDemo } from "./api";
+import { downloadExport, fetchMultiplayerState, fetchState, importPortableAnalysis, listRuns, pairingInfo, search, sendCommand } from "./api";
 import { ArtifactPreview } from "./components/ArtifactPreview";
 import { ConnectionPanel } from "./components/ConnectionPanel";
 import { Explorer } from "./components/Explorer";
@@ -17,7 +17,7 @@ import { advanceReplay, replayStart } from "./replay";
 import { AUTH_REQUIRED_EVENT, CONNECTION_CHANGED_EVENT, getConnection } from "./connection";
 import { parseSemanticSignature } from "./semanticLayout";
 import { loadPublicShowcase, searchPublicShowcase, showcaseMultiplayerAtState, showcasePhaseLabel, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
-import type { Entity, GraphState, MultiplayerState, SceneEntity, ViewName } from "./types";
+import type { Entity, GraphState, MultiplayerState, RunSummary, SceneEntity, ViewName } from "./types";
 
 const PRIMARY_VIEWS: Array<{ id: ViewName; label: string }> = [
   { id: "galaxy", label: "Galaxy map" },
@@ -59,6 +59,10 @@ export function sceneFromState(state: GraphState): { entities: SceneEntity[]; ro
   return { entities: [root, ...nodes, ...artifacts, ...findings, ...anomalies, ...agents, ...toolCalls], rootId };
 }
 
+export function userVisibleRuns(runs: RunSummary[], includeDevelopmentDemos = false): RunSummary[] {
+  return includeDevelopmentDemos ? runs : runs.filter((run) => !run.tags?.includes("seeded-demo"));
+}
+
 export default function App() {
   const [connectionRevision, setConnectionRevision] = useState(0);
   const [connectionOpen, setConnectionOpen] = useState(false);
@@ -87,7 +91,7 @@ export default function App() {
   const [shipyardBlueprintId, setShipyardBlueprintId] = useState<string | null>(null);
   const [multiplayerOpen, setMultiplayerOpen] = useState(false);
   const portableInput = useRef<HTMLInputElement>(null);
-  const demoRequested = useRef(false);
+  const includeDevelopmentDemos = import.meta.env.DEV && new URLSearchParams(window.location.search).get("development-demo") === "1";
 
   useEffect(() => {
     const requireConnection = () => { setConnectionRequired(true); setConnectionOpen(true); };
@@ -121,16 +125,9 @@ export default function App() {
 
   useEffect(() => {
     if (showcaseActive) return;
-    const runs = runsQuery.data ?? [];
+    const runs = userVisibleRuns(runsQuery.data ?? [], includeDevelopmentDemos);
     if (!activeRunId && runs.length) setActiveRunId(runs[0].id);
-    if (runsQuery.isSuccess && runs.length === 0 && !demoRequested.current) {
-      demoRequested.current = true;
-      void startDemo().then((result) => {
-        setActiveRunId(result.run_id);
-        void runsQuery.refetch();
-      });
-    }
-  }, [activeRunId, runsQuery, showcaseActive]);
+  }, [activeRunId, includeDevelopmentDemos, runsQuery.data, showcaseActive]);
 
   const live = useLiveProjection(showcaseActive ? null : activeRunId, connectionRevision);
   const multiplayerQuery = useQuery({
@@ -217,7 +214,7 @@ export default function App() {
     if (selected?.parentId && scene.entities.some((entity) => entity.id === selected.parentId && ["home", "node"].includes(entity.kind))) return selected.parentId;
     return scene.rootId;
   }, [scene, selectedId]);
-  const runs = showcase ? [showcase.run] : runsQuery.data ?? [];
+  const runs = showcase ? [showcase.run] : userVisibleRuns(runsQuery.data ?? [], includeDevelopmentDemos);
   const run = showcase?.run ?? runs.find((item) => item.id === activeRunId);
   const runSeed = Number(state?.run.run_seed ?? run?.seed ?? 1);
   const streamLag = showcaseActive ? 0 : Math.max(0, (run?.last_sequence ?? live.state?.last_sequence ?? 0) - (live.state?.last_sequence ?? 0));
@@ -300,7 +297,7 @@ export default function App() {
         </div>
         <div className="run-identity">
           <span className="eyebrow">{showcaseActive ? "PUBLIC SHOWCASE · THREE EMPIRES" : `ACTIVE RUN · ${run?.id.slice(-8).toUpperCase() ?? "CONNECTING"}`}</span>
-          <h1>{run?.title ?? "Establishing observatory link"}</h1>
+          <h1>{run?.title ?? (connectionReady && !connectionRequired ? "No active analysis" : "Establishing observatory link")}</h1>
         </div>
         <button className="run-status" aria-label="Connection and local data status" onClick={() => { setConnectionRequired(false); setConnectionOpen(true); }}>
           <StatusMark status={showcaseActive ? "completed" : live.connection === "live" ? "running" : "failed"} label={showcaseActive ? "static · read only" : `${live.connection} · ${streamLag} lag`} />
@@ -330,7 +327,9 @@ export default function App() {
         <section className="main-workspace" aria-live="polite">
           {!showcaseActive && live.error && <div className="error-banner" role="alert">Projection link failed: {live.error}. The client will retry.</div>}
           {!state || !scene ? (
-            <div className="loading-field"><span className="orbit-loader" /><h2>Calibrating semantic projection</h2><p>Durable events remain the source of truth.</p></div>
+            connectionReady && !connectionRequired && runsQuery.isSuccess && runs.length === 0
+              ? <div className="workspace-empty analysis-empty"><span className="empty-orbit" /><h2>No analysis yet</h2><p>Start a Codex task in this project, or open the connection panel to explore the public STAD demo.</p></div>
+              : <div className="loading-field"><span className="orbit-loader" /><h2>Calibrating semantic projection</h2><p>Durable events remain the source of truth.</p></div>
           ) : !advanced ? (
             <>
               <GalaxyCanvas

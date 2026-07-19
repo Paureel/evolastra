@@ -67,6 +67,7 @@ export interface RunSummary {
   status: Status;
   seed: number;
   privacy_class: string;
+  tags?: string[];
   last_sequence: number;
   created_at: string;
   updated_at: string;

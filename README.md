@@ -190,7 +190,10 @@ npm run demo
 
 Open [http://127.0.0.1:5173](http://127.0.0.1:5173). The API and its OpenAPI UI are available locally at [http://127.0.0.1:8000](http://127.0.0.1:8000) and [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-Use `npm run dev` for an empty observatory or `npm run seed` to load the demonstration immediately.
+Use `npm run dev` for an empty observatory. `npm run demo` starts the legacy
+synthetic fixture at the explicit development-only URL
+`http://127.0.0.1:5173/?development-demo=1`; normal and production sessions do
+not list or create it.
 
 ## Camera and map controls
 

@@ -66,10 +66,6 @@ export function fetchState(runId: string, at?: number): Promise<GraphState> {
   return request<GraphState>(`/api/v1/runs/${encodeURIComponent(runId)}/state${query}`);
 }
 
-export function startDemo(speed = 6): Promise<{ run_id: string; event_total: number }> {
-  return request(`/api/v1/demo/start?speed=${speed}`, { method: "POST", body: "{}" });
-}
-
 export function sendCommand(runId: string, command: string, value?: string | number | boolean): Promise<Record<string, unknown>> {
   return request(`/api/v1/runs/${encodeURIComponent(runId)}/commands`, {
     method: "POST",

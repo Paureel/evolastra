@@ -52,7 +52,8 @@ def main() -> None:
             )
             with urllib.request.urlopen(request, timeout=10) as response:  # noqa: S310
                 print(response.read().decode("utf-8"))
-        print("Asterism Observatory: http://127.0.0.1:5173")
+        viewer_url = "http://127.0.0.1:5173/?development-demo=1" if args.demo else "http://127.0.0.1:5173"
+        print(f"Asterism Observatory: {viewer_url}")
         while all(process.poll() is None for process in processes):
             time.sleep(0.5)
     except KeyboardInterrupt:

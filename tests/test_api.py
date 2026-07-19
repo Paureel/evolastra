@@ -23,6 +23,7 @@ def test_health_create_search_and_exports() -> None:
             "/api/v1/runs", json={"title": "Evidence atlas", "objective": "Trace evidence"}
         )
         assert created.status_code == 201
+        assert created.json()["run"]["tags"] == []
         run_id = created.json()["run"]["id"]
         state = client.get(f"/api/v1/runs/{run_id}/state")
         assert state.status_code == 200
@@ -61,6 +62,17 @@ def test_health_create_search_and_exports() -> None:
         restored = client.get(f"/api/v1/runs/{run_id}/state")
         assert restored.status_code == 200
         assert restored.json()["run"]["title"] == "Evidence atlas"
+
+
+def test_run_summary_exposes_tags_for_client_side_fixture_classification() -> None:
+    with TestClient(app) as client:
+        created = client.post(
+            "/api/v1/runs",
+            json={"title": "Explicit fixture", "objective": "Test only", "tags": ["seeded-demo"]},
+        )
+        assert created.status_code == 201
+        assert created.json()["run"]["tags"] == ["seeded-demo"]
+        assert client.get("/api/v1/runs").json()["items"][0]["tags"] == ["seeded-demo"]
 
 
 def test_portable_import_rejects_unrecognized_archives() -> None:

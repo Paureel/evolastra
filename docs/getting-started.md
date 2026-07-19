@@ -129,7 +129,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 npm run demo
 ```
 
-Open `http://127.0.0.1:5173`. Stop the temporary demo with `Ctrl+C`.
+Open `http://127.0.0.1:5173/?development-demo=1`. This explicit development
+URL is the only browser surface that shows the synthetic churn fixture; normal
+and production sessions exclude seeded development runs. Stop the temporary demo
+with `Ctrl+C`.
 
 ## 🤖 Let an agent set it up
 

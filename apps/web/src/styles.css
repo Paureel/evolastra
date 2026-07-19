@@ -200,6 +200,8 @@ select { max-width: 100%; border: 1px solid #315058; border-radius: 0; backgroun
 .error-banner { position: absolute; z-index: 8; top: 12px; right: 12px; left: 12px; padding: 10px; border: 1px solid var(--coral); background: #351a1c; color: #ffd9d2; font-size: 12px; }
 .loading-field, .workspace-empty { height: 100%; display: grid; place-content: center; justify-items: center; text-align: center; color: var(--muted); }
 .loading-field h2, .workspace-empty h3 { margin: 18px 0 4px; color: var(--paper); font: 500 20px var(--display); }
+.analysis-empty h2 { margin: 18px 0 4px; color: var(--paper); font: 500 24px var(--display); }
+.analysis-empty p { max-width: 520px; line-height: 1.6; }
 .loading-field p, .workspace-empty p { margin: 0; font-size: 12px; }
 .orbit-loader, .empty-orbit { width: 58px; height: 44px; display: block; border: 1px solid #42666d; border-radius: 50%; box-shadow: inset 0 0 0 14px #081820; }
 .orbit-loader { position: relative; animation: calibrate 2s linear infinite; }.orbit-loader::after { content: ""; position: absolute; top: -3px; left: 26px; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }

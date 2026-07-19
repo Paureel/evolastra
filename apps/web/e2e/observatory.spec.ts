@@ -6,8 +6,15 @@ test.beforeEach(async ({ request }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test("live galaxy and system maps, synchronized views, search, and replay", async ({ page }) => {
+test("fresh production session does not surface the seeded churn fixture", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByRole("heading", { name: "No active analysis" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No analysis yet" })).toBeVisible();
+  await expect(page.getByText(/Churn atlas/i)).toHaveCount(0);
+});
+
+test("live galaxy and system maps, synchronized views, search, and replay", async ({ page }) => {
+  await page.goto("/?development-demo=1");
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/evolastra-mark.svg");
   await expect(page.getByRole("link", { name: "Evolastra on GitHub" })).toHaveAttribute("href", "https://github.com/Paureel/evolastra");
   await expect(page.getByRole("link", { name: "Aurel on X" })).toHaveAttribute("href", "https://x.com/aurel_pr");
@@ -57,7 +64,7 @@ test("live galaxy and system maps, synchronized views, search, and replay", asyn
 });
 
 test("stellar identity persists from galaxy systems into system view", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?development-demo=1");
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
   await page.getByRole("tab", { name: "Advanced" }).click();
   await page.getByRole("button", { name: "Contract friction completed" }).click();
@@ -74,7 +81,7 @@ test("stellar identity persists from galaxy systems into system view", async ({ 
 });
 
 test("map zoom is explicit and analysis artifacts open as safe figures", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?development-demo=1");
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
   const zoom = page.getByRole("slider", { name: "Map zoom level" });
   await expect(zoom).toBeVisible();
@@ -96,7 +103,7 @@ test("map zoom is explicit and analysis artifacts open as safe figures", async (
 });
 
 test("command star shipyard builds core and research-unlocked vessels", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?development-demo=1");
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
   await page.getByRole("tab", { name: "System view" }).click();
   const systemMap = page.getByRole("img", { name: /Evolastra system view/i });
@@ -131,7 +138,7 @@ test("command star shipyard builds core and research-unlocked vessels", async ({
 });
 
 test("single player opens an opt-in local-first multiplayer federation", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?development-demo=1");
   await expect(page.getByRole("heading", { name: /Churn atlas/i })).toBeVisible();
   await page.getByRole("button", { name: "Open multiplayer federation" }).click();
   const federation = page.getByRole("dialog", { name: "Research federation" });
@@ -145,7 +152,7 @@ test("single player opens an opt-in local-first multiplayer federation", async (
 });
 
 test("public three-empire showcase loads without pairing and remains read only", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?development-demo=1");
   await expect(page.getByRole("heading", { name: /Churn atlas/i })).toBeVisible();
   await page.getByRole("button", { name: "Connection and local data status" }).click();
   const entry = page.getByRole("dialog", { name: "Enter Evolastra" });
@@ -191,7 +198,7 @@ test("public three-empire showcase loads without pairing and remains read only",
 
 test("@accessibility core surface has no serious axe violations", async ({ page }) => {
   test.setTimeout(90_000);
-  await page.goto("/");
+  await page.goto("/?development-demo=1");
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
   const defaultResults = await new AxeBuilder({ page }).analyze();
   await page.getByRole("tab", { name: "System view" }).click();
