@@ -14,7 +14,7 @@ PATTERNS = {
 
 def main() -> None:
     findings: list[str] = []
-    roots = [Path("apps/api"), Path("apps/web/src"), Path("integrations"), Path("sdk")]
+    roots = [Path("apps/api"), Path("apps/web/src"), Path("apps/web/public/demo"), Path("integrations"), Path("sdk")]
     for root in roots:
         if not root.exists():
             continue
@@ -32,8 +32,9 @@ def main() -> None:
                 if pattern.search(text):
                     findings.append(f"{name}: {path}")
 
-    # The public deployment is intentionally a static viewer. Keep this boundary
-    # machine-checkable so a remote API/connector cannot quietly return later.
+    # The public deployment is a static viewer plus one allowlisted aggregate
+    # showcase. Keep this boundary machine-checkable so a remote API/connector
+    # or second hosted analysis cannot quietly return later.
     forbidden_paths = [
         Path("apps/api/asterism_api/connector.py"),
         Path("deploy/evolastra.env.example"),
@@ -58,8 +59,10 @@ def main() -> None:
 
     netlify = Path("netlify.toml").read_text(encoding="utf-8")
     csp = next((line for line in netlify.splitlines() if "connect-src" in line), "")
-    if "connect-src 'self'" in csp or "connect-src https:" in csp:
+    if "connect-src https:" in csp:
         findings.append("remote-connect-csp: netlify.toml")
+    if "connect-src 'self'" not in csp:
+        findings.append("missing-static-showcase-csp: netlify.toml")
     if "http://127.0.0.1:*" not in csp or "http://localhost:*" not in csp:
         findings.append("missing-loopback-csp: netlify.toml")
     if findings:

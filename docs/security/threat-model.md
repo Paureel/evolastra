@@ -1,11 +1,11 @@
 # Evolastra Observatory threat model
 
-Reviewed: 2026-07-18
+Reviewed: 2026-07-19
 Profiles: development loopback, Local Private companion, private tailnet federation, and static hosted viewer
 
 ## Executive summary
 
-Local Private uses mandatory bearer authentication, one-use pairing codes, short-lived origin-bound browser grants, exact CORS/Host allowlists, Private Network Access preflight handling, a user-private root token, and production rejection of direct non-loopback clients. Ship missions cross a second local boundary through a short-lived Codex app-server child process over stdio. Optional multiplayer adds a narrow Tailscale Serve path with separate invite/member capabilities; it exchanges a collaboration overlay rather than project data. The public deployment is static viewer code with no API, persistence, Codex dispatch, or multiplayer relay. Action-specific business invariants, rate limits, host availability, and physical-copy retention remain material hardening areas.
+Local Private uses mandatory bearer authentication, one-use pairing codes, short-lived origin-bound browser grants, exact CORS/Host allowlists, Private Network Access preflight handling, a user-private root token, and production rejection of direct non-loopback clients. Ship missions cross a second local boundary through a short-lived Codex app-server child process over stdio. Optional multiplayer adds a narrow Tailscale Serve path with separate invite/member capabilities; it exchanges a collaboration overlay rather than project data. The public deployment is static viewer code plus one allowlisted aggregate-only showcase, with no API, user-project persistence, Codex dispatch, or multiplayer relay. Action-specific business invariants, rate limits, host availability, and physical-copy retention remain material hardening areas.
 
 ## Scope and assumptions
 
@@ -17,13 +17,16 @@ In scope:
 - SQLite persistence, JSONL import, SSE, exports, preview metadata, redaction, destructive actions, and build/asset supply chain;
 - runtime and security-relevant build/test configuration in root manifests.
 - the opt-in `/api/v1/federation` route family and multiplayer overlay.
+- the fixed public three-empire showcase asset and its browser-only read path.
 
 Assumptions established by the shared contract:
 
 - Local Private binds to loopback for one local operator. Its browser and adapters use bearer authorization; no authentication cookies are used.
 - Multiplayer participants are known members of one operator-controlled Tailscale
   network. Tailscale Funnel and anonymous/public joining are not supported.
-- The hosted viewer is internet-deployable static content. Its runtime endpoint policy and CSP allow API connections only to loopback.
+- The hosted viewer is internet-deployable static content. Its runtime endpoint
+  policy and CSP allow the fixed same-origin showcase fetch and API connections
+  only to loopback.
 - Telemetry, imported JSONL, semantic fields, artifact metadata, and adapter output are untrusted data.
 - HTML, SVG, notebooks, generated code, and uploaded artifacts are never executed. The current preview is metadata/structured data only.
 - The local operating-system account and its filesystem are outside the application's isolation boundary. A process with the same user's file permissions can read or alter local data directly.
@@ -47,8 +50,12 @@ Open questions that change risk ranking:
 - **SQLite and artifact root:** SQLite holds events, projections, snapshots, quarantine, and audit records; an artifact directory is created but file-backed artifact serving is not implemented (`apps/api/asterism_api/db_models.py:11-82`, `apps/api/asterism_api/main.py:21-25`).
 - **Adapters/SDKs:** collect external telemetry, perform bounded/default-deny redaction, spool JSONL, and emit to configured HTTP endpoints (`integrations/core.py:25-113`, `integrations/codex_hooks.py:69-139`, `sdk/python/galaxy_sdk/client.py:43-65`).
 - **Exporters:** create JSON, JSONL, PROV, OpenLineage, Obsidian ZIP, and reproduction ZIP responses in memory (`apps/api/asterism_api/api.py:355-369`, `apps/api/asterism_api/exports.py:20-154`).
-- **Shipyard/Codex dispatcher:** derives role-specific mission instructions from trusted blueprints, redacts user mission text before event persistence, and launches one signed-in Codex task through a per-mission stdio app-server process (`apps/api/asterism_api/shipyard.py`, `apps/api/asterism_api/codex_dispatch.py`).
+- **Shipyard/Codex dispatcher:** sends static safety and role instructions at developer authority, marks imported analytical context as untrusted user data, redacts mission text before event persistence, filters the child environment, and launches one offline sandboxed task through a per-mission stdio app-server process (`apps/api/asterism_api/shipyard.py`, `apps/api/asterism_api/codex_dispatch.py`).
 - **Multiplayer federation:** keeps host-authoritative players, claims, and bounded publications outside the semantic log; HTTPS `.ts.net` federation calls require a Tailscale identity header plus scoped invite/member bearer (`multiplayer.py`, `multiplayer_api.py`).
+- **Public showcase:** one aggregate-only JSON asset with synthetic display IDs,
+  bounded previews, and explicit caveats; the browser accepts only its fixed
+  path and identity and disables all mutation controls (`showcase.ts`,
+  `public/demo/stad-three-empires-v1.json`).
 
 ### Data flows and trust boundaries
 
@@ -56,9 +63,12 @@ Open questions that change risk ranking:
 - **Local adapter/script -> FastAPI:** untrusted CloudEvents and JSONL cross loopback HTTP/multipart. Actual bytes are bounded and redaction, envelope validation, and registered-v1 payload validation occur before persistence (`main.py:22-59`, `api.py:179-218`, `event_store.py:235-271`).
 - **FastAPI -> SQLite:** redacted event envelopes, derived state, snapshots, quarantine payloads, and minimal audits cross the ORM boundary. SQLAlchemy query construction avoids observed string-built SQL (`event_store.py:125-228`, `database.py:22-38`).
 - **FastAPI -> browser/exported files:** semantic state and event history cross JSON/SSE/download boundaries. Preview content remains data, while Obsidian export intentionally emits Markdown that must remain untrusted downstream (`api.py:346-369`, `exports.py:92-154`).
-- **FastAPI -> Codex app-server:** a validated mission prompt crosses local stdio into the user's signed-in Codex installation. The companion fixes the working directory to this repository, requests workspace-write sandboxing with no approval escalation, omits model and credential overrides, and closes the child process when the turn completes. The browser never receives or handles Codex credentials.
+- **FastAPI -> Codex app-server:** trusted developer instructions and a separate untrusted user/reference message cross local stdio into the user's signed-in Codex installation. The companion fixes the working directory to this repository, requests workspace-write sandboxing with command network access off, disables web search, uses `approvalPolicy: never`, passes only an allowlist of non-secret environment variables, and closes the child process when the turn completes. The browser never receives or handles Codex credentials.
 - **Guest companion -> host companion:** presence, system IDs, player display identity/color, and explicitly selected finding summaries cross the private tailnet. The host stores that overlay locally. Project events, prompts, datasets, artifacts, exports, and Codex credentials do not cross this boundary. Guest member grants remain in process memory.
 - **Dependency/asset sources -> developer build:** Python/npm packages and future visual assets cross a supply-chain boundary. Python uses a hash-pinned runtime lock, npm has a committed lockfile, and visual assets currently have a complete empty manifest (`requirements.lock`, `apps/web/package-lock.json`, `docs/assets/asset-manifest.json`).
+- **Static host -> browser:** the fixed public showcase crosses the ordinary
+  same-origin asset boundary. No request body or user project content travels
+  in the other direction; replay and search execute in browser memory.
 
 #### Diagram
 
@@ -78,6 +88,7 @@ flowchart LR
     tailnet --> companion
     sources["Package and asset sources"] -->|Build inputs| build["Developer build"]
     build --> browser
+    public_demo["Public aggregate showcase"] -->|Same-origin static fetch| browser
 ```
 
 ## Assets and security objectives
@@ -95,6 +106,7 @@ flowchart LR
 | Source, dependencies, and visual assets | Compromise executes in developer/browser/API contexts | I, C, A |
 | Codex identity, task history, and mission prompts | Dispatch can create work and modify repository files under the local user | C, I, A |
 | Multiplayer invite/member capabilities and overlay | Controls joins, territory, presence, and deliberately published summaries | C, I, A |
+| Public showcase bundle | Public claims must remain sanitized, accurate, bounded, and clearly non-live | I, A |
 
 ## Attacker model
 
@@ -107,6 +119,8 @@ flowchart LR
 - Cause a user to open exported Markdown/ZIP content in another tool, while that content remains untrusted.
 - Publish a compromised dependency or asset that a developer installs when reproducibility/provenance gates are absent.
 - Join the same tailnet, obtain or replay an invite/member capability, and submit hostile bounded publication text or high-rate federation operations.
+- Contribute a change that accidentally adds private content or a second analysis
+  to the public static directory, or replace the public bundle in a compromised build.
 
 ### Non-capabilities
 
@@ -131,6 +145,7 @@ flowchart LR
 | Quarantine retry/delete | POST/DELETE | Local operator/browser -> DB | Retry preserves/increments the original record on failure; action still lacks a dedicated audit entry | `api.py:119-129`, `242-265` |
 | Adapter spool/HTTP sink | CLI/operator configuration | Agent process -> local files/network | Bounded capture; endpoint/path are operator-controlled | `codex_hooks.py:69-139`; `client.py:43-65` |
 | Build dependencies/assets | Install/build commands | Registries/sources -> developer/browser/API | npm and hash-locked Python installs, audits, and asset scanning are present | `apps/web/package-lock.json`; `requirements.lock`; `docs/assets/asset-manifest.json` |
+| Public showcase | Fixed same-origin GET | Static host -> browser | One allowlisted aggregate asset; identity/size/field/row checks; read-only client mode | `showcase.ts`; `scripts/harness.py`; `test_public_showcase.py` |
 
 ## Top abuse paths
 
@@ -142,7 +157,7 @@ flowchart LR
 6. **Tie up stream/export resources:** open many SSE connections or request large all-event ZIP/JSON exports -> sessions/event lists/ZIP buffers accumulate -> local UI becomes unavailable.
 7. **Abuse downstream Markdown:** inject YAML/Markdown/link syntax into semantic titles or findings -> export to Obsidian -> user opens it with a permissive plugin/tool -> content becomes an active social-engineering or downstream-parser surface.
 8. **Compromise the build:** exploit the missing hash-locked Python resolution or a compromised locked dependency source -> developer installs it -> malicious build/runtime code executes.
-9. **Abuse an authorized mission:** persuade a paired user to launch a malicious instruction -> Codex operates inside the repository workspace -> source or local outputs are modified within the configured sandbox. The fixed workspace and no-escalation policy limit scope but do not make an authorized mission trustworthy.
+9. **Abuse an authorized mission or poisoned repository context:** persuade a paired user to launch malicious text, or place adversarial instructions in a file Codex reads -> Codex may modify source or disclose workspace content in its task output. Authority separation, an offline fixed workspace, ambient-credential filtering, and no escalation reduce impact but cannot make model interpretation provably safe.
 10. **Abuse a federation capability:** obtain an invite or member grant from its recipient -> join or mutate the bounded collaboration overlay -> create misleading territory/publication state or exhaust the host with requests. Scoped routes prevent project/export/Codex access, but Phase 1 has no rate limiter or member revocation UI.
 
 ## Threat model table
@@ -159,8 +174,10 @@ flowchart LR
 | TM-008 | Local operator/malware | Can call destructive/risky routes | Retry quarantine, change simulator, approve, or delete without a complete audit trail | Reduced forensic accountability | Audit/provenance | Durable approval events; delete/rebuild audit (`api.py:97-105`, `123-130`, `277-302`) | Quarantine retry/commands/demo start are not audited; retry deletes original before outcome | Audit every risky command with redacted details/outcome; retain quarantine tombstone; append-only audit export | Audit coverage tests and action/event reconciliation | High | Medium | medium |
 | TM-009 | Compromised registry/source | Developer performs install/build | Supply changed/unverified package or visual asset | Developer/runtime code execution or asset-license compromise | Source/build/browser/API | Hash-locked Python and npm installs, full audits, executable source/asset scans, and first-party asset verifier | No generated distribution SBOM or signed provenance | Retain locked clean installs; add SBOM/signing/provenance review | CI audit/SBOM diff, runtime-version check, lock drift and asset checksum gates | Medium | High | medium |
 | TM-010 | Remote user in future deployment | Service is exposed beyond loopback or gains multiple users | Read/mutate any run and approval because no identity/tenant checks | Full confidentiality/integrity loss across users | All application data | Explicitly documented loopback single-user boundary | No authN/authZ/tenant isolation/TLS production profile | Block non-loopback startup by default; require a new threat model plus centralized authN, object/tenant authZ, TLS/proxy trust, CSRF/session design | Startup exposure check, auth coverage tests, tenant isolation tests | Low in verified profile | High | low |
-| TM-011 | Malicious mission author or prompt content | Attacker controls a paired session or convinces the user to launch supplied text | Instruct Codex to alter repository content, disclose workspace data in task output, or request unsupported interaction | Repository integrity loss or confidential source disclosure within the authorized workspace | Source, mission prompts, Codex task history | Pairing and bearer auth; exact origin/host checks; server-derived role envelope; fixed repository `cwd`; workspace-write sandbox; `approvalPolicy: never`; stdio only; browser receives no Codex credential (`api.py`, `shipyard.py`, `codex_dispatch.py`) | Codex app-server is experimental; authorized prompts can intentionally modify repository files; task output follows Codex retention policy | Keep dispatch local-private and opt-in; display the boundary before launch; preserve no-escalation and fixed-workspace tests; add mission cancellation and richer task status before broader deployment | Audit ship/thread IDs without raw prompts; alert on app-server protocol failures and abnormal mission duration | Medium | High | medium |
+| TM-011 | Malicious mission author, imported analysis, or repository content | Attacker controls supplied text/files or convinces a paired user to launch it | Attempt to override trusted rules, alter repository content, disclose workspace data in task output, use external tools, or escape the sandbox | Repository integrity loss or confidential source disclosure within the authorized workspace | Source, mission prompts, Codex task history | Pairing and bearer auth; exact origin/host checks; server-owned developer instructions; imported context labeled untrusted and kept at user authority; fixed repository `cwd`; workspace-write sandbox with command network off; web search disabled; filtered child environment; `approvalPolicy: never`; stdio only; generic browser errors; no browser-held Codex credential (`api.py`, `shipyard.py`, `codex_dispatch.py`) | No prompt hierarchy can guarantee model compliance; direct mission/repository content remains readable and may contain secrets; Codex app-server is experimental; task output follows Codex retention policy | Keep dispatch local-private and opt-in; keep secrets outside the checkout; require human review of tasks and diffs; preserve authority, environment, offline, and sandbox regression tests; add mission cancellation and richer task status before broader deployment | Audit ship/thread IDs without raw prompts; alert on app-server protocol failures and abnormal mission duration; review unexpected workspace diffs | Medium | High | medium |
 | TM-012 | Tailnet member or leaked federation capability | Host enabled the federation path and attacker obtains an invite/member bearer | Join, claim systems, publish deceptive summaries, replay operations, or create request load | Misleading coordination state, disclosure of published summaries, host availability loss | Multiplayer overlay and local service availability | HTTPS `.ts.net` target restriction; path-only Tailscale Serve guidance; Tailscale identity header gate plus scoped high-entropy bearer; invite expiry/rotation; strict bounded schemas; project fingerprint; member grants memory-only; replay isolation tests (`multiplayer.py`, `multiplayer_api.py`) | No per-member revocation, rate limiting, host migration, or append-only federation audit; Tailscale header authenticity depends on correct Serve configuration | Add member removal/revocation and request budgets; audit overlay mutations; retain path-only Serve invariant; never support Funnel under this profile | Count joins/rejects/mutations by opaque member ID; surface last-seen and claim/publication activity to host | Medium | Medium | medium |
+
+| TM-013 | Malicious or mistaken repository contributor | Can modify public static assets | Add private identifiers/content, oversized previews, a second hosted analysis, or misleading live controls | Public disclosure or false product claims | Public showcase integrity and privacy | Fixed path/identity loader; ARCH-008 file-count, public marker, ID, field, sample-pattern, size, and row checks; read-only UI; security scan | Aggregate claims still require human scientific/privacy review; a compromised trusted build can replace code and data together | Require review of showcase diffs and deployment provenance; retain the one-file invariant and explicit public-data checklist | CI harness/security failures, public asset diff review, deployed asset checksum monitoring | Low | High | medium |
 
 ## Criticality calibration
 

@@ -18,7 +18,7 @@ function EntityTable({ items, onSelect }: { items: Entity[]; onSelect: (id: stri
   );
 }
 
-export function WorkspaceView({ view, state, runs, currentRunId, onSelect, onOpenShipyard, onOpenArtifact }: { view: ViewName; state: GraphState; runs: RunSummary[]; currentRunId: string | null; onSelect: (id: string) => void; onOpenShipyard: (blueprintId: string) => void; onOpenArtifact: (artifact: Entity) => void }) {
+export function WorkspaceView({ view, state, runs, currentRunId, onSelect, onOpenShipyard, onOpenArtifact, readOnly = false }: { view: ViewName; state: GraphState; runs: RunSummary[]; currentRunId: string | null; onSelect: (id: string) => void; onOpenShipyard: (blueprintId: string) => void; onOpenArtifact: (artifact: Entity) => void; readOnly?: boolean }) {
   if (view === "tree") {
     const root = state.nodes.find((node) => !node.parent_node_id);
     const tiers = buildTechTiers(state.nodes.filter((node) => node.parent_node_id));
@@ -58,7 +58,7 @@ export function WorkspaceView({ view, state, runs, currentRunId, onSelect, onOpe
                     <span className="tech-progress" aria-hidden="true"><i style={{ width: `${Math.round((node.progress ?? 0) * 100)}%` }} /></span>
                     <i className="tech-port" aria-hidden="true" />
                   </button>
-                  {node.techState === "completed" && <button className="tech-build-button" onClick={() => onOpenShipyard(`specialist:${node.id}`)}>Build specialist ship</button>}
+                  {node.techState === "completed" && !readOnly && <button className="tech-build-button" onClick={() => onOpenShipyard(`specialist:${node.id}`)}>Build specialist ship</button>}
                 </div>)}
               </div>
             </div>

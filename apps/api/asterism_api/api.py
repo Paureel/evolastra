@@ -41,7 +41,14 @@ from .schemas import (
     ShipBuildRequest,
     ShipDispatchRequest,
 )
-from .shipyard import blueprint_catalog, find_blueprint, mission_prompt, ship_name
+from .security import redact
+from .shipyard import (
+    blueprint_catalog,
+    find_blueprint,
+    mission_developer_instructions,
+    mission_prompt,
+    ship_name,
+)
 from .simulator import set_speed, start_demo
 
 public_router = APIRouter(prefix="/api/v1")
@@ -494,7 +501,7 @@ def _mission_completed(
             "codex_thread_id": thread_id,
             "codex_turn_id": turn_id,
             "mission_completed_at": datetime.now(UTC).isoformat(),
-            "error_summary": error,
+            "error_summary": redact(error) if error else None,
         }
         event = make_event(
             run_id=run_id,
@@ -529,6 +536,10 @@ def get_shipyard(run_id: str, session: SessionDep) -> dict[str, Any]:
             "sandbox": "workspace-write",
             "approval_policy": "never",
             "workspace_fixed": True,
+            "network_access": False,
+            "web_search": "disabled",
+            "environment_filtered": True,
+            "context_isolated": True,
         },
     }
 
@@ -635,6 +646,7 @@ def dispatch_ship(
             ship_id=ship_id,
             cwd=workspace,
             prompt=prompt,
+            developer_instructions=mission_developer_instructions(blueprint),
             started=record_started,
             completion=lambda completed_receipt, mission_status, mission_error: _mission_completed(
                 run_id=run_id,
@@ -646,7 +658,10 @@ def dispatch_ship(
             ),
         )
     except CodexDispatchError as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
+        raise HTTPException(
+            status_code=503,
+            detail="Codex mission could not be started inside the required safety boundary",
+        ) from error
     return {
         "accepted": True,
         "ship_id": ship_id,

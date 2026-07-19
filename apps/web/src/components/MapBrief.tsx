@@ -11,9 +11,10 @@ interface MapBriefProps {
   onOpenSystem: (id: string) => void;
   onOpenShipyard: () => void;
   onOpenAdvanced: () => void;
+  readOnly?: boolean;
 }
 
-export function MapBrief({ state, scene, selectedId, seed, mode, onOpenSystem, onOpenShipyard, onOpenAdvanced }: MapBriefProps) {
+export function MapBrief({ state, scene, selectedId, seed, mode, onOpenSystem, onOpenShipyard, onOpenAdvanced, readOnly = false }: MapBriefProps) {
   const brief = buildMapBrief(state, scene, selectedId, seed);
   if (!brief) return null;
 
@@ -34,7 +35,7 @@ export function MapBrief({ state, scene, selectedId, seed, mode, onOpenSystem, o
       </dl>
       <div className="map-brief-actions">
         {mode === "galaxy" && brief.systemId && <button className="primary-button" onClick={() => onOpenSystem(brief.systemId!)}>Enter system</button>}
-        {mode === "system" && brief.kind === "home" && <button className="primary-button" onClick={onOpenShipyard}>Open shipyard</button>}
+        {mode === "system" && brief.kind === "home" && !readOnly && <button className="primary-button" onClick={onOpenShipyard}>Open shipyard</button>}
         <button className="quiet-button" onClick={onOpenAdvanced}>Full details</button>
       </div>
     </aside>

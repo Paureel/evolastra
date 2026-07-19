@@ -27,6 +27,48 @@ Message = dict[str, Any]
 Completion = Callable[[MissionReceipt, str, str | None], None]
 Started = Callable[[MissionReceipt], None]
 
+SAFE_ENVIRONMENT_NAMES = {
+    "APPDATA",
+    "CODEX_HOME",
+    "CODEX_SQLITE_HOME",
+    "COLORTERM",
+    "COMSPEC",
+    "HOME",
+    "HOMEDRIVE",
+    "HOMEPATH",
+    "LANG",
+    "LOCALAPPDATA",
+    "NUMBER_OF_PROCESSORS",
+    "OS",
+    "PATH",
+    "PATHEXT",
+    "SHELL",
+    "SYSTEMDRIVE",
+    "SYSTEMROOT",
+    "TEMP",
+    "TERM",
+    "TMP",
+    "USER",
+    "USERDOMAIN",
+    "USERNAME",
+    "USERPROFILE",
+    "VIRTUAL_ENV",
+    "WINDIR",
+    "XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME",
+    "XDG_DATA_HOME",
+}
+
+
+def sanitized_subprocess_environment(source: dict[str, str] | None = None) -> dict[str, str]:
+    """Pass runtime essentials only; ambient credentials must not reach agent commands."""
+    environment = os.environ if source is None else source
+    return {
+        key: value
+        for key, value in environment.items()
+        if key.upper() in SAFE_ENVIRONMENT_NAMES or key.upper().startswith("LC_")
+    }
+
 
 def find_codex_executable() -> str | None:
     candidates = ("codex.cmd", "codex.exe", "codex") if os.name == "nt" else ("codex",)
@@ -39,11 +81,13 @@ class CodexAppServerMission:
         *,
         cwd: Path,
         prompt: str,
+        developer_instructions: str,
         command: list[str] | None = None,
         request_timeout: float = 20.0,
     ) -> None:
         self.cwd = cwd.resolve()
         self.prompt = prompt
+        self.developer_instructions = developer_instructions
         executable = find_codex_executable()
         if command is None and executable is None:
             raise CodexDispatchError("Codex CLI is not installed or is unavailable on PATH")
@@ -123,6 +167,7 @@ class CodexAppServerMission:
                 encoding="utf-8",
                 bufsize=1,
                 creationflags=creationflags,
+                env=sanitized_subprocess_environment(),
             )
         except OSError as error:
             raise CodexDispatchError(f"Could not start Codex app-server: {error}") from error
@@ -148,6 +193,11 @@ class CodexAppServerMission:
                     "cwd": str(self.cwd),
                     "sandbox": "workspace-write",
                     "approvalPolicy": "never",
+                    "developerInstructions": self.developer_instructions,
+                    "config": {
+                        "web_search": "disabled",
+                        "sandbox_workspace_write": {"network_access": False},
+                    },
                     "threadSource": "user",
                     "serviceName": "evolastra",
                 },
@@ -161,6 +211,12 @@ class CodexAppServerMission:
                 {
                     "threadId": thread_id,
                     "input": [{"type": "text", "text": self.prompt}],
+                    "approvalPolicy": "never",
+                    "sandboxPolicy": {
+                        "type": "workspaceWrite",
+                        "writableRoots": [],
+                        "networkAccess": False,
+                    },
                 },
             )
             turn = turn_result.get("turn")
@@ -244,13 +300,18 @@ def dispatch_codex_mission(
     ship_id: str,
     cwd: Path,
     prompt: str,
+    developer_instructions: str,
     completion: Completion,
     started: Started | None = None,
 ) -> MissionReceipt:
     with _active_lock:
         if ship_id in _active_missions:
             raise CodexDispatchError("This ship already has an active mission")
-        mission = CodexAppServerMission(cwd=cwd, prompt=prompt)
+        mission = CodexAppServerMission(
+            cwd=cwd,
+            prompt=prompt,
+            developer_instructions=developer_instructions,
+        )
         receipt = mission.start()
         _active_missions[ship_id] = mission
 

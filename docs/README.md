@@ -49,6 +49,8 @@ Use this index to move from product operation to implementation detail.
 - [Testing and release gate](development/testing.md)
 - [Performance](development/performance.md)
 - [Security policy](../SECURITY.md)
+- [Responsible use and limitations](security/responsible-use.md)
 - [Threat model](security/threat-model.md)
+- [Security best-practices report](security/security_best_practices_report.md)
 - [Quality report](audit/quality-report.md)
 - [Gap matrix](audit/gap-matrix.md)

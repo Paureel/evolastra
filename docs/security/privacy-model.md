@@ -1,13 +1,18 @@
 # Privacy model
 
-Reviewed: 2026-07-18
+Reviewed: 2026-07-19
 Applies to: Local Private companion and static hosted viewer
 
 ## Privacy posture
 
 Evolastra is a local observability and provenance store, not an anonymous telemetry system. Even with raw content capture disabled, semantic fields such as objectives, node titles, claims, evidence summaries, dataset names, tool errors, and artifact descriptions are intentionally retained because they are the product. Operators must therefore assume a run can contain personal, confidential, regulated, or credential-adjacent information and choose an appropriate `privacyclass`.
 
-The authoritative database, artifact directory, Codex outbox, exports, and root capability remain on the user's computer under `~/.evolastra`, `~/.codex`, and user-selected export locations. A Netlify/VPS-hosted interface is executable presentation code only and reads from the paired loopback companion. The centralized VPS storage profile and remote connector were removed.
+The authoritative database, artifact directory, Codex outbox, exports, and root
+capability remain on the user's computer under `~/.evolastra`, `~/.codex`, and
+user-selected export locations. A Netlify/VPS-hosted interface serves executable
+presentation code and one explicitly public, aggregate-only showcase; ordinary
+analyses still come from the paired loopback companion. The centralized VPS
+storage profile and remote connector were removed.
 
 `capture_content=false` is a collection-minimization control for raw prompts, completions, tool input/output, transcripts, and similarly shaped operational content. It is not a promise that a run contains no human-authored content or personal data (`apps/api/asterism_api/config.py:22-23`, `apps/api/asterism_api/security.py:18-43`, `integrations/core.py:55-113`).
 
@@ -25,6 +30,7 @@ The authoritative database, artifact directory, Codex outbox, exports, and root 
 | Configuration | Database URL, artifact root, allowed origins/hosts, capture flag | Environment/`.env` | Operator-controlled; `.env` should not be committed |
 | Exports | Complete events, semantic summaries, lineage, Markdown, reproduction data | User-selected files outside application control | Portable copy; local deletion cannot recall it |
 | Multiplayer overlay | Player display names/colors, presence, system IDs, and deliberately published finding summaries | Host companion SQLite; last host snapshot on guest companion | Opt-in; no raw prompts, datasets, artifacts, or full event stream |
+| Public showcase | Synthetic display entities, selected aggregate CNA frequencies/pair counts, bounded figure rows, and validation caveats | One versioned JSON asset on the static host | Explicitly public and read-only; no patient/sample IDs, raw content, private run IDs, or mutation |
 
 The privacy labels `public`, `internal`, `confidential`, and `restricted` are validated on run/event envelopes (`apps/api/asterism_api/schemas.py:22-27`, `36-57`). They are descriptive metadata in the current profile; they do not trigger encryption, authorization, retention, or export restrictions.
 
@@ -39,6 +45,9 @@ The privacy labels `public`, `internal`, `confidential`, and `restricted` are va
    the host through an HTTPS `.ts.net` route. The Netlify viewer is not in this
    path. Invite secrets are user-carried; host stores only their digest, while
    guest member grants stay in process memory and disappear on restart.
+7. Before pairing, the browser may fetch the fixed public showcase from its own
+   static origin. Replay, search, figures, and territory filtering happen in
+   browser memory; no showcase operation calls the companion or writes state.
 
 ## Existing controls
 
@@ -54,6 +63,9 @@ The privacy labels `public`, `internal`, `confidential`, and `restricted` are va
 - Federation calls require both a Tailscale Serve identity header and a scoped
   invite/member bearer. Those capabilities do not authorize ordinary run,
   event, export, pairing, or Codex routes.
+- The public showcase path, identity, file count, size, preview-row bounds,
+  public privacy marker, display-ID shape, and denied content fields are checked
+  by the repository harness. Its browser mode removes all mutation controls.
 
 ## Retention and deletion
 
@@ -98,16 +110,22 @@ The endpoint may be described as logical run deletion, not secure erasure or rec
 5. **Medium — exports replicate data without a manifest of sensitivity/retention:** reproduction and CloudEvents exports can contain the full redacted history.
 6. **Low in local profile — no encryption at rest:** SQLite relies on OS account/filesystem protection. Encryption/key management becomes necessary if the deployment or device-risk assumptions change.
 
-## Narrow remote collaboration exception
+## Narrow public-host exceptions
 
 The static viewer may be internet-accessible, but the ordinary Python API remains
-loopback-only. The sole supported remote exception is the Phase 1 federation
-route family exposed to an operator-controlled tailnet with Tailscale Serve. It
-accepts only presence, claims, and bounded publication summaries; it does not
-provide remote ingestion, exports, pairing, Codex dispatch, project download, or
-artifact access. Tailscale identity headers are a transport gate, not the only
-authorization control: every request also needs a scoped capability.
+loopback-only. Two deliberately narrow exceptions exist:
 
-Tailscale Funnel, public reverse proxies, shared server databases, and direct
-non-loopback binding remain unsupported. Any broader exposure requires a new
-architecture decision and privacy review. CORS is not an authorization control.
+1. The static host serves the single allowlisted, read-only STAD three-empire
+   showcase. It is public aggregate presentation data, not user project storage,
+   and has no upload, API, account, or mutation surface.
+2. The Phase 1 federation route family may be exposed to an
+   operator-controlled tailnet with Tailscale Serve. It accepts only presence,
+   claims, and bounded publication summaries; it does not provide remote
+   ingestion, exports, pairing, Codex dispatch, project download, or artifact
+   access. Tailscale identity headers are a transport gate, not the only
+   authorization control: every request also needs a scoped capability.
+
+Tailscale Funnel, public reverse proxies, shared server databases, arbitrary
+hosted analysis catalogs, and direct non-loopback binding remain unsupported.
+Any broader exposure requires a new architecture decision and privacy review.
+CORS is not an authorization control.

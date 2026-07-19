@@ -2,6 +2,7 @@
   "name": "evolastra-observatory-workspace",
   "private": true,
   "version": "0.1.0",
+  "license": "MIT",
   "scripts": {
     "bootstrap": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1",
     "bootstrap:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1 -CheckOnly",

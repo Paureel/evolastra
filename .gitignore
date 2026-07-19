@@ -86,6 +86,9 @@ output/*
 output/playwright/*
 !output/playwright/galaxy-3d.png
 !output/playwright/system-3d.png
+!output/playwright/shipyard.png
+!output/playwright/figures.png
+!output/playwright/multiplayer-demo.png
 
 # Local package-manager and tool state
 .cache/

@@ -11,6 +11,7 @@ nearest `AGENTS.md` adds local instructions for each major surface.
 | --- | --- | --- |
 | `apps/api/asterism_api/` | Local companion, durable event store, semantic projection, access and exports | Python domain, API, security, replay tests |
 | `apps/web/src/` | Browser transport, accessible UI, deterministic layouts, 3D Canvas renderer | TypeScript, Vitest, Playwright, axe |
+| `apps/web/public/demo/` | The single allowlisted aggregate-only public showcase | ARCH-008 harness, privacy fixture test, Playwright |
 | `integrations/` | Narrow protocol-to-CloudEvent adapters | Fixture-driven integration tests |
 | `schemas/` | Versioned durable event contracts and examples | JSON Schema contract and property tests |
 | `migrations/` | Forward persistence evolution | Migration plus rebuild/replay tests |

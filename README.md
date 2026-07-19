@@ -10,15 +10,70 @@
     <img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" />
     <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" />
     <img alt="React 18" src="https://img.shields.io/badge/React-18-149ECA?logo=react&logoColor=white" />
+    <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-F3C969" /></a>
     <img alt="Private by design" src="https://img.shields.io/badge/data-local--first-71E6E1?labelColor=071B26" />
   </p>
 </div>
 
-![Evolastra 3D galaxy map](output/playwright/galaxy-3d.png)
+## Explore an investigation as a living galaxy
 
-Evolastra receives durable analytical events, projects them into a semantic evidence graph, and renders that graph through two spatial lenses: a strategic Galaxy Map for the full investigation and an orbital System View for a single analytical branch. The visualization is disposable; the append-only event log and semantic model remain the source of truth.
+Evolastra turns agentic work into a navigable research universe. Hypotheses
+become star systems, analytical similarity becomes distance, agents travel as
+ships, evidence forms orbital bodies, and validated progress expands territorial
+borders. Rotate, tilt, pan, and zoom the Galaxy and System maps in full 3D while
+the underlying append-only evidence graph remains authoritative.
+
+<p align="center">
+  <img src="output/playwright/galaxy-3d.png" alt="A rotatable 3D Evolastra galaxy showing connected research branches, agent ships, semantic borders, and an expanding frontier" width="100%" />
+</p>
+
+<p align="center">
+  <img src="output/playwright/system-3d.png" alt="Evolastra System View showing one analytical branch and its orbiting agents, tools, evidence, and artifacts" width="100%" />
+</p>
+
+## Build a fleet and launch real Codex work
+
+Click the command star to open the shipyard. Build a **Frigate** for one focused
+task, a **Mothership** for coordinated subagents, or a **Colony ship** to explore
+novel directions. Completed tech-tree research unlocks problem-specific hulls.
+Give the vessel a mission and Evolastra opens a new task through the same
+signed-in Codex installation, then projects its progress back onto the map.
+
+<p align="center">
+  <img src="output/playwright/shipyard.png" alt="Evolastra shipyard with Frigate, Mothership, Colony ship, research-specialist blueprints, and Codex mission controls" width="100%" />
+</p>
+
+Ship missions are explicit and local: trusted safety instructions are separated
+from untrusted analytical context, command network access and web search are
+disabled, ambient credentials are filtered, and writes stay inside the
+repository workspace without approval escalation.
+
+## Inspect evidence, replay discoveries, and explore together
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="output/playwright/figures.png" alt="A safe quantitative evidence figure rendered inside Evolastra" width="100%" />
+    </td>
+    <td width="50%">
+      <img src="output/playwright/multiplayer-demo.png" alt="The read-only three-empire Evolastra showcase with researcher territories and CNA discoveries" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Evidence you can inspect.</strong> Open bounded figures, artifacts, findings, lineage, metrics, and contradictions without executing uploaded HTML, scripts, notebooks, or SVG behavior.</td>
+    <td><strong>Research you can divide.</strong> Federate a project privately, claim semantically positioned systems in distinct colors, publish selected findings, and replay the included three-empire showcase.</td>
+  </tr>
+</table>
+
+Replay any event horizon, compare runs, inspect the tech tree, or export the
+history as CloudEvents JSONL, OpenLineage, W3C PROV, Obsidian notes, and a
+non-executable reproduction bundle.
 
 ## Start here
+
+Just want to look around? Open the hosted app and choose **Explore public demo**.
+The finished three-empire STAD expedition, replay, aggregate figures, and
+territories load without installation or pairing and are visibly read-only.
 
 On Windows with Python 3.12+, Node.js 20+, and repository access:
 
@@ -39,7 +94,8 @@ For a demo without Codex integration, follow [Run the demo only](docs/getting-st
 - **See the analysis happen.** Runs, branches, agents, tools, artifacts, findings, anomalies, and approvals become distinct inspectable objects; bounded numeric artifacts become safe local figures rather than executable uploads.
 - **Navigate in 3D.** Both maps support perspective depth, unrestricted 360° rotation, tilt, pan, zoom, and keyboard camera controls.
 - **Launch work from the map.** Build Codex vessels at the command star, unlock problem-specific hulls through research, and dispatch explicit missions into new local Codex tasks.
-- **Federate a project privately.** Opt into host-authoritative multiplayer through Tailscale, claim semantically positioned research systems with player colors, and publish selected finding summaries while Netlify stays storage-free.
+- **Federate a project privately.** Opt into host-authoritative multiplayer through Tailscale, claim semantically positioned research systems with player colors, and publish selected finding summaries while Netlify stores no user project or session state.
+- **Show the finished expedition.** Launch the one curated, aggregate-only three-empire showcase from any hosted build without connecting Codex.
 - **Never lose the trail.** Replay, deterministic projections, typed relationships, and portable exports preserve how a conclusion was reached.
 - **Keep data local.** The companion, SQLite database, artifacts, Codex outbox, and access capability remain on the user’s machine.
 - **Integrate without lock-in.** CloudEvents, W3C trace concepts, JSONL, OpenLineage exports, SDKs, and narrow adapters provide explicit boundaries.
@@ -148,11 +204,23 @@ The invite contains no project bytes. Netlify remains a static host, each Codex
 ship stays under its owner's local companion, and single player continues to
 work without Tailscale. Do not use Tailscale Funnel.
 
-## Privacy model
+## Security and privacy
 
-The hosted viewer is static presentation code. It contains no API, ingestion service, database, or analytical storage. Each browser pairs directly with a loopback companion using a one-use code and receives a short-lived, origin-bound grant. Redaction occurs before local persistence.
+The hosted viewer is static presentation code plus one versioned, explicitly
+public aggregate showcase. It contains no API, ingestion service, database, user
+project storage, or upload surface. Real runs pair directly with a loopback
+companion using a one-use code and receive a short-lived, origin-bound grant.
+Redaction occurs before local persistence.
 
-See the [privacy model](docs/security/privacy-model.md), [threat model](docs/security/threat-model.md), and [redaction policy](docs/security/redaction-policy.md).
+Codex missions add a deliberately bounded local agent surface: trusted safety
+instructions are separated from untrusted mission/reference text; command
+network access and web search are disabled; ambient credentials are filtered;
+and writes remain inside the repository workspace without approval escalation.
+These controls reduce prompt-injection likelihood and impact, but no LLM system
+can guarantee that prompt injection is impossible. Keep secrets outside the
+workspace and review every generated task and diff.
+
+See the [security policy](SECURITY.md), [responsible-use guide](docs/security/responsible-use.md), [privacy model](docs/security/privacy-model.md), [threat model](docs/security/threat-model.md), and [redaction policy](docs/security/redaction-policy.md).
 
 ## Integrations and exports
 
@@ -215,4 +283,7 @@ Evolastra is an experimental, local-first observatory. Single player is the defa
 
 ## License
 
-This is a private repository. All rights are reserved; no license is granted unless the repository owner provides one separately.
+Evolastra is open-source software under the [MIT License](LICENSE). It is
+provided **as is**, without warranty; the authors and copyright holders are not
+liable for claims, damages, or other liability arising from the software or its
+use. See [Responsible use and limitations](docs/security/responsible-use.md).

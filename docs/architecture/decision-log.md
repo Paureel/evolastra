@@ -26,7 +26,13 @@ Accepted with limitation. Loopback local use is the verified first deployment pr
 
 ## ADR-007 — Static-hosted UI with a local-private companion
 
-Accepted. A CDN or Netlify may serve the disposable React bundle while authoritative events, projections, exports, and SQLite remain on the user's computer. The browser pairs to loopback using a one-use code. The companion returns a short-lived origin-bound bearer grant; it never exposes the root local capability. Authenticated live delivery uses fetch-based SSE parsing because native `EventSource` cannot attach the Authorization header.
+Accepted. A CDN or Netlify may serve the disposable React bundle and the one
+curated public showcase defined by ADR-011, while authoritative user events,
+projections, exports, and SQLite remain on the user's computer. The browser
+pairs to loopback using a one-use code. The companion returns a short-lived
+origin-bound bearer grant; it never exposes the root local capability.
+Authenticated live delivery uses fetch-based SSE parsing because native
+`EventSource` cannot attach the Authorization header.
 
 ## ADR-008 — Codex hooks spool locally; the companion drains
 
@@ -34,7 +40,11 @@ Accepted. Managed Codex hooks perform bounded redaction and atomic local writes 
 
 ## ADR-009 — Centralized Hosted Team profile rejected and removed
 
-Superseded. Centralized VPS ingestion and persistence conflict with the product's local-data requirement. Public deployments contain static viewer assets only. Runtime endpoint validation and the deployment CSP limit API traffic to loopback companions; the supported Python service is local-private and rejects non-loopback clients in production.
+Superseded. Centralized VPS ingestion and persistence conflict with the product's
+local-data requirement. Public deployments contain static assets only: viewer
+code plus the bounded showcase in ADR-011. Runtime endpoint validation and the
+deployment CSP otherwise limit API traffic to loopback companions; the supported
+Python service is local-private and rejects non-loopback clients in production.
 
 ## ADR-010 — Host-authoritative tailnet federation
 
@@ -46,3 +56,18 @@ tailnet; invite and member capabilities are scoped to those routes and do not
 authorize the ordinary companion API. The canonical event log, prompts, datasets,
 artifacts, Codex credentials, and raw findings are not replicated. Guests must
 load the same portable analysis locally, and host loss pauses the session.
+
+## ADR-011 — One curated public static showcase
+
+Accepted. The hosted viewer may ship exactly one versioned, read-only
+three-empire STAD showcase as a same-origin JSON asset. It is a purpose-built
+aggregate presentation with synthetic display IDs, not a private run export.
+It contains no sample-level rows or identifiers, prompts, completions, tool
+input/output, credentials, filenames, database state, or live Codex controls.
+
+The browser loads only the fixed asset identity, performs replay and search in
+memory, and disables shipbuilding, federation mutation, export, import, and
+simulator controls. The harness rejects additional hosted analyses, oversized
+previews, private-shaped fields, and sample-shaped identifiers. A second public
+analysis, dynamic catalog, upload surface, remote API, or hosted persistence
+requires a new architecture decision and privacy review.

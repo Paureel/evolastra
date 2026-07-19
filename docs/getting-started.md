@@ -1,6 +1,6 @@
 # Get started with Evolastra
 
-_Estimated time: 5–10 minutes · Beginner · Last verified: 2026-07-18 on Windows_
+_Estimated time: 0–10 minutes · Beginner · Last verified: 2026-07-19 on Windows_
 
 ---
 
@@ -8,6 +8,7 @@ _Estimated time: 5–10 minutes · Beginner · Last verified: 2026-07-18 on Wind
 
 | Goal | Recommended path | Result |
 | --- | --- | --- |
+| See the finished showcase | Open the hosted app and choose **Explore public demo** | Read-only three-empire map, replay, findings, and figures; no install |
 | Use Evolastra with Codex | [Bootstrap the companion](#-install-for-codex) | Persistent local observatory and managed hooks |
 | Explore the product | [Run the demo](#-run-the-demo-only) | Temporary seeded investigation |
 | Ask an agent to install it | [Copy the agent prompt](#-let-an-agent-set-it-up) | Agent follows the repository contract |
@@ -107,7 +108,13 @@ Enter the displayed one-use code in the browser. Pairing creates a short-lived, 
 
 ## ⚡ Run the demo only
 
-If you want to explore Evolastra without installing Codex hooks:
+The easiest option needs no local setup: open the hosted viewer and choose
+**Explore public demo**. It loads the one curated, aggregate-only STAD
+three-empire expedition from the static host. You can rotate and zoom the map,
+replay its four research phases, inspect all six figures, and open the federation
+roster. Shipbuilding, publishing, import/export, and other mutations are disabled.
+
+For the separate mutable local seed demo without Codex hooks:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup.ps1

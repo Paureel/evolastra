@@ -28,7 +28,16 @@ const baseYard: ShipyardState = {
   ships: [],
   dispatch_enabled: true,
   codex_available: true,
-  safety: { transport: "local-stdio", sandbox: "workspace-write", approval_policy: "never", workspace_fixed: true },
+  safety: {
+    transport: "local-stdio",
+    sandbox: "workspace-write",
+    approval_policy: "never",
+    workspace_fixed: true,
+    network_access: false,
+    web_search: "disabled",
+    environment_filtered: true,
+    context_isolated: true,
+  },
 };
 
 const builtShip: Entity = {
@@ -62,6 +71,8 @@ describe("Shipyard", () => {
     expect(await screen.findByRole("dialog", { name: "Build a Codex vessel" })).toBeVisible();
     expect(screen.getByRole("button", { name: /Mothership/ })).toBeVisible();
     expect(screen.getByRole("button", { name: /Colony ship/ })).toBeVisible();
+    expect(screen.getByText("Network off")).toBeVisible();
+    expect(screen.getByText(/trusted safety rules separately/)).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Build Frigate" }));
     await waitFor(() => expect(buildShip).toHaveBeenCalledWith("run_test", "frigate"));

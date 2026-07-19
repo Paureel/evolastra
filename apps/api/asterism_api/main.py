@@ -157,6 +157,8 @@ async def security_middleware(
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
     if (
         request.headers.get("access-control-request-private-network") == "true"
         and request.headers.get("origin") in settings.allowed_origins
@@ -167,7 +169,8 @@ async def security_middleware(
             "default-src 'self'; script-src 'self'; style-src 'self'; "
             "img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:* "
             "http://localhost:*; worker-src 'self' blob:; font-src 'self'; "
-            "object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+            "object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; "
+            "require-trusted-types-for 'script'; trusted-types evolastra-worker"
         )
     else:
         response.headers["Content-Security-Policy"] = (

@@ -1,12 +1,12 @@
 # Security best-practices report
 
-Reviewed: 2026-07-18
+Reviewed: 2026-07-19
 Frameworks: FastAPI/Pydantic/SQLAlchemy and React/Vite/TypeScript
 Deployments rated: development loopback, Local Private, private tailnet federation, and static hosted viewer
 
 ## Executive summary
 
-No critical issue was found under the verified profiles. Local Private requires bearer authorization, exchanges one-use codes for short-lived origin-bound sessions, handles private-network preflight only for exact origins, and keeps its root token out of Codex hook configuration and browser responses. The hosted deployment remains static-only. Optional multiplayer exposes only a federation path through Tailscale Serve and requires a separate scoped bearer; guest grants are memory-only and cannot authorize the ordinary companion API. Full npm and Python manifest audits report no known vulnerabilities.
+No critical issue was found under the verified profiles. Local Private requires bearer authorization, exchanges one-use codes for short-lived origin-bound sessions, handles private-network preflight only for exact origins, and keeps its root token out of Codex hook configuration and browser responses. The hosted deployment remains static-only and exposes one aggregate, read-only showcase. Optional multiplayer exposes only a federation path through Tailscale Serve and requires a separate scoped bearer; guest grants are memory-only and cannot authorize the ordinary companion API. Codex missions now separate trusted developer instructions from untrusted mission/reference context, run without command network or web search, inherit no ambient credentials, and cannot escalate approval. These controls reduce prompt-injection likelihood and blast radius; they do not make an LLM immune to adversarial input. Full npm and Python manifest audits report no known vulnerabilities.
 
 ## Critical findings
 
@@ -94,6 +94,19 @@ known tailnet members.
 - **False positive notes:** The specific camelCase regression is closed; no real credential was observed. Residual concern is policy drift and boundedness, not that the fixed examples still leak.
 - **Regression evidence:** `test_redaction_covers_camel_case_secret_keys` passes.
 
+### SEC-013 — Codex missions mixed trust levels and inherited ambient authority
+
+- **Status:** Resolved with defense-in-depth controls; residual model risk remains.
+- **Rule ID:** LLM authority separation / least privilege / secret handling
+- **Severity:** High before remediation; Medium residual
+- **Location:** `apps/api/asterism_api/shipyard.py`; `apps/api/asterism_api/codex_dispatch.py`; `apps/api/asterism_api/api.py`
+- **Evidence:** Imported run and research-node titles/objectives previously shared one user message with role directives. The app-server child inherited the complete companion environment, while web search and per-turn command network policy were not explicitly disabled.
+- **Impact:** Prompt-injected analytical metadata or repository content could influence repository edits or task output; inherited credentials and configurable network access could increase the consequences of a successful instruction override.
+- **Fix:** Static safety and hull rules now use `thread/start.developerInstructions`; imported context is serialized, labeled as untrusted data, and kept at user authority. Every turn specifies workspace-write with `networkAccess: false`, web search is disabled, approval remains `never`, the child receives a non-secret environment allowlist, and client-visible startup errors are generic.
+- **Mitigation:** Dispatch remains explicit, paired, loopback-only, and human-reviewed. Keep credentials and unrelated confidential material outside the workspace.
+- **Residual risk:** No prompt hierarchy can guarantee that a model will ignore every adversarial instruction. Direct mission text and repository files remain readable, and Codex app-server is experimental.
+- **Regression evidence:** Adversarial-context, environment-filtering, protocol-policy, and API-dispatch tests in `tests/test_shipyard.py` pass.
+
 ## Medium findings
 
 ### SEC-007 — Destructive/risky action audit coverage is incomplete
@@ -143,14 +156,15 @@ known tailnet members.
 
 ### SEC-011 — Static frontend security headers are not established for production hosting
 
+- **Status:** Resolved for the checked-in Netlify deployment profile.
 - **Rule ID:** REACT-HEADERS-001 / REACT-CSP-001
-- **Severity:** Medium, conditional on shipping the SPA
-- **Location:** `apps/web/index.html:4-6`; `apps/api/asterism_api/main.py:49-60`
-- **Evidence:** The SPA has a strong early meta CSP, but meta delivery cannot enforce `frame-ancestors` and no production static-server/edge config is present. API headers do not automatically cover separately served Vite assets.
+- **Severity:** Medium before remediation
+- **Location:** `netlify.toml`; `apps/web/index.html`; `apps/api/asterism_api/main.py`
+- **Evidence:** Netlify now sends header-delivered CSP with `frame-ancestors 'none'`, Trusted Types, nosniff, strict referrer and permissions policies, HSTS, COOP, and CORP. `index.html` is no-store. The local API mirrors applicable isolation and content controls.
 - **Impact:** A future static deployment can omit clickjacking, nosniff, referrer, permissions, and header-delivered CSP protections.
-- **Fix:** Serve the production SPA with explicit HTTP security headers and a tested CSP; retain the meta CSP only as fallback.
-- **Mitigation:** The current API denies framing and the local profile has limited exposure.
-- **False positive notes:** An external deployment layer may add these headers, but it is not visible in repository evidence.
+- **Fix:** Completed for Netlify; retain the meta CSP as an early fallback and keep deployment-header regressions in the release gate.
+- **Mitigation:** Any non-Netlify host must reproduce and verify the same headers.
+- **Regression evidence:** `tests/test_static_viewer_privacy.py` and `tests/security/test_security_controls.py` assert the deployment and API policies.
 
 ## Low findings
 
@@ -172,6 +186,7 @@ known tailnet members.
 - Unsafe browser-origin state changes are rejected using exact Origin allowlisting and Fetch Metadata (`main.py:91-101`).
 - Actual ASGI request bytes are counted and capped before downstream parsing (`main.py:22-59`).
 - API responses set nosniff, frame denial, no-referrer, Permissions Policy, and deny-by-default CSP (`main.py:91-117`).
+- Netlify responses add header-delivered CSP, HSTS, COOP/CORP, frame denial, Trusted Types, and no-store HTML caching (`netlify.toml`).
 - Pydantic write models reject extra fields for run/command/approval requests (`schemas.py:18-34`, `88-105`).
 - ORM/parameterized queries are used; no string-built SQL, shell execution, dynamic template rendering, server-side arbitrary URL fetch, or redirect sink was found.
 - JSONL import ignores the supplied filename, reads a configured maximum plus one byte, and never exposes an upload directory (`api.py:196-218`).
@@ -181,16 +196,16 @@ known tailnet members.
 - Artifact preview explicitly renders structured bars or text/JSON and executes no artifact content (`ArtifactPreview.tsx:3-27`).
 - Vite production source maps are disabled (`apps/web/vite.config.ts:4-9`).
 - Asset verification is fail-closed and currently covers an empty third-party inventory.
+- Codex dispatch keeps trusted rules at developer authority and imported context at user authority; every turn is offline, approval-free, workspace-scoped, and launched with a filtered non-secret environment (`shipyard.py`; `codex_dispatch.py`).
+- The standard MIT license and its warranty/liability disclaimer are checked by `tests/test_license.py`; responsible-use guidance does not add a non-open-source use restriction.
 
 ## Recommended integration order
 
-1. Install the updated dependency manifests into a clean environment and verify `python-multipart 0.0.31` plus a full transitive audit.
-2. Strengthen registered payload validation with action-specific field bounds and referenced-entity existence checks.
-3. Unify redaction bounds/detectors and add cross-language conformance tests.
-4. Define WAL/backup/export/blob behavior before making a secure-erasure claim.
-5. Add SSE/export budgets and complete audit coverage.
-6. Commit dependency locks/hashes and executable release security gates.
-7. Harden preview/export schemas and production SPA headers.
+1. Strengthen registered payload validation with action-specific field bounds and referenced-entity existence checks.
+2. Unify redaction bounds/detectors and add cross-language conformance tests.
+3. Define WAL/backup/export/blob behavior before making a secure-erasure claim.
+4. Add SSE/export budgets and complete audit coverage.
+5. Harden preview/export schemas and preserve deployment-header tests on every supported host.
 
 ## Review evidence
 
@@ -199,11 +214,8 @@ Commands executed:
 ```powershell
 rg --files -I
 rg --with-filename -n -I "<security sink patterns>" apps integrations sdk tests
-python -m pytest tests/security -q -rxX
-python -m ruff check tests/security/test_security_controls.py
-python -m pip_audit -r requirements.lock
-npm --prefix apps/web audit --audit-level=high --json
-python -m pip check
+npm run check
+npm run verify
 ```
 
-Focused security tests after remediation: **15 passed**. Ruff: **passed**. The full locked-requirements audit reports **no known vulnerabilities**; npm audit also reports **0 vulnerabilities**. The repository-local environment imports `python-multipart 0.0.31`, and focused source scanning and asset verification pass.
+The practical release gate passed on 2026-07-19: **130 Python tests**, **45 frontend unit/component tests**, and **7 Playwright browser/accessibility flows** passed. Ruff, strict Python and TypeScript checks, the production build, harness, source scan, asset verification, and disposable database migrations passed. The full locked-requirements audit reports **no known vulnerabilities** and npm audit reports **0 vulnerabilities**. The repository-local environment imports `python-multipart 0.0.31`.

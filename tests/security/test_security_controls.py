@@ -47,6 +47,8 @@ def test_api_sets_security_headers_and_rejects_untrusted_host() -> None:
         assert response.headers["x-content-type-options"] == "nosniff"
         assert response.headers["x-frame-options"] == "DENY"
         assert response.headers["referrer-policy"] == "no-referrer"
+        assert response.headers["cross-origin-opener-policy"] == "same-origin"
+        assert response.headers["cross-origin-resource-policy"] == "same-origin"
         assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
 
         rejected = client.get("/health/live", headers={"Host": "attacker.invalid"})

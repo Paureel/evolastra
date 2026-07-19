@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   claimMultiplayerSystem,
@@ -96,5 +96,25 @@ describe("MultiplayerPanel", () => {
     await waitFor(() => expect(publishMultiplayerFinding).toHaveBeenCalledWith("run_test", "finding_local"));
     expect(screen.getByText("Only the bounded title and summary cross the tailnet.")).toBeVisible();
     expect(changed).toHaveBeenCalled();
+  });
+
+  it("presents a public federation showcase without mutation controls or readiness calls", () => {
+    render(<MultiplayerPanel
+      open
+      readOnly
+      runId="demo_run_stad_three_empires"
+      state={{ ...activeState, session: { ...activeState.session!, simulation_active: true } }}
+      selectedSystem={{ id: "demo_node_myc", title: "MYC amplification → ATR dependence" }}
+      findings={[]}
+      onClose={vi.fn()}
+      onChanged={vi.fn()}
+    />);
+
+    const dialog = screen.getAllByRole("dialog").at(-1)!;
+    expect(within(dialog).getByRole("heading", { name: "Three-empire expedition" })).toBeVisible();
+    expect(within(dialog).getByText("CURATED PUBLIC RESULTS")).toBeVisible();
+    expect(within(dialog).queryByRole("button", { name: "Claim system" })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "Close federation" })).not.toBeInTheDocument();
+    expect(fetchMultiplayerReadiness).not.toHaveBeenCalled();
   });
 });

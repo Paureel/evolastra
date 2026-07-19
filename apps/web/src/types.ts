@@ -119,6 +119,10 @@ export interface ShipyardState {
     sandbox: string;
     approval_policy: string;
     workspace_fixed: boolean;
+    network_access: boolean;
+    web_search: string;
+    environment_filtered: boolean;
+    context_isolated: boolean;
   };
 }
 

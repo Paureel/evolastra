@@ -134,6 +134,37 @@ test("single player opens an opt-in local-first multiplayer federation", async (
   await expect(federation).not.toBeVisible();
 });
 
+test("public three-empire showcase loads without pairing and remains read only", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /Churn atlas/i })).toBeVisible();
+  await page.getByRole("button", { name: "Connection and local data status" }).click();
+  const entry = page.getByRole("dialog", { name: "Enter Evolastra" });
+  await expect(entry.getByRole("button", { name: "Explore public demo" })).toBeVisible();
+  await entry.getByRole("button", { name: "Explore public demo" }).click();
+
+  await expect(page.getByRole("heading", { name: "STAD CNA · Three-Empire Expedition" })).toBeVisible();
+  await expect(page.getByText("PUBLIC SHOWCASE · THREE EMPIRES")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open multiplayer federation" })).toContainText("3 players");
+
+  await page.getByRole("button", { name: "Open multiplayer federation" }).click();
+  const federation = page.getByRole("dialog", { name: "Three-empire expedition" });
+  const roster = federation.getByRole("region", { name: "Researchers" });
+  await expect(roster.getByText("Amplification Dominion", { exact: true })).toBeVisible();
+  await expect(roster.getByText("Loss Cartographers", { exact: true })).toBeVisible();
+  await expect(roster.getByText("Constellation Pact", { exact: true })).toBeVisible();
+  await expect(federation.getByRole("button", { name: "Claim system" })).toHaveCount(0);
+  await federation.getByRole("button", { name: "Close showcase details" }).click();
+
+  await page.getByRole("tab", { name: "Advanced" }).click();
+  await expect(page.getByText("PUBLIC SHOWCASE · READ ONLY")).toBeVisible();
+  await page.getByRole("tab", { name: "Figures" }).click();
+  await expect(page.getByRole("button", { name: /^Open figure / })).toHaveCount(6);
+  await page.getByRole("tab", { name: "Tech tree" }).click();
+  await expect(page.getByRole("button", { name: "Build specialist ship" })).toHaveCount(0);
+  const replay = page.getByRole("slider", { name: "Replay sequence" });
+  await expect(replay).toHaveAttribute("max", "4");
+});
+
 test("@accessibility core surface has no serious axe violations", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/");

@@ -53,9 +53,19 @@ checkout.
 
 - Sandbox: `workspace-write`
 - Approval policy: `never`
+- Command network access: disabled
+- Web search: disabled
+- Child-process environment: allowlisted; ambient credentials are removed
 - Model: configured Codex default
 - Permission escalation: unavailable
 - Prompt capture in Evolastra events: disabled by default
+
+Trusted safety and hull instructions travel in the app-server's developer
+instruction field. Direct mission text and imported analysis context stay at
+user authority; imported titles and objectives are explicitly marked as
+untrusted data rather than instructions. Developer instructions forbid external
+apps, connectors, and MCP tools; separate protocol settings disable web search,
+command network access, and permission escalation.
 
 The mission text is necessarily present in the Codex task the user launches. In
 Evolastra's semantic event log, the `prompt` field passes through the existing
@@ -66,6 +76,13 @@ returned to the viewer.
 If a mission requires access beyond the repository sandbox, the ship reports the
 block instead of silently escalating. Open the resulting task in Codex to review
 its work or continue the conversation.
+
+These controls reduce prompt-injection likelihood and blast radius; they cannot
+prove that a language model will never follow an adversarial instruction.
+Repository files and direct mission text may themselves be hostile. Keep secrets
+outside the checkout, review the task and every resulting diff, and run
+`npm run verify` before accepting or deploying the work. See
+[Responsible use and limitations](../security/responsible-use.md).
 
 ## ⚠️ Availability
 

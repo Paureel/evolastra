@@ -6,13 +6,15 @@ interface ConnectionPanelProps {
   required: boolean;
   onClose: () => void;
   onConnected: () => void;
+  onExploreDemo: () => Promise<void>;
 }
 
-export function ConnectionPanel({ open, required, onClose, onConnected }: ConnectionPanelProps) {
+export function ConnectionPanel({ open, required, onClose, onConnected, onExploreDemo }: ConnectionPanelProps) {
   const [endpoint, setEndpoint] = useState(currentEndpoint());
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   useEffect(() => {
     if (open) setEndpoint(currentEndpoint());
@@ -32,14 +34,31 @@ export function ConnectionPanel({ open, required, onClose, onConnected }: Connec
       setConnecting(false);
     }
   };
+  const exploreDemo = async () => {
+    setDemoLoading(true);
+    setError(null);
+    try {
+      await onExploreDemo();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "The public showcase could not be loaded");
+    } finally {
+      setDemoLoading(false);
+    }
+  };
 
   return (
     <div className="connection-backdrop" role="presentation">
       <section className="connection-panel" role="dialog" aria-modal="true" aria-labelledby="connection-title">
         <div className="connection-orbit" aria-hidden="true"><i /><i /></div>
-        <span className="eyebrow">LOCAL PRIVATE LINK</span>
-        <h2 id="connection-title">Connect this browser</h2>
-        <p>The hosted site contains only viewer code. Your Codex events, analysis database, exports, and access token stay on this computer.</p>
+        <span className="eyebrow">CHOOSE AN OBSERVATORY MODE</span>
+        <h2 id="connection-title">Enter Evolastra</h2>
+        <div className="showcase-launch">
+          <span className="showcase-empires" aria-hidden="true"><i /><i /><i /></span>
+          <div><small>NO PAIRING REQUIRED · READ ONLY</small><h3>Three-empire STAD expedition</h3><p>Explore the finished map, six hypotheses, aggregate figures, and replay.</p></div>
+          <button className="showcase-button" disabled={demoLoading || connecting} onClick={() => void exploreDemo()}>{demoLoading ? "Loading expedition…" : "Explore public demo"}</button>
+        </div>
+        <div className="connection-divider"><span>OR CONNECT LOCAL CODEX</span></div>
+        <p>The hosted site contains viewer code and one curated public showcase. Your Codex events, analysis database, exports, and access token stay on this computer.</p>
         <div className="privacy-route" aria-label="Private data route">
           <span>CODEX</span><i /><span>THIS DEVICE</span><i /><span>BROWSER</span>
         </div>

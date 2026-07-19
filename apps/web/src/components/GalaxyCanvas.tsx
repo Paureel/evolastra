@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { syncCanvasBackingStore } from "../canvasBackingStore";
 import { createFrontierField, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfilesFor, type FrontierBridge, type FrontierField, type StellarProfile } from "../galaxyFrontier";
+import layoutWorkerUrl from "../layout.worker.ts?worker&url";
 import { stableHash } from "../layout";
 import { connectedHyperlanes, type ConnectedLane } from "../mapGraph";
 import { angleDegrees, DEFAULT_ORIENTATION, normalizeAngle, projectFrontier3D, projectGalaxyPlaneLayout, projectLayout3D, projectPoint3D, type SpatialCamera } from "../spatial";
@@ -26,6 +27,34 @@ interface GalaxyCanvasProps {
 }
 
 interface Camera extends SpatialCamera { x: number; y: number; zoom: number }
+
+interface WorkerUrlPolicy {
+  createScriptURL(value: string): unknown;
+}
+
+interface TrustedTypesFactory {
+  createPolicy(
+    name: string,
+    rules: { createScriptURL: (value: string) => string },
+  ): WorkerUrlPolicy;
+}
+
+let workerUrlPolicy: WorkerUrlPolicy | null = null;
+
+function trustedLayoutWorkerUrl(url: URL): string | URL {
+  const allowedPath = /^\/(?:src\/layout\.worker\.ts|assets\/layout\.worker-[A-Za-z0-9_-]+\.js)$/;
+  const validate = (value: string): string => {
+    const candidate = new URL(value, window.location.origin);
+    if (candidate.origin !== window.location.origin || !allowedPath.test(candidate.pathname)) {
+      throw new TypeError("Refusing an unexpected worker script URL");
+    }
+    return candidate.href;
+  };
+  const trustedTypes = (window as Window & { trustedTypes?: TrustedTypesFactory }).trustedTypes;
+  if (!trustedTypes) return new URL(validate(url.href));
+  workerUrlPolicy ??= trustedTypes.createPolicy("evolastra-worker", { createScriptURL: validate });
+  return workerUrlPolicy.createScriptURL(url.href) as string;
+}
 
 const COLORS = {
   void: "#02050b",
@@ -1025,7 +1054,10 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
   }, [cameraScope, defaultCameraZoom, mode]);
 
   useEffect(() => {
-    const worker = new Worker(new URL("../layout.worker.ts", import.meta.url), { type: "module" });
+    const worker = new Worker(
+      trustedLayoutWorkerUrl(new URL(layoutWorkerUrl, window.location.origin)),
+      { type: "module" },
+    );
     worker.onmessage = (event: MessageEvent<PositionedEntity[]>) => {
       layoutRef.current = event.data;
       renderedLayoutRef.current = event.data;

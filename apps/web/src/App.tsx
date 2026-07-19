@@ -15,6 +15,7 @@ import { useLiveProjection } from "./hooks/useLiveProjection";
 import { advanceReplay, replayStart } from "./replay";
 import { AUTH_REQUIRED_EVENT, CONNECTION_CHANGED_EVENT, getConnection } from "./connection";
 import { parseSemanticSignature } from "./semanticLayout";
+import { loadPublicShowcase, searchPublicShowcase, showcaseMultiplayerAtState, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
 import type { Entity, GraphState, MultiplayerState, SceneEntity, ViewName } from "./types";
 
 const PRIMARY_VIEWS: Array<{ id: ViewName; label: string }> = [
@@ -62,7 +63,9 @@ export default function App() {
   const [connectionOpen, setConnectionOpen] = useState(false);
   const [connectionRequired, setConnectionRequired] = useState(false);
   const [connectionReady, setConnectionReady] = useState(false);
-  const runsQuery = useQuery({ queryKey: ["runs", connectionRevision], queryFn: listRuns, refetchInterval: connectionRequired ? false : 1_500, retry: false, enabled: connectionReady && !connectionRequired });
+  const [showcase, setShowcase] = useState<PublicShowcaseBundle | null>(null);
+  const showcaseActive = showcase !== null;
+  const runsQuery = useQuery({ queryKey: ["runs", connectionRevision], queryFn: listRuns, refetchInterval: connectionRequired ? false : 1_500, retry: false, enabled: connectionReady && !connectionRequired && !showcaseActive });
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [view, setView] = useState<ViewName>("galaxy");
   const [advancedView, setAdvancedView] = useState<ViewName>("findings");
@@ -97,6 +100,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (showcaseActive) return;
     let active = true;
     void pairingInfo().then((info) => {
       if (!active) return;
@@ -105,11 +109,17 @@ export default function App() {
         setConnectionOpen(true);
         setConnectionReady(false);
       } else setConnectionReady(true);
-    }).catch(() => { if (active) setConnectionReady(true); });
+    }).catch(() => {
+      if (!active) return;
+      setConnectionRequired(true);
+      setConnectionOpen(true);
+      setConnectionReady(false);
+    });
     return () => { active = false; };
-  }, [connectionRevision]);
+  }, [connectionRevision, showcaseActive]);
 
   useEffect(() => {
+    if (showcaseActive) return;
     const runs = runsQuery.data ?? [];
     if (!activeRunId && runs.length) setActiveRunId(runs[0].id);
     if (runsQuery.isSuccess && runs.length === 0 && !demoRequested.current) {
@@ -119,13 +129,13 @@ export default function App() {
         void runsQuery.refetch();
       });
     }
-  }, [activeRunId, runsQuery]);
+  }, [activeRunId, runsQuery, showcaseActive]);
 
-  const live = useLiveProjection(activeRunId, connectionRevision);
+  const live = useLiveProjection(showcaseActive ? null : activeRunId, connectionRevision);
   const multiplayerQuery = useQuery({
     queryKey: ["multiplayer", activeRunId, connectionRevision],
     queryFn: () => fetchMultiplayerState(activeRunId!),
-    enabled: Boolean(activeRunId && connectionReady && !connectionRequired),
+    enabled: Boolean(activeRunId && connectionReady && !connectionRequired && !showcaseActive),
     refetchInterval: 5_000,
     retry: false,
   });
@@ -136,16 +146,16 @@ export default function App() {
   }, [live.state, selectedId]);
 
   useEffect(() => {
-    if (!activeRunId || replaySequence === null) {
+    if (showcaseActive || !activeRunId || replaySequence === null) {
       setReplayState(null);
       return;
     }
     let active = true;
     const timer = window.setTimeout(() => void fetchState(activeRunId, replaySequence).then((state) => { if (active) setReplayState(state); }), 80);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [activeRunId, replaySequence]);
+  }, [activeRunId, replaySequence, showcaseActive]);
 
-  const latestSequence = Math.max(1, live.state?.last_sequence ?? 1);
+  const latestSequence = Math.max(1, showcase?.state.last_sequence ?? live.state?.last_sequence ?? 1);
 
   useEffect(() => {
     if (!replayPlaying || replaySequence === null) return;
@@ -181,12 +191,16 @@ export default function App() {
 
   useEffect(() => {
     if (!activeRunId || searchQuery.trim().length < 2) { setSearchResults([]); return; }
+    if (showcase) {
+      setSearchResults(searchPublicShowcase(showcaseStateAtSequence(showcase, replaySequence), searchQuery));
+      return;
+    }
     let active = true;
     const timer = window.setTimeout(() => void search(activeRunId, searchQuery.trim()).then((items) => { if (active) setSearchResults(items); }), 180);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [activeRunId, searchQuery]);
+  }, [activeRunId, replaySequence, searchQuery, showcase]);
 
-  const state = replaySequence === null ? live.state : replayState ?? live.state;
+  const state = showcase ? showcaseStateAtSequence(showcase, replaySequence) : replaySequence === null ? live.state : replayState ?? live.state;
   const scene = useMemo(() => state ? sceneFromState(state) : null, [state]);
   const focusSystemId = useMemo(() => {
     if (!scene) return "";
@@ -195,10 +209,11 @@ export default function App() {
     if (selected?.parentId && scene.entities.some((entity) => entity.id === selected.parentId && ["home", "node"].includes(entity.kind))) return selected.parentId;
     return scene.rootId;
   }, [scene, selectedId]);
-  const run = (runsQuery.data ?? []).find((item) => item.id === activeRunId);
+  const runs = showcase ? [showcase.run] : runsQuery.data ?? [];
+  const run = showcase?.run ?? runs.find((item) => item.id === activeRunId);
   const runSeed = Number(state?.run.run_seed ?? run?.seed ?? 1);
-  const streamLag = Math.max(0, (run?.last_sequence ?? live.state?.last_sequence ?? 0) - (live.state?.last_sequence ?? 0));
-  const multiplayer = multiplayerQuery.data ?? ({ enabled: false } satisfies MultiplayerState);
+  const streamLag = showcaseActive ? 0 : Math.max(0, (run?.last_sequence ?? live.state?.last_sequence ?? 0) - (live.state?.last_sequence ?? 0));
+  const multiplayer = showcase && state ? showcaseMultiplayerAtState(showcase, state) : multiplayerQuery.data ?? ({ enabled: false } satisfies MultiplayerState);
   const claimColors = useMemo(() => {
     const playerColors = new Map((multiplayer.players ?? []).map((player) => [player.id, player.color]));
     return Object.fromEntries((multiplayer.claims ?? []).flatMap((claim) => {
@@ -212,8 +227,22 @@ export default function App() {
   }, [scene, selectedId]);
   const advanced = view === "advanced";
   const openShipyard = (blueprintId: string | null = null) => {
+    if (showcaseActive) return;
     setShipyardBlueprintId(blueprintId);
     setShipyardOpen(true);
+  };
+  const enterShowcase = async () => {
+    const bundle = await loadPublicShowcase();
+    setShowcase(bundle);
+    setConnectionOpen(false);
+    setConnectionRequired(false);
+    setConnectionReady(false);
+    setReplayPlaying(false);
+    setReplaySequence(null);
+    setReplayState(null);
+    setActiveRunId(bundle.run.id);
+    setSelectedId("demo_node_capital");
+    setView("galaxy");
   };
   const startOrPauseReplay = () => {
     if (replayPlaying) {
@@ -248,7 +277,7 @@ export default function App() {
   };
 
   return (
-    <div className={`app-shell${highContrast ? " high-contrast" : ""}${advanced ? " advanced-mode" : ""}`}>
+    <div className={`app-shell${highContrast ? " high-contrast" : ""}${advanced ? " advanced-mode" : ""}${showcaseActive ? " showcase-mode" : ""}`}>
       <a href="#workspace" className="skip-link">Skip to workspace</a>
       <header className="run-header">
         <div className="brand-lockup" aria-label="Evolastra Observatory">
@@ -256,12 +285,12 @@ export default function App() {
           <div><strong>EVOLASTRA</strong><span>ANALYSIS CONSTELLATION</span></div>
         </div>
         <div className="run-identity">
-          <span className="eyebrow">ACTIVE RUN · {run?.id.slice(-8).toUpperCase() ?? "CONNECTING"}</span>
+          <span className="eyebrow">{showcaseActive ? "PUBLIC SHOWCASE · THREE EMPIRES" : `ACTIVE RUN · ${run?.id.slice(-8).toUpperCase() ?? "CONNECTING"}`}</span>
           <h1>{run?.title ?? "Establishing observatory link"}</h1>
         </div>
         <button className="run-status" aria-label="Connection and local data status" onClick={() => { setConnectionRequired(false); setConnectionOpen(true); }}>
-          <StatusMark status={live.connection === "live" ? "running" : "failed"} label={`${live.connection} · ${streamLag} lag`} />
-          <small>LOCAL DATA</small>
+          <StatusMark status={showcaseActive ? "completed" : live.connection === "live" ? "running" : "failed"} label={showcaseActive ? "static · read only" : `${live.connection} · ${streamLag} lag`} />
+          <small>{showcaseActive ? "PUBLIC DEMO" : "LOCAL DATA"}</small>
         </button>
         <button className={`federation-trigger${multiplayer.enabled ? ` ${multiplayer.session?.status ?? "paused"}` : ""}`} onClick={() => setMultiplayerOpen(true)} aria-label="Open multiplayer federation">
           <span className="federation-pips" aria-hidden="true">{(multiplayer.players ?? []).slice(0, 4).map((player) => <i key={player.id} style={{ background: player.color }} />)}{!multiplayer.enabled && <i />}</span>
@@ -283,9 +312,9 @@ export default function App() {
             </div>
           </div>
         )}
-        {advanced && <Explorer runs={runsQuery.data ?? []} activeRunId={activeRunId} onRunChange={(id) => { setReplayPlaying(false); setActiveRunId(id); setSelectedId(null); setReplaySequence(null); }} state={state} selectedId={selectedId} onSelect={setSelectedId} />}
+        {advanced && <Explorer runs={runs} activeRunId={activeRunId} onRunChange={(id) => { setReplayPlaying(false); setActiveRunId(id); setSelectedId(null); setReplaySequence(null); }} state={state} selectedId={selectedId} onSelect={setSelectedId} />}
         <section className="main-workspace" aria-live="polite">
-          {live.error && <div className="error-banner" role="alert">Projection link failed: {live.error}. The client will retry.</div>}
+          {!showcaseActive && live.error && <div className="error-banner" role="alert">Projection link failed: {live.error}. The client will retry.</div>}
           {!state || !scene ? (
             <div className="loading-field"><span className="orbit-loader" /><h2>Calibrating semantic projection</h2><p>Durable events remain the source of truth.</p></div>
           ) : !advanced ? (
@@ -300,7 +329,7 @@ export default function App() {
                 onSelect={setSelectedId}
                 onOpenSystem={(id) => { setSelectedId(id); setView("system"); }}
                 onOpenShipyard={() => openShipyard()}
-                shipyardEnabled={focusSystemId === scene.rootId}
+                shipyardEnabled={!showcaseActive && focusSystemId === scene.rootId}
                 multiplayerClaims={claimColors}
                 onBackToGalaxy={() => setView("galaxy")}
                 animated={!animationPaused}
@@ -316,9 +345,10 @@ export default function App() {
                 onOpenSystem={(id) => { setSelectedId(id); setView("system"); }}
                 onOpenShipyard={() => openShipyard()}
                 onOpenAdvanced={() => setView("advanced")}
+                readOnly={showcaseActive}
               />
             </>
-          ) : <WorkspaceView view={advancedView} state={state} runs={runsQuery.data ?? []} currentRunId={activeRunId} onSelect={setSelectedId} onOpenShipyard={(blueprintId) => openShipyard(blueprintId)} onOpenArtifact={setArtifact} />}
+          ) : <WorkspaceView view={advancedView} state={state} runs={runs} currentRunId={activeRunId} onSelect={setSelectedId} onOpenShipyard={(blueprintId) => openShipyard(blueprintId)} onOpenArtifact={setArtifact} readOnly={showcaseActive} />}
         </section>
         {advanced && <Inspector state={state} selectedId={selectedId} onRefresh={live.refresh} onOpenArtifact={setArtifact} onOpenSystem={(id) => { setSelectedId(id); setView("system"); }} spaceMode={null} />}
       </main>
@@ -338,7 +368,7 @@ export default function App() {
           <button className="quiet-button" onClick={() => setAnimationPaused((value) => !value)} aria-pressed={animationPaused}>{animationPaused ? "Resume motion" : "Pause motion"}</button>
           <button className="quiet-button" aria-pressed={reducedMotion} onClick={() => setReducedMotion((value) => !value)}>Reduced motion {reducedMotion ? "on" : "off"}</button>
           <button className="quiet-button" aria-pressed={highContrast} onClick={() => setHighContrast((value) => !value)}>Contrast {highContrast ? "high" : "standard"}</button>
-          <details className="export-menu">
+          {!showcaseActive && <details className="export-menu">
             <summary>Save / load</summary>
             <div>
               <button disabled={!activeRunId} onClick={() => { if (activeRunId) void downloadExport(activeRunId, "portable"); }}>Save analysis</button>
@@ -346,7 +376,7 @@ export default function App() {
               <span className="export-menu-label">Other exports</span>
               {["cloudevents", "openlineage", "prov", "obsidian", "reproduction"].map((format) => <button disabled={!activeRunId} onClick={() => { if (activeRunId) void downloadExport(activeRunId, format); }} key={format}>{format}</button>)}
             </div>
-          </details>
+          </details>}
           <input
             ref={portableInput}
             hidden
@@ -355,7 +385,7 @@ export default function App() {
             onChange={(event) => { const file = event.target.files?.[0]; if (file) void loadPortableAnalysis(file); }}
           />
           {transferStatus && <span className={`transfer-status${transferStatus.error ? " error" : ""}`} role={transferStatus.error ? "alert" : "status"}>{transferStatus.text}</span>}
-          <label className="speed-control">SIM <select defaultValue="6" onChange={(event) => { if (activeRunId) void sendCommand(activeRunId, "set_simulator_speed", Number(event.target.value)); }}><option value="1">1×</option><option value="6">6×</option><option value="20">20×</option></select></label>
+          {showcaseActive ? <span className="showcase-readonly">PUBLIC SHOWCASE · READ ONLY</span> : <label className="speed-control">SIM <select defaultValue="6" onChange={(event) => { if (activeRunId) void sendCommand(activeRunId, "set_simulator_speed", Number(event.target.value)); }}><option value="1">1×</option><option value="6">6×</option><option value="20">20×</option></select></label>}
         </div>
       </footer>}
 
@@ -372,7 +402,9 @@ export default function App() {
         open={connectionOpen}
         required={connectionRequired}
         onClose={() => setConnectionOpen(false)}
+        onExploreDemo={enterShowcase}
         onConnected={() => {
+          setShowcase(null);
           setConnectionRequired(false);
           setConnectionOpen(false);
           setConnectionReady(true);
@@ -393,6 +425,7 @@ export default function App() {
         state={multiplayer}
         selectedSystem={selectedSystem}
         findings={state?.findings ?? []}
+        readOnly={showcaseActive}
         onClose={() => setMultiplayerOpen(false)}
         onChanged={() => { void multiplayerQuery.refetch(); }}
       />

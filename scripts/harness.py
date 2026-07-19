@@ -16,6 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_PATHS = (
     "AGENTS.md",
+    "LICENSE",
+    "SECURITY.md",
     "apps/api/AGENTS.md",
     "apps/web/AGENTS.md",
     "schemas/AGENTS.md",
@@ -77,6 +79,10 @@ CODEX_DISPATCH_REQUIRED = (
     '"stdio://"',
     '"sandbox": "workspace-write"',
     '"approvalPolicy": "never"',
+    '"developerInstructions": self.developer_instructions',
+    '"web_search": "disabled"',
+    '"networkAccess": False',
+    "env=sanitized_subprocess_environment()",
 )
 CODEX_DISPATCH_FORBIDDEN = ("danger-full-access", "http://", "https://", "ws://", "wss://")
 MULTIPLAYER_REQUIRED = (
@@ -85,6 +91,25 @@ MULTIPLAYER_REQUIRED = (
     '"tailscale-user-login"',
     'prefix="/api/v1/federation"',
 )
+PUBLIC_SHOWCASE_PATH = Path("apps/web/public/demo/stad-three-empires-v1.json")
+PUBLIC_SHOWCASE_ID = "stad-three-empires-v1"
+PUBLIC_SHOWCASE_FORBIDDEN_KEYS = {
+    "authorization",
+    "completion",
+    "cookie",
+    "database_url",
+    "filename",
+    "pairing_code",
+    "password",
+    "prompt",
+    "raw_content",
+    "sample_id",
+    "token",
+    "tool_input",
+    "tool_output",
+    "transcript",
+}
+PUBLIC_SAMPLE_ID = re.compile(r"\bTCGA-[A-Z0-9]{2}-[A-Z0-9]{4}\b", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -382,6 +407,51 @@ def check_multiplayer_boundary(root: Path) -> list[Issue]:
     return issues
 
 
+def check_public_showcase_boundary(root: Path) -> list[Issue]:
+    path = root / PUBLIC_SHOWCASE_PATH
+    folder = path.parent
+    issues: list[Issue] = []
+    if not path.exists():
+        return [Issue("ARCH-008", relative(root, path), "the allowlisted public showcase is missing")]
+    unexpected = [item for item in folder.rglob("*") if item.is_file() and item != path]
+    issues.extend(
+        Issue("ARCH-008", relative(root, item), "only the allowlisted public showcase may be hosted")
+        for item in unexpected
+    )
+    if path.stat().st_size > 150_000:
+        issues.append(Issue("ARCH-008", relative(root, path), "public showcase exceeds 150 KB"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as reason:
+        return [*issues, Issue("ARCH-008", relative(root, path), f"public showcase is invalid JSON: {reason}")]
+    if not isinstance(payload, dict) or payload.get("id") != PUBLIC_SHOWCASE_ID or payload.get("public") is not True:
+        issues.append(Issue("ARCH-008", relative(root, path), "public showcase identity and public marker are required"))
+    run = payload.get("run", {}) if isinstance(payload, dict) else {}
+    if not isinstance(run, dict) or run.get("privacy_class") != "public":
+        issues.append(Issue("ARCH-008", relative(root, path), "public showcase run must use the public privacy class"))
+
+    def inspect(value: Any, location: str = "$") -> None:
+        if isinstance(value, dict):
+            for key, item in value.items():
+                normalized = key.casefold()
+                if normalized in PUBLIC_SHOWCASE_FORBIDDEN_KEYS:
+                    issues.append(Issue("ARCH-008", relative(root, path), f"forbidden public field at {location}.{key}"))
+                is_identifier = normalized == "id" or normalized.endswith("_id")
+                if is_identifier and isinstance(item, str) and item and item != PUBLIC_SHOWCASE_ID and not item.startswith("demo_"):
+                    issues.append(Issue("ARCH-008", relative(root, path), f"non-demo identifier at {location}.{key}"))
+                if normalized == "values" and isinstance(item, list) and len(item) > 12:
+                    issues.append(Issue("ARCH-008", relative(root, path), f"preview exceeds 12 rows at {location}.{key}"))
+                inspect(item, f"{location}.{key}")
+        elif isinstance(value, list):
+            for index, item in enumerate(value):
+                inspect(item, f"{location}[{index}]")
+        elif isinstance(value, str) and PUBLIC_SAMPLE_ID.search(value):
+            issues.append(Issue("ARCH-008", relative(root, path), f"sample-shaped identifier at {location}"))
+
+    inspect(payload)
+    return issues
+
+
 def metadata_value(content: str, label: str) -> str | None:
     match = re.search(rf"^{re.escape(label)}:\s*(.+?)\s*$", content, re.MULTILINE | re.IGNORECASE)
     return match.group(1).strip() if match else None
@@ -428,6 +498,7 @@ CHECKS = (
     ("local_private_boundary", check_local_private_boundary),
     ("codex_dispatch_boundary", check_codex_dispatch_boundary),
     ("multiplayer_boundary", check_multiplayer_boundary),
+    ("public_showcase_boundary", check_public_showcase_boundary),
     ("plan_lifecycle", check_plan_lifecycle),
 )
 

@@ -1,0 +1,591 @@
+{
+  "schema_version": 1,
+  "id": "stad-three-empires-v1",
+  "public": true,
+  "title": "The STAD Three-Empire Expedition",
+  "notice": "A curated, aggregate-only showcase. It contains synthetic display entities, no patient-level rows, no prompts, and no private run history.",
+  "run": {
+    "id": "demo_run_stad_three_empires",
+    "title": "STAD CNA · Three-Empire Expedition",
+    "objective": "Showcase how three research empires can explore recurrent focal copy-number drivers and therapeutic vulnerabilities from complementary directions.",
+    "status": "completed",
+    "seed": 7319,
+    "privacy_class": "public",
+    "last_sequence": 4,
+    "created_at": "2026-07-19T09:00:00Z",
+    "updated_at": "2026-07-19T09:04:00Z",
+    "counts": {
+      "nodes": 13,
+      "agents": 3,
+      "artifacts": 6,
+      "findings": 12,
+      "anomalies": 1
+    }
+  },
+  "state": {
+    "schema_version": 1,
+    "run": {
+      "id": "demo_run_stad_three_empires",
+      "title": "STAD CNA · Three-Empire Expedition",
+      "objective": "Public aggregate showcase of complementary CNA research directions.",
+      "status": "completed",
+      "run_seed": 7319,
+      "_sequence": 1
+    },
+    "nodes": [
+      {
+        "id": "demo_node_capital",
+        "title": "STAD CNA Research Nexus",
+        "summary": "Three empires coordinate over one aggregate copy-number landscape.",
+        "parent_node_id": null,
+        "node_type": "objective",
+        "status": "completed",
+        "progress": 1,
+        "assigned_agent_ids": [],
+        "_sequence": 1
+      },
+      {
+        "id": "demo_node_matrix_qc",
+        "title": "Matrix integrity and cohort scope",
+        "summary": "25,128 genes across 438 tumors; display values are aggregate only.",
+        "parent_node_id": "demo_node_capital",
+        "node_type": "quality-control",
+        "status": "completed",
+        "progress": 1,
+        "_sequence": 1
+      },
+      {
+        "id": "demo_node_recurrence",
+        "title": "Recurrent focal landscape",
+        "summary": "Rank recurrent gains and losses before nominating mechanisms.",
+        "parent_node_id": "demo_node_matrix_qc",
+        "node_type": "analysis",
+        "status": "completed",
+        "progress": 1,
+        "_sequence": 2
+      },
+      {
+        "id": "demo_node_amplified_drivers",
+        "title": "Amplified driver atlas",
+        "summary": "Prioritize focal oncogene gains and high-level amplification.",
+        "parent_node_id": "demo_node_recurrence",
+        "node_type": "analysis",
+        "status": "completed",
+        "progress": 1,
+        "_sequence": 2
+      },
+      {
+        "id": "demo_node_myc_atr",
+        "title": "MYC amplification → ATR dependence",
+        "summary": "Test whether MYC-amplified tumors acquire a replication-stress dependency.",
+        "parent_node_id": "demo_node_amplified_drivers",
+        "node_type": "hypothesis",
+        "status": "completed",
+        "progress": 1,
+        "assigned_agent_ids": ["demo_agent_gold"],
+        "semantic_signature": {
+          "program": "amplification-dependency",
+          "alteration_direction": "gain",
+          "genes": ["MYC"],
+          "cytobands": ["8q24.21"],
+          "mechanisms": ["replication-stress", "transcriptional-stress", "ATR"],
+          "therapeutic_modalities": ["ATR-inhibition"],
+          "validation_modalities": ["focality", "dosage", "CRISPR", "drug-response"]
+        },
+        "_sequence": 2
+      },
+      {
+        "id": "demo_node_ccne1_cdk2",
+        "title": "CCNE1 amplification → CDK2/PKMYT1",
+        "summary": "Probe replication-stress liabilities associated with CCNE1 high gain.",
+        "parent_node_id": "demo_node_amplified_drivers",
+        "node_type": "hypothesis",
+        "status": "completed",
+        "progress": 1,
+        "assigned_agent_ids": ["demo_agent_gold"],
+        "semantic_signature": {
+          "program": "amplification-dependency",
+          "alteration_direction": "gain",
+          "genes": ["CCNE1"],
+          "cytobands": ["19q12"],
+          "mechanisms": ["replication-stress", "cell-cycle", "ATR"],
+          "therapeutic_modalities": ["CDK2-inhibition", "PKMYT1-inhibition"],
+          "validation_modalities": ["focality", "dosage", "CRISPR", "drug-response"]
+        },
+        "_sequence": 2
+      },
+      {
+        "id": "demo_node_suppressor_losses",
+        "title": "Suppressor-loss atlas",
+        "summary": "Prioritize recurrent deletion events and deep-loss subsets.",
+        "parent_node_id": "demo_node_recurrence",
+        "node_type": "analysis",
+        "status": "completed",
+        "progress": 1,
+        "_sequence": 3
+      },
+      {
+        "id": "demo_node_cdkn2a_checkpoint",
+        "title": "CDKN2A loss → checkpoint dependence",
+        "summary": "Test checkpoint vulnerabilities associated with recurrent CDKN2A loss.",
+        "parent_node_id": "demo_node_suppressor_losses",
+        "node_type": "hypothesis",
+        "status": "completed",
+        "progress": 1,
+        "assigned_agent_ids": ["demo_agent_cyan"],
+        "semantic_signature": {
+          "program": "deletion-vulnerability",
+          "alteration_direction": "loss",
+          "genes": ["CDKN2A"],
+          "cytobands": ["9p21.3"],
+          "mechanisms": ["cell-cycle", "checkpoint-loss"],
+          "therapeutic_modalities": ["checkpoint-dependency"],
+          "validation_modalities": ["focality", "dosage", "restoration", "drug-response"]
+        },
+        "_sequence": 3
+      },
+      {
+        "id": "demo_node_arid1a_atr",
+        "title": "ARID1A loss → chromatin synthetic lethality",
+        "summary": "Evaluate ATR-linked synthetic lethality in an ARID1A-loss context.",
+        "parent_node_id": "demo_node_suppressor_losses",
+        "node_type": "hypothesis",
+        "status": "completed",
+        "progress": 1,
+        "assigned_agent_ids": ["demo_agent_cyan"],
+        "semantic_signature": {
+          "program": "deletion-vulnerability",
+          "alteration_direction": "loss",
+          "genes": ["ARID1A"],
+          "cytobands": ["1p36.11"],
+          "mechanisms": ["chromatin-remodeling", "synthetic-lethality"],
+          "therapeutic_modalities": ["ATR-inhibition"],
+          "validation_modalities": ["focality", "dosage", "restoration", "CRISPR"]
+        },
+        "_sequence": 3
+      },
+      {
+        "id": "demo_node_coalterations",
+        "title": "Co-alteration constellations",
+        "summary": "Rank recurrent pairings as combination-therapy hypotheses, not causal proof.",
+        "parent_node_id": "demo_node_recurrence",
+        "node_type": "analysis",
+        "status": "completed",
+        "progress": 1,
+        "_sequence": 4
+      },
+      {
+        "id": "demo_node_vulnerability_synthesis",
+        "title": "Therapeutic vulnerability synthesis",
+        "summary": "Integrate focality, recurrence, and co-alteration evidence with explicit caveats.",
+        "parent_node_id": "demo_node_coalterations",
+        "node_type": "synthesis",
+        "status": "completed",
+        "progress": 1,
+        "_sequence": 4
+      },
+      {
+        "id": "demo_node_erbb2_ccne1",
+        "title": "ERBB2–CCNE1 combination strategy",
+        "summary": "Evaluate paired HER2 and cell-cycle targeting in the co-gained subset.",
+        "parent_node_id": "demo_node_coalterations",
+        "node_type": "hypothesis",
+        "status": "completed",
+        "progress": 1,
+        "assigned_agent_ids": ["demo_agent_purple"],
+        "semantic_signature": {
+          "program": "co-alteration-combination",
+          "alteration_direction": "co-gain",
+          "genes": ["ERBB2", "CCNE1"],
+          "cytobands": ["17q12", "19q12"],
+          "mechanisms": ["receptor-signaling", "cell-cycle", "combination-dependency"],
+          "therapeutic_modalities": ["HER2-blockade", "CDK2-inhibition"],
+          "validation_modalities": ["burden-adjustment", "dosage", "combination-response"]
+        },
+        "_sequence": 4
+      },
+      {
+        "id": "demo_node_tert_rictor",
+        "title": "TERT–RICTOR co-gain program",
+        "summary": "Test whether the recurrent co-gain marks a targetable mTORC2-linked state.",
+        "parent_node_id": "demo_node_coalterations",
+        "node_type": "hypothesis",
+        "status": "completed",
+        "progress": 1,
+        "assigned_agent_ids": ["demo_agent_purple"],
+        "semantic_signature": {
+          "program": "co-alteration-combination",
+          "alteration_direction": "co-gain",
+          "genes": ["TERT", "RICTOR"],
+          "cytobands": ["5p15.33", "5p13.1"],
+          "mechanisms": ["telomere-maintenance", "mTORC2-signaling", "combination-dependency"],
+          "therapeutic_modalities": ["mTORC2-inhibition", "telomerase-strategy"],
+          "validation_modalities": ["burden-adjustment", "dosage", "combination-response"]
+        },
+        "_sequence": 4
+      }
+    ],
+    "agents": [
+      {
+        "id": "demo_agent_gold",
+        "name": "Amplification Dominion mothership",
+        "description": "Explores amplified oncogene dependencies.",
+        "status": "completed",
+        "current_node_id": "demo_node_myc_atr",
+        "_sequence": 2
+      },
+      {
+        "id": "demo_agent_cyan",
+        "name": "Loss Cartographers mothership",
+        "description": "Maps deletion-associated synthetic liabilities.",
+        "status": "completed",
+        "current_node_id": "demo_node_cdkn2a_checkpoint",
+        "_sequence": 3
+      },
+      {
+        "id": "demo_agent_purple",
+        "name": "Constellation Pact mothership",
+        "description": "Studies co-alteration combination strategies.",
+        "status": "completed",
+        "current_node_id": "demo_node_erbb2_ccne1",
+        "_sequence": 4
+      }
+    ],
+    "tool_calls": [],
+    "datasets": [
+      {
+        "id": "demo_dataset_stad_cna_aggregate",
+        "title": "Curated STAD CNA aggregate",
+        "description": "Public showcase metadata: 25,128 gene rows by 438 tumors. Patient-level values and identifiers are not included.",
+        "status": "validated",
+        "row_count": 25128,
+        "column_count": 438,
+        "_sequence": 1
+      }
+    ],
+    "dataset_versions": [],
+    "transformations": [],
+    "artifacts": [
+      {
+        "id": "demo_artifact_cohort_scope",
+        "title": "Cohort and matrix scope",
+        "summary": "Only public aggregate dimensions are shown.",
+        "node_id": "demo_node_matrix_qc",
+        "status": "completed",
+        "mime_type": "application/vnd.evolastra.figure+json",
+        "preview": {
+          "kind": "table",
+          "row_count": 3,
+          "values": [
+            { "metric": "Gene rows", "value": 25128 },
+            { "metric": "Tumors", "value": 438 },
+            { "metric": "Candidate directions", "value": 6 }
+          ]
+        },
+        "_sequence": 1
+      },
+      {
+        "id": "demo_artifact_recurrent_loci",
+        "title": "Recurrent focal CNA landscape",
+        "summary": "A bounded public preview of selected recurrent loci.",
+        "node_id": "demo_node_recurrence",
+        "status": "completed",
+        "mime_type": "application/vnd.evolastra.figure+json",
+        "preview": {
+          "kind": "table",
+          "row_count": 6,
+          "values": [
+            { "gene": "MYC", "cytoband": "8q24.21", "gain_pct": 57.8, "high_gain_pct": 17.6, "loss_pct": 1.4, "deep_loss_pct": 0.0 },
+            { "gene": "ERBB2", "cytoband": "17q12", "gain_pct": 30.4, "high_gain_pct": 13.2, "loss_pct": 1.6, "deep_loss_pct": 0.2 },
+            { "gene": "CCNE1", "cytoband": "19q12", "gain_pct": 28.3, "high_gain_pct": 13.0, "loss_pct": 2.1, "deep_loss_pct": 0.5 },
+            { "gene": "CDKN2A", "cytoband": "9p21.3", "gain_pct": 3.2, "high_gain_pct": 0.7, "loss_pct": 31.7, "deep_loss_pct": 7.3 },
+            { "gene": "ARID1A", "cytoband": "1p36.11", "gain_pct": 5.5, "high_gain_pct": 0.5, "loss_pct": 19.4, "deep_loss_pct": 2.3 },
+            { "gene": "WWOX", "cytoband": "16q23.1", "gain_pct": 2.7, "high_gain_pct": 0.2, "loss_pct": 44.7, "deep_loss_pct": 6.2 }
+          ]
+        },
+        "_sequence": 2
+      },
+      {
+        "id": "demo_artifact_amplification_atlas",
+        "title": "Amplification driver atlas",
+        "summary": "Selected gain and high-gain frequencies used for hypothesis ranking.",
+        "node_id": "demo_node_amplified_drivers",
+        "status": "completed",
+        "mime_type": "application/vnd.evolastra.figure+json",
+        "preview": {
+          "kind": "table",
+          "row_count": 5,
+          "values": [
+            { "gene": "MYC", "cytoband": "8q24.21", "gain_pct": 57.8, "high_gain_pct": 17.6 },
+            { "gene": "ERBB2", "cytoband": "17q12", "gain_pct": 30.4, "high_gain_pct": 13.2 },
+            { "gene": "CCNE1", "cytoband": "19q12", "gain_pct": 28.3, "high_gain_pct": 13.0 },
+            { "gene": "KRAS", "cytoband": "12p12.1", "gain_pct": 16.0, "high_gain_pct": 4.1 },
+            { "gene": "EGFR", "cytoband": "7p11.2", "gain_pct": 14.6, "high_gain_pct": 4.3 }
+          ]
+        },
+        "_sequence": 2
+      },
+      {
+        "id": "demo_artifact_loss_atlas",
+        "title": "Suppressor-loss atlas",
+        "summary": "Selected loss and deep-loss frequencies used for hypothesis ranking.",
+        "node_id": "demo_node_suppressor_losses",
+        "status": "completed",
+        "mime_type": "application/vnd.evolastra.figure+json",
+        "preview": {
+          "kind": "table",
+          "row_count": 5,
+          "values": [
+            { "gene": "WWOX", "cytoband": "16q23.1", "loss_pct": 44.7, "deep_loss_pct": 6.2 },
+            { "gene": "CDKN2A", "cytoband": "9p21.3", "loss_pct": 31.7, "deep_loss_pct": 7.3 },
+            { "gene": "ARID1A", "cytoband": "1p36.11", "loss_pct": 19.4, "deep_loss_pct": 2.3 },
+            { "gene": "SMAD4", "cytoband": "18q21.2", "loss_pct": 17.8, "deep_loss_pct": 3.0 },
+            { "gene": "PTEN", "cytoband": "10q23.31", "loss_pct": 15.5, "deep_loss_pct": 2.1 }
+          ]
+        },
+        "_sequence": 3
+      },
+      {
+        "id": "demo_artifact_coalteration_pairs",
+        "title": "Co-alteration constellations",
+        "summary": "Selected aggregate pair counts and unadjusted odds ratios; validation is still required.",
+        "node_id": "demo_node_coalterations",
+        "status": "completed",
+        "mime_type": "application/vnd.evolastra.figure+json",
+        "preview": {
+          "kind": "table",
+          "row_count": 4,
+          "values": [
+            { "pair": "TERT–RICTOR", "both": 48, "odds_ratio": 83.62 },
+            { "pair": "ERBB2–CCNE1", "both": 28, "odds_ratio": 4.55 },
+            { "pair": "MYC–CCNE1", "both": 51, "odds_ratio": 2.23 },
+            { "pair": "MYC–ERBB2", "both": 56, "odds_ratio": 1.74 }
+          ]
+        },
+        "_sequence": 4
+      },
+      {
+        "id": "demo_artifact_hypothesis_portfolio",
+        "title": "Six-direction therapeutic portfolio",
+        "summary": "A bounded, hypothesis-generating portfolio for experimental validation.",
+        "node_id": "demo_node_vulnerability_synthesis",
+        "status": "completed",
+        "mime_type": "application/vnd.evolastra.figure+json",
+        "preview": {
+          "kind": "table",
+          "row_count": 6,
+          "values": [
+            { "hypothesis": "MYC → ATR", "aggregate_support": 57.8, "priority": 1 },
+            { "hypothesis": "CCNE1 → CDK2/PKMYT1", "aggregate_support": 13.0, "priority": 2 },
+            { "hypothesis": "CDKN2A → checkpoint", "aggregate_support": 31.7, "priority": 3 },
+            { "hypothesis": "ARID1A → ATR", "aggregate_support": 19.4, "priority": 4 },
+            { "hypothesis": "ERBB2–CCNE1", "aggregate_support": 28, "priority": 5 },
+            { "hypothesis": "TERT–RICTOR", "aggregate_support": 48, "priority": 6 }
+          ]
+        },
+        "_sequence": 4
+      }
+    ],
+    "claims": [],
+    "evidence": [
+      {
+        "id": "demo_evidence_scope",
+        "title": "Aggregate evidence scope",
+        "summary": "Frequencies and pair counts generate hypotheses; they do not establish causality, treatment response, or clinical utility.",
+        "status": "validated",
+        "_sequence": 1
+      }
+    ],
+    "findings": [
+      {
+        "id": "demo_finding_matrix_scope",
+        "title": "The public matrix summary covers 25,128 genes and 438 tumors",
+        "statement": "Only dimensions and selected aggregate frequencies are retained in this showcase.",
+        "node_id": "demo_node_matrix_qc",
+        "status": "validated",
+        "validation_status": "aggregate-only",
+        "_sequence": 1
+      },
+      {
+        "id": "demo_finding_recurrent_landscape",
+        "title": "The CNA landscape contains recurrent amplification and deletion programs",
+        "statement": "The selected loci support distinct gain, loss, and co-alteration research programs.",
+        "node_id": "demo_node_recurrence",
+        "status": "validated",
+        "validation_status": "exploratory",
+        "_sequence": 2
+      },
+      {
+        "id": "demo_finding_amplified_atlas",
+        "title": "MYC, ERBB2, and CCNE1 lead the selected amplification set",
+        "statement": "High-gain subsets motivate dependency testing rather than direct therapeutic claims.",
+        "node_id": "demo_node_amplified_drivers",
+        "status": "validated",
+        "validation_status": "exploratory",
+        "_sequence": 2
+      },
+      {
+        "id": "demo_finding_myc_atr",
+        "title": "MYC amplification nominates ATR-linked stress as a vulnerability",
+        "statement": "MYC gain occurs in 57.8% and high gain in 17.6% of the aggregate cohort; functional validation is required.",
+        "node_id": "demo_node_myc_atr",
+        "status": "promoted",
+        "validation_status": "hypothesis",
+        "_sequence": 2
+      },
+      {
+        "id": "demo_finding_ccne1_cdk2",
+        "title": "CCNE1 high gain nominates CDK2/PKMYT1 liabilities",
+        "statement": "CCNE1 high gain occurs in 13.0% of the aggregate cohort; dosage and drug-response testing are required.",
+        "node_id": "demo_node_ccne1_cdk2",
+        "status": "promoted",
+        "validation_status": "hypothesis",
+        "_sequence": 2
+      },
+      {
+        "id": "demo_finding_loss_atlas",
+        "title": "CDKN2A and ARID1A anchor selected loss-associated directions",
+        "statement": "Recurrent loss provides context for synthetic-lethality screens, not proof of dependence.",
+        "node_id": "demo_node_suppressor_losses",
+        "status": "validated",
+        "validation_status": "exploratory",
+        "_sequence": 3
+      },
+      {
+        "id": "demo_finding_cdkn2a_checkpoint",
+        "title": "CDKN2A loss nominates checkpoint dependence",
+        "statement": "CDKN2A loss occurs in 31.7% and deep loss in 7.3% of the aggregate cohort; functional testing is required.",
+        "node_id": "demo_node_cdkn2a_checkpoint",
+        "status": "promoted",
+        "validation_status": "hypothesis",
+        "_sequence": 3
+      },
+      {
+        "id": "demo_finding_arid1a_atr",
+        "title": "ARID1A loss nominates chromatin-linked synthetic lethality",
+        "statement": "ARID1A loss occurs in 19.4% of the aggregate cohort; genotype-specific perturbation is required.",
+        "node_id": "demo_node_arid1a_atr",
+        "status": "promoted",
+        "validation_status": "hypothesis",
+        "_sequence": 3
+      },
+      {
+        "id": "demo_finding_coalteration_landscape",
+        "title": "Selected co-alterations separate into nearby and distant combination directions",
+        "statement": "Pair recurrence and odds ratios require burden-adjusted replication before mechanistic interpretation.",
+        "node_id": "demo_node_coalterations",
+        "status": "validated",
+        "validation_status": "exploratory",
+        "_sequence": 4
+      },
+      {
+        "id": "demo_finding_erbb2_ccne1",
+        "title": "ERBB2–CCNE1 co-gain nominates a combination strategy",
+        "statement": "The pair occurs in 28 aggregate tumors with an unadjusted odds ratio of 4.55; joint response testing is required.",
+        "node_id": "demo_node_erbb2_ccne1",
+        "status": "promoted",
+        "validation_status": "hypothesis",
+        "_sequence": 4
+      },
+      {
+        "id": "demo_finding_tert_rictor",
+        "title": "TERT–RICTOR co-gain nominates an mTORC2-linked state",
+        "statement": "The pair occurs in 48 aggregate tumors with an unadjusted odds ratio of 83.62; locus structure and burden confounding require review.",
+        "node_id": "demo_node_tert_rictor",
+        "status": "promoted",
+        "validation_status": "hypothesis",
+        "_sequence": 4
+      },
+      {
+        "id": "demo_finding_portfolio",
+        "title": "Six complementary directions form a falsifiable validation portfolio",
+        "statement": "The portfolio spans amplification dependencies, deletion vulnerabilities, and co-alteration combinations.",
+        "node_id": "demo_node_vulnerability_synthesis",
+        "status": "completed",
+        "validation_status": "hypothesis-portfolio",
+        "_sequence": 4
+      }
+    ],
+    "decisions": [],
+    "anomalies": [
+      {
+        "id": "demo_anomaly_validation_gap",
+        "title": "Functional validation remains outstanding",
+        "summary": "Copy-number recurrence alone cannot establish target dependence, combination benefit, or patient response.",
+        "node_id": "demo_node_vulnerability_synthesis",
+        "status": "created",
+        "_sequence": 4
+      }
+    ],
+    "approvals": [],
+    "annotations": [],
+    "metrics": [
+      {
+        "id": "demo_metric_public_scope",
+        "title": "Public showcase scope",
+        "status": "completed",
+        "gene_rows": 25128,
+        "tumors": 438,
+        "empires": 3,
+        "hypotheses": 6,
+        "_sequence": 4
+      }
+    ],
+    "edges": [
+      { "id": "demo_edge_capital_qc", "source_id": "demo_node_capital", "target_id": "demo_node_matrix_qc", "edge_type": "contains", "_sequence": 1 },
+      { "id": "demo_edge_qc_recurrence", "source_id": "demo_node_matrix_qc", "target_id": "demo_node_recurrence", "edge_type": "precedes", "_sequence": 2 },
+      { "id": "demo_edge_recurrence_amplified", "source_id": "demo_node_recurrence", "target_id": "demo_node_amplified_drivers", "edge_type": "branches", "_sequence": 2 },
+      { "id": "demo_edge_amplified_myc", "source_id": "demo_node_amplified_drivers", "target_id": "demo_node_myc_atr", "edge_type": "supports", "_sequence": 2 },
+      { "id": "demo_edge_amplified_ccne1", "source_id": "demo_node_amplified_drivers", "target_id": "demo_node_ccne1_cdk2", "edge_type": "supports", "_sequence": 2 },
+      { "id": "demo_edge_recurrence_losses", "source_id": "demo_node_recurrence", "target_id": "demo_node_suppressor_losses", "edge_type": "branches", "_sequence": 3 },
+      { "id": "demo_edge_losses_cdkn2a", "source_id": "demo_node_suppressor_losses", "target_id": "demo_node_cdkn2a_checkpoint", "edge_type": "supports", "_sequence": 3 },
+      { "id": "demo_edge_losses_arid1a", "source_id": "demo_node_suppressor_losses", "target_id": "demo_node_arid1a_atr", "edge_type": "supports", "_sequence": 3 },
+      { "id": "demo_edge_recurrence_coalterations", "source_id": "demo_node_recurrence", "target_id": "demo_node_coalterations", "edge_type": "branches", "_sequence": 4 },
+      { "id": "demo_edge_coalterations_erbb2", "source_id": "demo_node_coalterations", "target_id": "demo_node_erbb2_ccne1", "edge_type": "supports", "_sequence": 4 },
+      { "id": "demo_edge_coalterations_tert", "source_id": "demo_node_coalterations", "target_id": "demo_node_tert_rictor", "edge_type": "supports", "_sequence": 4 },
+      { "id": "demo_edge_coalterations_synthesis", "source_id": "demo_node_coalterations", "target_id": "demo_node_vulnerability_synthesis", "edge_type": "precedes", "_sequence": 4 },
+      { "id": "demo_edge_synthesis_myc", "source_id": "demo_node_vulnerability_synthesis", "target_id": "demo_node_myc_atr", "edge_type": "integrates", "_sequence": 4 },
+      { "id": "demo_edge_synthesis_cdkn2a", "source_id": "demo_node_vulnerability_synthesis", "target_id": "demo_node_cdkn2a_checkpoint", "edge_type": "integrates", "_sequence": 4 }
+    ],
+    "unknown_events": [],
+    "last_sequence": 4,
+    "event_count": 51
+  },
+  "multiplayer": {
+    "enabled": true,
+    "session": {
+      "id": "demo_session_three_empires",
+      "run_id": "demo_run_stad_three_empires",
+      "mode": "host",
+      "status": "active",
+      "revision": 4,
+      "host_url": "",
+      "project_fingerprint": "public-showcase",
+      "local_player_id": "demo_player_gold",
+      "title": "STAD Three-Empire Expedition",
+      "simulation_active": true
+    },
+    "players": [
+      { "id": "demo_player_gold", "display_name": "Amplification Dominion", "color": "#FFD36A", "role": "host", "online": true, "last_seen_at": "2026-07-19T09:04:00Z" },
+      { "id": "demo_player_cyan", "display_name": "Loss Cartographers", "color": "#71E6E1", "role": "member", "online": true, "last_seen_at": "2026-07-19T09:04:00Z" },
+      { "id": "demo_player_purple", "display_name": "Constellation Pact", "color": "#B98BEA", "role": "member", "online": true, "last_seen_at": "2026-07-19T09:04:00Z" }
+    ],
+    "claims": [
+      { "id": "demo_claim_capital", "node_id": "demo_node_capital", "player_id": "demo_player_gold", "claimed_at": "2026-07-19T09:01:00Z" },
+      { "id": "demo_claim_myc", "node_id": "demo_node_myc_atr", "player_id": "demo_player_gold", "claimed_at": "2026-07-19T09:02:00Z" },
+      { "id": "demo_claim_ccne1", "node_id": "demo_node_ccne1_cdk2", "player_id": "demo_player_gold", "claimed_at": "2026-07-19T09:02:00Z" },
+      { "id": "demo_claim_cdkn2a", "node_id": "demo_node_cdkn2a_checkpoint", "player_id": "demo_player_cyan", "claimed_at": "2026-07-19T09:03:00Z" },
+      { "id": "demo_claim_arid1a", "node_id": "demo_node_arid1a_atr", "player_id": "demo_player_cyan", "claimed_at": "2026-07-19T09:03:00Z" },
+      { "id": "demo_claim_erbb2_ccne1", "node_id": "demo_node_erbb2_ccne1", "player_id": "demo_player_purple", "claimed_at": "2026-07-19T09:04:00Z" },
+      { "id": "demo_claim_tert_rictor", "node_id": "demo_node_tert_rictor", "player_id": "demo_player_purple", "claimed_at": "2026-07-19T09:04:00Z" }
+    ],
+    "publications": [
+      { "id": "demo_publication_myc", "finding_id": "demo_finding_myc_atr", "player_id": "demo_player_gold", "title": "MYC → ATR", "summary": "MYC amplification nominates a replication-stress dependency for functional testing.", "published_at": "2026-07-19T09:02:00Z" },
+      { "id": "demo_publication_ccne1", "finding_id": "demo_finding_ccne1_cdk2", "player_id": "demo_player_gold", "title": "CCNE1 → CDK2/PKMYT1", "summary": "CCNE1 high gain nominates cell-cycle and replication-stress liabilities.", "published_at": "2026-07-19T09:02:00Z" },
+      { "id": "demo_publication_cdkn2a", "finding_id": "demo_finding_cdkn2a_checkpoint", "player_id": "demo_player_cyan", "title": "CDKN2A → checkpoint", "summary": "Recurrent CDKN2A loss motivates a checkpoint-dependency screen.", "published_at": "2026-07-19T09:03:00Z" },
+      { "id": "demo_publication_arid1a", "finding_id": "demo_finding_arid1a_atr", "player_id": "demo_player_cyan", "title": "ARID1A → ATR", "summary": "ARID1A loss motivates genotype-specific chromatin synthetic-lethality testing.", "published_at": "2026-07-19T09:03:00Z" },
+      { "id": "demo_publication_erbb2", "finding_id": "demo_finding_erbb2_ccne1", "player_id": "demo_player_purple", "title": "ERBB2–CCNE1", "summary": "The co-gained subset motivates paired HER2 and cell-cycle response testing.", "published_at": "2026-07-19T09:04:00Z" },
+      { "id": "demo_publication_tert", "finding_id": "demo_finding_tert_rictor", "player_id": "demo_player_purple", "title": "TERT–RICTOR", "summary": "The recurrent co-gain nominates a targetable mTORC2-linked state for validation.", "published_at": "2026-07-19T09:04:00Z" }
+    ]
+  }
+}

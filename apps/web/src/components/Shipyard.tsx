@@ -118,7 +118,7 @@ export function Shipyard({ open, runId, preferredBlueprintId, onClose, onChanged
 
         {busy === "loading" || !yard ? <div className="shipyard-loading"><span className="orbit-loader" /><p>Reading available hulls…</p></div> : <>
           <div className="shipyard-safety" aria-label="Mission safety boundary">
-            <span><i /> Signed-in Codex</span><span><i /> Local stdio</span><span><i /> Fixed workspace</span><span><i /> No escalation</span>
+            <span><i /> Signed-in Codex</span><span><i /> Local stdio</span><span><i /> Fixed workspace</span><span><i /> Network off</span><span><i /> No escalation</span>
           </div>
 
           <div className="shipyard-grid">
@@ -160,6 +160,7 @@ export function Shipyard({ open, runId, preferredBlueprintId, onClose, onChanged
                 <textarea id="mission-order" value={prompt} onChange={(event) => setPrompt(event.target.value)} maxLength={8_000} placeholder={selectedBlueprint?.hull === "colony" ? "Explore a novel, testable direction for…" : selectedBlueprint?.hull === "mothership" ? "Coordinate parallel agents to…" : "Investigate, build, or verify…"} />
                 <small>{prompt.length.toLocaleString()} / 8,000 · sent only to the local companion and signed-in Codex</small>
               </div>
+              <p className="shipyard-security-note">Codex receives trusted safety rules separately from this mission. Imported analysis text is marked as untrusted data; web search, command network access, environment credentials, and permission escalation are disabled. Review every resulting change before use.</p>
               <button className="launch-button" onClick={() => void dispatch()} disabled={Boolean(busy) || !selectedShip || prompt.trim().length < 3 || !yard.codex_available}>
                 <span aria-hidden="true">▶</span>{busy === "dispatching" ? "Opening Codex task…" : "Launch mission"}
               </button>

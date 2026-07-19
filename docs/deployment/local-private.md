@@ -2,7 +2,10 @@
 
 Local Private is the default end-user deployment. The static interface may be served by Netlify or another CDN, but analysis data is written only to the companion on the user's computer.
 
-The public site is presentation code only. It has no ingestion endpoint, server database, or server-side analysis process. The viewer's runtime policy rejects non-loopback API addresses.
+The public site contains presentation code and one allowlisted aggregate-only
+showcase. It has no ingestion endpoint, user-project storage, server database,
+or server-side analysis process. The viewer's runtime policy rejects
+non-loopback API addresses.
 
 ## Data path
 

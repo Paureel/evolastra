@@ -13,10 +13,12 @@ from scripts.harness import (
     check_mermaid_accessibility,
     check_multiplayer_boundary,
     check_plan_lifecycle,
+    check_public_showcase_boundary,
     check_python_boundaries,
     check_web_boundaries,
     version_at_least,
 )
+from scripts.verify import MIGRATION_COMMAND, command_environment
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -138,6 +140,26 @@ def test_harness_detects_persisted_multiplayer_member_grant(tmp_path: Path) -> N
     assert any(issue.rule == "ARCH-007" and "must not be persisted" in issue.message for issue in issues)
 
 
+def test_harness_rejects_unallowlisted_or_private_public_showcase_content(tmp_path: Path) -> None:
+    folder = tmp_path / "apps" / "web" / "public" / "demo"
+    folder.mkdir(parents=True)
+    (folder / "stad-three-empires-v1.json").write_text(
+        json.dumps({
+            "id": "stad-three-empires-v1",
+            "public": True,
+            "run": {"id": "demo_run", "privacy_class": "public"},
+            "prompt": "private material",
+        }),
+        encoding="utf-8",
+    )
+    (folder / "another-analysis.json").write_text("{}", encoding="utf-8")
+
+    issues = check_public_showcase_boundary(tmp_path)
+
+    assert any(issue.rule == "ARCH-008" and "only the allowlisted" in issue.message for issue in issues)
+    assert any(issue.rule == "ARCH-008" and "forbidden public field" in issue.message for issue in issues)
+
+
 def test_harness_detects_incomplete_plan_metadata(tmp_path: Path) -> None:
     active = tmp_path / "docs" / "plans" / "active"
     completed = tmp_path / "docs" / "plans" / "completed"
@@ -181,3 +203,11 @@ def test_dependency_using_root_commands_pin_the_repository_python() -> None:
         "verify-assets",
     ):
         assert ".venv\\Scripts\\python.exe" in scripts[name], name
+
+
+def test_release_migration_smoke_test_uses_disposable_state(tmp_path: Path) -> None:
+    environment = command_environment(MIGRATION_COMMAND, tmp_path)
+
+    assert environment is not None
+    assert environment["ASTERISM_DATABASE_URL"].endswith("/migration-smoke.db")
+    assert environment["ASTERISM_ARTIFACT_ROOT"].replace("\\", "/").endswith("/artifacts")
