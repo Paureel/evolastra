@@ -152,6 +152,11 @@ test("public three-empire showcase loads without pairing and remains read only",
   await expect(entry.getByRole("button", { name: "Explore public demo" })).toBeVisible();
   await expect(entry.getByText(/STAD: Stomach Adenocarcinoma/i)).toBeVisible();
   await expect(entry.getByText(/Copy Number Alteration \(CNA\) analysis/i)).toBeVisible();
+  await expect(entry.getByText(/first-time setup installs a small local companion and Codex hooks/i)).toBeVisible();
+  await expect(entry.getByRole("tabpanel", { name: "For humans" })).toContainText("bootstrap.ps1");
+  await entry.getByRole("tab", { name: "For Codex agents" }).click();
+  await expect(entry.getByRole("link", { name: "Agent setup file ↗" })).toHaveAttribute("href", "/agent-setup.md");
+  await expect(entry.getByRole("link", { name: "llms.txt ↗" })).toHaveAttribute("href", "/llms.txt");
   await entry.getByRole("button", { name: "Explore public demo" }).click();
 
   await expect(page.getByRole("heading", { name: "STAD CNA · Three-Empire Expedition" })).toBeVisible();

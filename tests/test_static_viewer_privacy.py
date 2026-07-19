@@ -43,3 +43,15 @@ def test_hosted_viewer_can_only_fetch_its_own_static_assets_and_loopback_api() -
     showcase = (ROOT / "apps/web/src/showcase.ts").read_text(encoding="utf-8")
     assert 'PUBLIC_SHOWCASE_PATH = "/demo/stad-three-empires-v1.json"' in showcase
     assert "fetch(PUBLIC_SHOWCASE_PATH" in showcase
+
+
+def test_hosted_viewer_publishes_safe_human_and_agent_setup_routes() -> None:
+    agent_setup = (ROOT / "apps/web/public/agent-setup.md").read_text(encoding="utf-8")
+    llms = (ROOT / "apps/web/public/llms.txt").read_text(encoding="utf-8")
+
+    assert "-Origin https://evolastra.netlify.app" in agent_setup
+    assert "restart Codex" in agent_setup
+    assert "approve them" in agent_setup
+    assert "companion-token" in agent_setup
+    assert "https://evolastra.netlify.app/agent-setup.md" in llms
+    assert "Do not bypass or simulate these trust actions" in llms

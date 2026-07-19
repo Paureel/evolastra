@@ -42,7 +42,7 @@ flowchart LR
 | Python | 3.12+ | `python --version` | [Python downloads][python-downloads] |
 | Node.js | 20+ | `node --version` | [Node.js downloads][node-downloads] |
 | npm | 10+ | `npm --version` | Included with Node.js |
-| GitHub access | Repository permission | `gh auth status` | [GitHub CLI][github-cli] or Git credentials |
+| Git | Current release | `git --version` | [Git downloads][git-downloads] |
 
 Run the safe prerequisite check after cloning:
 
@@ -64,12 +64,12 @@ Expected result:
 
 ## ⚡ Install for Codex
 
-### Step 1: Clone the private repository
+### Step 1: Clone the public repository
 
-With GitHub CLI:
+No GitHub account is required:
 
 ```powershell
-gh repo clone Paureel/evolastra
+git clone https://github.com/Paureel/evolastra.git
 Set-Location evolastra
 ```
 
@@ -77,6 +77,13 @@ Set-Location evolastra
 
 ```powershell
 npm run bootstrap
+```
+
+To use the hosted viewer instead of only the local viewer, run the bootstrap
+with its exact origin:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -NoBrowser -Origin https://evolastra.netlify.app
 ```
 
 The bootstrap validates tool versions, creates `.venv`, installs both lockfiles, applies migrations, builds the static viewer, installs the Local Private companion and Codex hooks, verifies the service, and opens `http://127.0.0.1:8000`.
@@ -130,13 +137,18 @@ The root [`AGENTS.md`](../AGENTS.md) is the authoritative agent contract. Paste 
 
 ```text
 Set up Evolastra from this checkout. Read AGENTS.md and docs/getting-started.md first.
-Run npm run bootstrap:check, then run scripts/bootstrap.ps1 with -NoBrowser.
+Run npm run bootstrap:check, then run scripts/bootstrap.ps1 with `-NoBrowser`
+and `-Origin https://evolastra.netlify.app`.
 Verify the companion and Codex hook status. Preserve the local-private boundary and
 never read or print the root companion token. If hooks changed, tell me to restart
 Codex and approve /hooks once. Generate a pairing code only when I say I am ready.
 ```
 
 Agents should use the bundled [`evolastra` skill](../skills/evolastra/SKILL.md) when available. Its controller can diagnose or repair an existing installation without reconstructing service commands.
+
+The hosted viewer publishes the same bounded instructions at
+[`/agent-setup.md`](https://evolastra.netlify.app/agent-setup.md) and an agent
+discovery index at [`/llms.txt`](https://evolastra.netlify.app/llms.txt).
 
 ## ✅ Verify the installation
 
@@ -216,4 +228,4 @@ For a hosted viewer, reinstall with its exact scheme and hostname using `-Origin
 
 [python-downloads]: https://www.python.org/downloads/windows/ "Python for Windows"
 [node-downloads]: https://nodejs.org/en/download "Node.js downloads"
-[github-cli]: https://cli.github.com/ "GitHub CLI"
+[git-downloads]: https://git-scm.com/download/win "Git for Windows"

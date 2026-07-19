@@ -116,17 +116,24 @@ The finished three-empire Stomach Adenocarcinoma (STAD) Copy Number Alteration
 (CNA) expedition, twelve-phase replay, aggregate figures, and territories load
 without installation or pairing and are visibly read-only.
 
-On Windows with Python 3.12+, Node.js 20+, and repository access:
+On Windows with Git, Python 3.12+, Node.js 20+, and Codex desktop:
 
 ```powershell
-gh repo clone Paureel/evolastra
+git clone https://github.com/Paureel/evolastra.git
 Set-Location evolastra
-npm run bootstrap
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -NoBrowser -Origin https://evolastra.netlify.app
 ```
 
 The bootstrap installs locked dependencies, builds the viewer, installs and starts the Local Private companion, configures Codex hooks, verifies the result, and opens the local viewer. Restart Codex once, approve the commands shown by `/hooks`, then run `& .\.venv\Scripts\evolastra.exe pair` to connect the browser.
 
-**Using an agent?** Ask it to read [`AGENTS.md`](AGENTS.md), or copy the ready-made prompt from the [Getting Started guide](docs/getting-started.md#-let-an-agent-set-it-up).
+If you only want the local viewer, the shorter supported command remains
+`npm run bootstrap`.
+
+**Using an agent?** Open the website's **For Codex agents** tab and copy the
+ready-made setup prompt, or point the agent directly to
+[`https://evolastra.netlify.app/agent-setup.md`](https://evolastra.netlify.app/agent-setup.md).
+Agent discovery metadata is also available at
+[`/llms.txt`](https://evolastra.netlify.app/llms.txt).
 
 For a demo without Codex integration, follow [Run the demo only](docs/getting-started.md#-run-the-demo-only). The complete installation guide includes prerequisites, verification checkpoints, options, and exact troubleshooting steps.
 

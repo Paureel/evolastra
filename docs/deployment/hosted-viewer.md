@@ -14,8 +14,10 @@ Codex hooks --> local outbox --> local companion --> local SQLite
                                       |---- browser ---|
 ```
 
-The unpaired browser can inspect the read-only showcase entirely in memory. For
-real runs, the browser connects directly to `http://127.0.0.1:8000`. Runtime
+The unpaired browser can inspect the read-only showcase entirely in memory. It
+also serves static human and agent connection instructions at
+`/agent-setup.md` and `/llms.txt`; neither route contains credentials or user
+data. For real runs, the browser connects directly to `http://127.0.0.1:8000`. Runtime
 endpoint validation rejects all non-loopback API origins, and the production CSP
 permits same-origin static fetches plus API connections to `127.0.0.1` or
 `localhost`.

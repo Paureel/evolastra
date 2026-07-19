@@ -1,0 +1,22 @@
+# Evolastra
+
+> Evolastra turns agentic data analysis into a playable space empire while keeping user analysis data local.
+
+Website: https://evolastra.netlify.app
+Repository: https://github.com/Paureel/evolastra
+Agent setup: https://evolastra.netlify.app/agent-setup.md
+
+## Setup routing
+
+- To connect a user's Codex installation to the hosted viewer, read `/agent-setup.md` completely and follow it.
+- The automated bootstrap is currently verified on Windows 10+ with Python 3.12+, Node.js 20+, npm 10+, Git, and Codex desktop.
+- Installation requires the local companion and managed Codex hooks. The hosted site alone cannot observe local Codex work.
+- The user must restart Codex, review and approve `/hooks`, and enter a one-time pairing code. Do not bypass or simulate these trust actions.
+- Never read or expose `~/.evolastra/companion-token` and never upload private analysis data, databases, artifacts, outboxes, or pairing state.
+
+## Primary documentation
+
+- Repository instructions: https://github.com/Paureel/evolastra/blob/main/AGENTS.md
+- Installation guide: https://github.com/Paureel/evolastra/blob/main/docs/getting-started.md
+- Architecture: https://github.com/Paureel/evolastra/blob/main/docs/architecture/overview.md
+- Privacy: https://github.com/Paureel/evolastra/blob/main/docs/security/privacy-model.md
