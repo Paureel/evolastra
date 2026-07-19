@@ -10,8 +10,8 @@ Executed 2026-07-19 on Windows with Python 3.12, Node.js 20, and npm 10.
 - Ten repository harness checks covering navigation, links, accessible diagrams, architecture, privacy, Codex dispatch, multiplayer boundaries, and plan state
 - 122 Python domain, API, contract, integration, security, quality, property, chaos, bootstrap, shipyard, multiplayer, simulation, and harness tests
 - Alembic migration
-- TypeScript typecheck and 37 Vitest tests
-- Production Vite build: 282.37 kB JavaScript / 88.79 kB gzip; 72.59 kB CSS / 15.81 kB gzip
+- TypeScript typecheck and 40 Vitest tests
+- Production Vite build: 285.57 kB JavaScript / 90.21 kB gzip; 72.59 kB CSS / 15.81 kB gzip
 - Six Playwright scenarios covering live views, search, replay, stellar identity, ship construction, research hull unlocks, multiplayer entry, explicit map zoom, safe figures, and an axe serious/critical scan
 - Asset manifest and focused source-security scans
 - npm audit and Python locked-requirements audit: no known vulnerabilities
@@ -91,6 +91,20 @@ Executed 2026-07-19 on Windows with Python 3.12, Node.js 20, and npm 10.
 - The frontier minimum-spanning tree and local-neighbor lanes were visually inspected at 1728 x 960.
 - Direct browser drags carried the Galaxy view from 33° to 181° tilt and the System view from 28° to 175°, both beyond the former 70° stop.
 - Browser verification reported zero console errors.
+
+## Planar territorial-border verification
+
+- Galaxy systems, hyperlane endpoints, and ownership contours are projected
+  from the shared `z = 0` strategic plane. A headed STAD inspection at 69° tilt
+  confirmed that all three empire borders flatten with the galaxy disk instead
+  of lifting toward the camera.
+- Deterministic tests verify capital inclusion, connected minimum-spanning
+  corridors, system enclosure, plane-only projection, and monotonic snapshot
+  crossfades. Competing influence cells have one owner before contour tracing,
+  preventing translucent regions from overpainting one another.
+- Browser inspection at 1728 × 960 confirmed smooth simplified contours, solid
+  low-glare keylines, centered claimed stars, distinct gold/cyan/purple regions,
+  and no detached generic border behind multiplayer territory.
 
 ## Two-way shipyard verification
 

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { syncCanvasBackingStore } from "../canvasBackingStore";
-import { createFrontierField, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfilesFor, territoryGrowth, type FrontierBridge, type FrontierField, type StellarProfile } from "../galaxyFrontier";
+import { createFrontierField, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfilesFor, type FrontierBridge, type FrontierField, type StellarProfile } from "../galaxyFrontier";
 import { stableHash } from "../layout";
 import { connectedHyperlanes, type ConnectedLane } from "../mapGraph";
-import { angleDegrees, DEFAULT_ORIENTATION, normalizeAngle, projectFrontier3D, projectLayout3D, projectPoint3D, type SpatialCamera } from "../spatial";
+import { angleDegrees, DEFAULT_ORIENTATION, normalizeAngle, projectFrontier3D, projectGalaxyPlaneLayout, projectLayout3D, projectPoint3D, type SpatialCamera } from "../spatial";
+import { buildTerritoryRegions, projectTerritoryPoint, territorySystemsForLayout, territoryTransitionLayers, type TerritoryRegion } from "../territoryProjection";
 import type { EdgeEntity, PositionedEntity, SceneEntity, SpaceMapMode } from "../types";
 
 interface GalaxyCanvasProps {
@@ -349,124 +350,60 @@ function drawSystemField(context: CanvasRenderingContext2D, seed: number, zoom: 
   context.restore();
 }
 
-function traceTerritory(context: CanvasRenderingContext2D, points: Array<{ x: number; y: number }>): void {
-  const midpoint = (left: { x: number; y: number }, right: { x: number; y: number }) => ({ x: (left.x + right.x) / 2, y: (left.y + right.y) / 2 });
-  const first = midpoint(points.at(-1)!, points[0]);
-  context.beginPath();
-  context.moveTo(first.x, first.y);
-  points.forEach((point, index) => {
-    const next = points[(index + 1) % points.length];
-    const middle = midpoint(point, next);
-    context.quadraticCurveTo(point.x, point.y, middle.x, middle.y);
-  });
+function traceTerritoryLoop(context: CanvasRenderingContext2D, points: Array<{ x: number; y: number }>): void {
+  context.moveTo(points[0].x, points[0].y);
+  points.slice(1).forEach((point) => context.lineTo(point.x, point.y));
   context.closePath();
 }
 
-function drawTerritory(context: CanvasRenderingContext2D, layout: PositionedEntity[], zoom: number, time: number): void {
-  const systems = layout.filter((entity) => entity.kind === "node").sort((left, right) => Math.atan2(left.y, left.x) - Math.atan2(right.y, right.x));
-  if (systems.length < 3) return;
-  const { scale: growth, padding: influencePadding } = territoryGrowth(systems.length);
-  const points = systems.map((entity) => {
-    const angle = Math.atan2(entity.y, entity.x);
-    return {
-      x: entity.x * growth + Math.cos(angle) * influencePadding,
-      y: entity.y * growth + Math.sin(angle) * influencePadding,
-    };
-  });
-  context.save();
-  traceTerritory(context, points);
-  const territory = context.createLinearGradient(-360, -240, 370, 260);
-  territory.addColorStop(0, "rgba(45,146,152,.08)");
-  territory.addColorStop(0.48, "rgba(79,58,125,.15)");
-  territory.addColorStop(1, "rgba(156,114,232,.07)");
-  context.fillStyle = territory;
-  context.fill();
-  context.save();
-  context.clip();
-  systems.forEach((system) => {
-    const influence = context.createRadialGradient(system.x, system.y, 0, system.x, system.y, 118);
-    influence.addColorStop(0, rgba(statusColor(String(system.status), false), 0.085));
-    influence.addColorStop(1, "rgba(0,0,0,0)");
-    context.fillStyle = influence;
-    context.fillRect(system.x - 120, system.y - 120, 240, 240);
-  });
-  context.restore();
-  traceTerritory(context, points);
-  context.strokeStyle = "rgba(156,114,232,.24)";
-  context.lineWidth = 9 / zoom;
-  context.shadowColor = COLORS.violet;
-  context.shadowBlur = 18 / zoom;
-  context.stroke();
-  traceTerritory(context, points);
-  context.strokeStyle = "rgba(184,137,255,.88)";
-  context.lineWidth = 1.25 / zoom;
-  context.setLineDash([8 / zoom, 5 / zoom]);
-  context.lineDashOffset = -(time * 0.012) / zoom;
-  context.stroke();
-  traceTerritory(context, points);
-  context.strokeStyle = "rgba(113,230,225,.13)";
-  context.lineWidth = 0.7 / zoom;
-  context.setLineDash([]);
-  context.save();
-  context.translate(Math.sin(time * 0.0002) * 1.5, Math.cos(time * 0.0002) * 1.5);
-  context.stroke();
-  context.restore();
-  context.restore();
-}
-
-function claimColor(color: string, alpha: string): string {
-  return /^#[0-9a-f]{6}$/i.test(color) ? `${color}${alpha}` : color;
-}
-
-function drawMultiplayerTerritories(
+function traceProjectedTerritory(
   context: CanvasRenderingContext2D,
-  layout: PositionedEntity[],
-  claims: Record<string, string>,
-  zoom: number,
-  time: number,
+  region: TerritoryRegion,
+  camera: SpatialCamera,
 ): void {
-  const groups = new Map<string, PositionedEntity[]>();
-  layout.filter((entity) => entity.kind === "node" && claims[entity.id]).forEach((entity) => {
-    const color = claims[entity.id].toUpperCase();
-    groups.set(color, [...(groups.get(color) ?? []), entity]);
-  });
-  groups.forEach((systems, color) => {
-    if (!systems.length) return;
-    const center = systems.reduce((sum, system) => ({ x: sum.x + system.x, y: sum.y + system.y }), { x: 0, y: 0 });
-    center.x /= systems.length;
-    center.y /= systems.length;
-    systems.sort((left, right) => Math.atan2(left.y - center.y, left.x - center.x) - Math.atan2(right.y - center.y, right.x - center.x));
+  context.beginPath();
+  for (const loop of region.loops) traceTerritoryLoop(context, loop.map((point) => projectTerritoryPoint(point, camera)));
+}
+
+function drawTerritories(
+  context: CanvasRenderingContext2D,
+  previous: TerritoryRegion[],
+  current: TerritoryRegion[],
+  transitionStartedAt: number,
+  time: number,
+  camera: SpatialCamera,
+  zoom: number,
+  reducedMotion: boolean,
+  highContrast: boolean,
+): void {
+  const rawProgress = reducedMotion ? 1 : Math.max(0, Math.min(1, (time - transitionStartedAt) / 420));
+  const progress = 1 - (1 - rawProgress) ** 3;
+  for (const layer of territoryTransitionLayers(previous, current, progress)) layer.regions.forEach((region) => {
+    if (!region.loops.length || layer.opacity <= 0.01) return;
+    const color = /^#[0-9a-f]{6}$/i.test(region.owner) ? region.owner : COLORS.violet;
     context.save();
+    context.globalAlpha = layer.opacity;
     context.lineCap = "round";
     context.lineJoin = "round";
-    if (systems.length === 1) {
-      context.beginPath();
-      context.arc(systems[0].x, systems[0].y, 58 / zoom, 0, Math.PI * 2);
-      context.fillStyle = claimColor(color, "19");
-      context.fill();
-    } else {
-      context.beginPath();
-      context.moveTo(systems[0].x, systems[0].y);
-      systems.slice(1).forEach((system) => context.lineTo(system.x, system.y));
-      if (systems.length > 2) context.closePath();
-      context.strokeStyle = claimColor(color, "18");
-      context.lineWidth = 86 / zoom;
-      context.stroke();
-      context.strokeStyle = claimColor(color, "D0");
-      context.lineWidth = 1.4 / zoom;
-      context.setLineDash([10 / zoom, 7 / zoom]);
-      context.lineDashOffset = -(time * 0.009) / zoom;
-      context.shadowColor = color;
-      context.shadowBlur = 13 / zoom;
-      context.stroke();
-    }
-    systems.forEach((system) => {
-      const influence = context.createRadialGradient(system.x, system.y, 0, system.x, system.y, 72 / zoom);
-      influence.addColorStop(0, claimColor(color, "24"));
-      influence.addColorStop(1, claimColor(color, "00"));
-      context.fillStyle = influence;
-      context.fillRect(system.x - 74 / zoom, system.y - 74 / zoom, 148 / zoom, 148 / zoom);
-    });
+    traceProjectedTerritory(context, region, camera);
+    context.fillStyle = rgba(color, highContrast ? 0.09 : 0.042);
+    context.fill("evenodd");
+    traceProjectedTerritory(context, region, camera);
+    context.strokeStyle = rgba(color, highContrast ? 0.26 : 0.1);
+    context.lineWidth = 4 / zoom;
+    context.shadowColor = color;
+    context.shadowBlur = 9 / zoom;
+    context.stroke();
+    traceProjectedTerritory(context, region, camera);
+    context.strokeStyle = rgba(color, highContrast ? 1 : 0.74);
+    context.lineWidth = 1 / zoom;
+    context.shadowBlur = 3 / zoom;
+    context.stroke();
+    traceProjectedTerritory(context, region, camera);
+    context.strokeStyle = "rgba(229,251,247,.16)";
+    context.lineWidth = 0.35 / zoom;
+    context.shadowBlur = 0;
+    context.stroke();
     context.restore();
   });
 }
@@ -1048,6 +985,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
   const [zoomLevel, setZoomLevel] = useState(1);
   const layoutRef = useRef<PositionedEntity[]>([]);
   const renderedLayoutRef = useRef<PositionedEntity[]>([]);
+  const territoryTransitionRef = useRef<{ previous: TerritoryRegion[]; current: TerritoryRegion[]; startedAt: number; signature: string }>({ previous: [], current: [], startedAt: 0, signature: "" });
   const camera = useRef<Camera>({ x: 0, y: 0, zoom: 1, ...DEFAULT_ORIENTATION[mode] });
   const drag = useRef<{ x: number; y: number; cameraX: number; cameraY: number; yaw: number; pitch: number; mode: "rotate" | "pan" } | null>(null);
   const keyboardIndex = useRef(0);
@@ -1068,6 +1006,16 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
     () => frontierClaimedBridges(frontier, layout.filter((entity) => entity.kind === "home" || entity.kind === "node")),
     [frontier, layout],
   );
+  const territorySnapshot = useMemo(() => {
+    const systems = territorySystemsForLayout(layout, multiplayerClaims, COLORS.violet);
+    return {
+      regions: buildTerritoryRegions(systems),
+      signature: systems
+        .sort((left, right) => left.id.localeCompare(right.id))
+        .map((system) => `${system.owner}:${system.id}:${system.x.toFixed(3)}:${system.y.toFixed(3)}`)
+        .join("|"),
+    };
+  }, [layout, multiplayerClaims]);
 
   useEffect(() => {
     const view = DEFAULT_ORIENTATION[mode];
@@ -1086,6 +1034,16 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
     worker.postMessage({ entities, seed, mode, focusSystemId });
     return () => worker.terminate();
   }, [entities, seed, mode, focusSystemId]);
+
+  useEffect(() => {
+    if (territoryTransitionRef.current.signature === territorySnapshot.signature) return;
+    territoryTransitionRef.current = {
+      previous: territoryTransitionRef.current.current,
+      current: territorySnapshot.regions,
+      startedAt: performance.now(),
+      signature: territorySnapshot.signature,
+    };
+  }, [territorySnapshot]);
 
   const focusTitle = useMemo(() => entities.find((entity) => entity.id === focusSystemId)?.title ?? "Run nexus", [entities, focusSystemId]);
   const focusProfile = stellarProfiles.get(focusSystemId);
@@ -1119,14 +1077,14 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
       context.scale(current.zoom, current.zoom);
 
       const spatialLayout = mode === "system" ? animateSystemLayout(layoutRef.current, motionTime, animated && !reducedMotion, seed) : layoutRef.current;
-      const frameLayout = projectLayout3D(spatialLayout, current);
+      const frameLayout = mode === "galaxy" ? projectGalaxyPlaneLayout(spatialLayout, current) : projectLayout3D(spatialLayout, current);
       renderedLayoutRef.current = frameLayout;
       if (mode === "galaxy") {
         drawGalaxyField(context, seed, current.zoom, motionTime, highContrast, current);
         drawGalaxyPlane(context, current, current.zoom);
         drawFrontierNetwork(context, projectFrontier3D(frontier, current), frameLayout, frontierBridges, current.zoom, motionTime, highContrast);
-        drawTerritory(context, frameLayout, current.zoom, motionTime);
-        drawMultiplayerTerritories(context, frameLayout, multiplayerClaims, current.zoom, motionTime);
+        const territory = territoryTransitionRef.current;
+        drawTerritories(context, territory.previous, territory.current, territory.startedAt, time, current, current.zoom, reducedMotion, highContrast);
       } else {
         drawSystemField(context, seed, current.zoom, motionTime, highContrast, current);
         drawOrbits(context, seed, current.zoom, motionTime, current);

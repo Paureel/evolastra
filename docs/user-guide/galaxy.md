@@ -20,9 +20,14 @@ map shows this contract in the **Semantic geography** key, while the selected
 system brief exposes the program, alteration, genes, and mechanism as text.
 Position and territory color remain disposable navigation aids, never evidence.
 
-Multiplayer claims add player-colored influence corridors between an empire's
-nearby systems. A claim is still a collaboration overlay: it does not rewrite
-the system's scientific event history or move a system independently of its
-semantic signature.
+Strategic systems and territory share the flat galaxy chart plane. The camera
+still rotates and tilts that plane in 3D, while the System view retains orbital
+depth. Multiplayer claims create one smooth, player-colored region around each
+empire's capital and claimed systems. A minimum spanning corridor connects only
+what is necessary, and overlapping influence is partitioned between owners
+instead of overpainted. New regions crossfade from the preceding timestep so
+replay reads as territorial growth rather than a redraw. A claim remains a
+collaboration overlay: it does not rewrite scientific history or semantic
+coordinates.
 
 Pause animation affects rendering only. Event ingestion and the live projection continue. During live updates and replay, the last complete map frame remains visible until the next timestep is ready, so semantic changes do not flash through an empty canvas. Reduced-motion and high-contrast controls are in the lower dock.

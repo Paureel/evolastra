@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { layoutScene, stableHash } from "./layout";
-import { createFrontierField, DEFAULT_UNCLAIMED_SYSTEMS, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfile, stellarProfilesFor, territoryGrowth } from "./galaxyFrontier";
+import { createFrontierField, DEFAULT_UNCLAIMED_SYSTEMS, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfile, stellarProfilesFor } from "./galaxyFrontier";
 import { connectedHyperlanes } from "./mapGraph";
 import { semanticLayoutMetrics } from "./semanticLayout";
 import { angleDegrees, normalizeAngle, projectLayout3D, projectPoint3D } from "./spatial";
@@ -186,10 +186,4 @@ describe("deterministic layout", () => {
     expect(registry.get("system-6")).toEqual(profiles[6]);
   });
 
-  it("expands claimed territory as analysis systems are added", () => {
-    const early = territoryGrowth(3);
-    const developed = territoryGrowth(12);
-    expect(developed.scale).toBeGreaterThan(early.scale);
-    expect(developed.padding).toBeGreaterThan(early.padding);
-  });
 });

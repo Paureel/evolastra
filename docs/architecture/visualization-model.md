@@ -72,7 +72,7 @@ Cluster-local relaxation has a fixed iteration budget, stable ordering, and seed
 
 ## 3D camera and connected topology
 
-The Canvas renderer keeps a deterministic three-dimensional scene and projects it through a perspective camera on every frame. Yaw rotates the scene around its galactic axis, pitch tilts the viewing plane, and focal length supplies depth scaling. Projected coordinates are used for drawing and hit testing; semantic entities retain their stable scene coordinates.
+The Canvas renderer keeps a deterministic scene and projects it through a perspective camera on every frame. In Galaxy view, strategic systems, hyperlane endpoints, and ownership borders are projected from `z = 0`, matching a Stellaris-style galactic chart plane; background dust retains shallow depth. System view retains three-dimensional orbital depth. Yaw rotates the scene around its galactic axis, pitch tilts the viewing plane, and focal length supplies depth scaling. Projected coordinates are used for drawing and hit testing; semantic entities retain their stable derived coordinates.
 
 The interaction contract is shared by the Galaxy and System views:
 
@@ -87,8 +87,13 @@ Connectivity is an explicit projection invariant rather than a distance-based vi
 An anonymous frontier point cannot be claimed as if it already represented a
 scientific idea. A workflow first promotes a bounded, falsifiable direction to a
 semantic node; only then can the renderer place it and multiplayer claim it.
-Player-colored influence corridors are derived from claim overlays and never
-alter semantic coordinates or canonical evidence.
+Player-colored influence regions are derived from claim overlays and never
+alter semantic coordinates or canonical evidence. Each owner receives a union
+of planar system influence disks and minimum-spanning corridors. A deterministic
+grid partition prevents overlapping owners from painting over each other;
+contours are simplified and rounded before perspective projection. The prior
+and current planar snapshots crossfade during topology changes, while reduced
+motion applies the new snapshot immediately.
 
 ## ⚡ Streaming and coalescing
 

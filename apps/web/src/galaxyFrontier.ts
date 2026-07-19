@@ -36,13 +36,6 @@ export interface StellarProfile {
   label: string;
 }
 
-export function territoryGrowth(claimedCount: number): { scale: number; padding: number } {
-  return {
-    scale: 1.08 + Math.min(0.3, Math.max(0, claimedCount) * 0.00135),
-    padding: 42 + Math.min(100, Math.max(0, claimedCount) * 0.5),
-  };
-}
-
 export function frontierSystemCount(claimedCount: number): number {
   const claimed = Math.max(0, Math.floor(claimedCount));
   if (claimed < DEFAULT_UNCLAIMED_SYSTEMS) return DEFAULT_UNCLAIMED_SYSTEMS;

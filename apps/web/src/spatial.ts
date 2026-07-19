@@ -63,6 +63,10 @@ export function projectLayout3D(layout: PositionedEntity[], camera: SpatialCamer
     .sort((left, right) => (right.depth ?? 0) - (left.depth ?? 0));
 }
 
+export function projectGalaxyPlaneLayout(layout: PositionedEntity[], camera: SpatialCamera): PositionedEntity[] {
+  return projectLayout3D(layout.map((entity) => ({ ...entity, z: 0 })), camera);
+}
+
 export function projectFrontier3D(frontier: FrontierField, camera: SpatialCamera): FrontierField {
   return {
     lanes: frontier.lanes,
