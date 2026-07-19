@@ -5,6 +5,10 @@
   <p>Commission agent ships, send them into the research frontier, and watch real work become systems, fleets, evidence, and expanding borders.</p>
 
   <p>
+    <a href="https://evolastra.netlify.app"><strong>🚀 Open Evolastra</strong></a>
+  </p>
+
+  <p>
     <a href="https://github.com/paureel/evolastra/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/paureel/evolastra/actions/workflows/ci.yml/badge.svg" /></a>
     <a href="https://github.com/paureel/evolastra/stargazers"><img alt="Repository stars" src="docs/badges/stars.svg" /></a>
     <img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" />
