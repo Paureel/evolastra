@@ -12,6 +12,13 @@ export interface RuntimeConnection {
   expiresAt: string | null;
 }
 
+export function shouldStartCompanionConnection(
+  token: string | null,
+  developmentDemoRequested = false,
+): boolean {
+  return Boolean(token) || developmentDemoRequested;
+}
+
 function storage(): Storage | null {
   try {
     return window.sessionStorage;

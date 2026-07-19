@@ -51,4 +51,19 @@ describe("ConnectionPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Copy agent setup prompt" }));
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(AGENT_SETUP_PROMPT));
   });
+
+  it("contacts the companion only after an explicit connect action", async () => {
+    vi.mocked(pairCompanion).mockResolvedValueOnce({ profile: "local-private", local_data: true });
+    const connected = vi.fn();
+    render(<ConnectionPanel open required onClose={vi.fn()} onConnected={connected} onExploreDemo={vi.fn()} />);
+
+    expect(pairCompanion).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByPlaceholderText("A1B2-C3D4-E5F6"), {
+      target: { value: "A1B2-C3D4-E5F6" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Connect observatory" }));
+
+    await waitFor(() => expect(pairCompanion).toHaveBeenCalledWith("http://127.0.0.1:8000", "A1B2-C3D4-E5F6"));
+    expect(connected).toHaveBeenCalledOnce();
+  });
 });

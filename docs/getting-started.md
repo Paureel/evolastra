@@ -121,6 +121,9 @@ When the viewer asks for a pairing code, run:
 Enter the displayed one-use code in the browser. Pairing creates a short-lived, origin-bound browser grant; it does not reveal the root companion token.
 The code must contain all twelve characters and both hyphens in the form
 `XXXX-XXXX-XXXX`; it expires after five minutes and works once.
+Opening the hosted site does not contact the companion or request local-network
+permission. Chrome may ask for that permission only after you explicitly choose
+**Connect observatory**.
 
 ## ⚡ Run the demo only
 

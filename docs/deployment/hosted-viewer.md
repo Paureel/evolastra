@@ -54,7 +54,9 @@ evolastra pair
 ```
 
 They open the hosted viewer and enter the one-time code. Their browser may
-request permission to reach a local-network service. Alternatively, they may
+request permission to reach a local-network service only after they explicitly
+choose **Connect observatory**; an ordinary fresh visit makes no loopback
+request. Alternatively, they may
 choose **Explore public demo** without installing or pairing anything. Every
 user-authored Codex session, event, projection, export, and portable analysis
 remains under their OS account.

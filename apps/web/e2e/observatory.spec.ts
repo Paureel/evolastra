@@ -11,11 +11,16 @@ test.beforeEach(async ({ page, request }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test("fresh production session does not surface the seeded churn fixture", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "No active analysis" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "No analysis yet" })).toBeVisible();
+test("fresh production session stays offline until the visitor chooses to connect", async ({ page }) => {
+  const companionRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().startsWith(TEST_API_ORIGIN)) companionRequests.push(request.url());
+  });
+
+  await page.goto("/", { waitUntil: "networkidle" });
+  await expect(page.getByRole("dialog", { name: "Enter Evolastra" })).toBeVisible();
   await expect(page.getByText(/Churn atlas/i)).toHaveCount(0);
+  expect(companionRequests).toEqual([]);
 });
 
 test("live galaxy and system maps, synchronized views, search, and replay", async ({ page }) => {
@@ -157,9 +162,7 @@ test("single player opens an opt-in local-first multiplayer federation", async (
 });
 
 test("public three-empire showcase loads without pairing and remains read only", async ({ page }) => {
-  await page.goto("/?development-demo=1");
-  await expect(page.getByRole("heading", { name: /Churn atlas/i })).toBeVisible();
-  await page.getByRole("button", { name: "Connection and local data status" }).click();
+  await page.goto("/");
   const entry = page.getByRole("dialog", { name: "Enter Evolastra" });
   await expect(entry.getByRole("button", { name: "Explore public demo" })).toBeVisible();
   await expect(entry.getByText(/STAD: Stomach Adenocarcinoma/i)).toBeVisible();

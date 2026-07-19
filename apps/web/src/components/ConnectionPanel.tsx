@@ -134,6 +134,7 @@ export function ConnectionPanel({ open, required, onClose, onConnected, onExplor
           <span>One-time pairing code</span>
           <input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="A1B2-C3D4-E5F6" autoComplete="off" spellCheck={false} />
           <small>From the checkout, run <code>&amp; .\.venv\Scripts\evolastra.exe pair</code> to create a five-minute code.</small>
+          <small>Chrome requests local-device access only after you choose <strong>Connect observatory</strong>.</small>
         </label>
         <details className="connection-endpoint">
           <summary>Local companion address</summary>

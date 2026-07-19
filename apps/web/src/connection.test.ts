@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { safeEndpoint } from "./connection";
+import { safeEndpoint, shouldStartCompanionConnection } from "./connection";
 
 describe("private companion endpoint policy", () => {
   it("allows only loopback companion origins", () => {
@@ -13,5 +13,11 @@ describe("private companion endpoint policy", () => {
     expect(() => safeEndpoint("https://api.evolastra.example")).toThrow();
     expect(() => safeEndpoint("https://user:secret@example.com")).toThrow();
     expect(() => safeEndpoint("http://127.0.0.1:8000/api/v1")).toThrow();
+  });
+
+  it("keeps fresh hosted sessions offline until the user chooses to connect", () => {
+    expect(shouldStartCompanionConnection(null)).toBe(false);
+    expect(shouldStartCompanionConnection("paired-browser-grant")).toBe(true);
+    expect(shouldStartCompanionConnection(null, true)).toBe(true);
   });
 });

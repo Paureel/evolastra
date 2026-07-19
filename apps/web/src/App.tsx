@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { downloadExport, fetchMultiplayerState, fetchState, importPortableAnalysis, listRuns, pairingInfo, search, sendCommand } from "./api";
+import { downloadExport, fetchMultiplayerState, fetchState, importPortableAnalysis, listRuns, search, sendCommand } from "./api";
 import { ArtifactPreview } from "./components/ArtifactPreview";
 import { ConnectionPanel } from "./components/ConnectionPanel";
 import { Explorer } from "./components/Explorer";
@@ -14,7 +14,7 @@ import { StatusMark } from "./components/StatusMark";
 import { WorkspaceView } from "./components/WorkspaceView";
 import { useLiveProjection } from "./hooks/useLiveProjection";
 import { advanceReplay, replayStart } from "./replay";
-import { AUTH_REQUIRED_EVENT, CONNECTION_CHANGED_EVENT, getConnection } from "./connection";
+import { AUTH_REQUIRED_EVENT, CONNECTION_CHANGED_EVENT, getConnection, shouldStartCompanionConnection } from "./connection";
 import { parseSemanticSignature } from "./semanticLayout";
 import { loadPublicShowcase, searchPublicShowcase, showcaseMultiplayerAtState, showcasePhaseLabel, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
 import type { Entity, GraphState, MultiplayerState, RunSummary, SceneEntity, ViewName } from "./types";
@@ -64,10 +64,15 @@ export function userVisibleRuns(runs: RunSummary[], includeDevelopmentDemos = fa
 }
 
 export default function App() {
+  const includeDevelopmentDemos = import.meta.env.DEV && new URLSearchParams(window.location.search).get("development-demo") === "1";
+  const [initialConnection] = useState(() => {
+    const ready = shouldStartCompanionConnection(getConnection().token, includeDevelopmentDemos);
+    return { open: !ready, required: !ready, ready };
+  });
   const [connectionRevision, setConnectionRevision] = useState(0);
-  const [connectionOpen, setConnectionOpen] = useState(false);
-  const [connectionRequired, setConnectionRequired] = useState(false);
-  const [connectionReady, setConnectionReady] = useState(false);
+  const [connectionOpen, setConnectionOpen] = useState(initialConnection.open);
+  const [connectionRequired, setConnectionRequired] = useState(initialConnection.required);
+  const [connectionReady, setConnectionReady] = useState(initialConnection.ready);
   const [showcase, setShowcase] = useState<PublicShowcaseBundle | null>(null);
   const showcaseActive = showcase !== null;
   const runsQuery = useQuery({ queryKey: ["runs", connectionRevision], queryFn: listRuns, refetchInterval: connectionRequired ? false : 1_500, retry: false, enabled: connectionReady && !connectionRequired && !showcaseActive });
@@ -91,7 +96,6 @@ export default function App() {
   const [shipyardBlueprintId, setShipyardBlueprintId] = useState<string | null>(null);
   const [multiplayerOpen, setMultiplayerOpen] = useState(false);
   const portableInput = useRef<HTMLInputElement>(null);
-  const includeDevelopmentDemos = import.meta.env.DEV && new URLSearchParams(window.location.search).get("development-demo") === "1";
 
   useEffect(() => {
     const requireConnection = () => { setConnectionRequired(true); setConnectionOpen(true); };
@@ -103,25 +107,6 @@ export default function App() {
       window.removeEventListener(CONNECTION_CHANGED_EVENT, connectionChanged);
     };
   }, []);
-
-  useEffect(() => {
-    if (showcaseActive) return;
-    let active = true;
-    void pairingInfo().then((info) => {
-      if (!active) return;
-      if (info.authentication_required && !getConnection().token) {
-        setConnectionRequired(true);
-        setConnectionOpen(true);
-        setConnectionReady(false);
-      } else setConnectionReady(true);
-    }).catch(() => {
-      if (!active) return;
-      setConnectionRequired(true);
-      setConnectionOpen(true);
-      setConnectionReady(false);
-    });
-    return () => { active = false; };
-  }, [connectionRevision, showcaseActive]);
 
   useEffect(() => {
     if (showcaseActive) return;
