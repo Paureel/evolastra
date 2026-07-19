@@ -20,6 +20,11 @@ map shows this contract in the **Semantic geography** key, while the selected
 system brief exposes the program, alteration, genes, and mechanism as text.
 Position and territory color remain disposable navigation aids, never evidence.
 
+The compact **Mission recorder** at the bottom of Galaxy view scrubs the same
+durable event horizon as the full Advanced timeline. Use **Replay** to start at
+the beginning, drag the track to inspect a step, and choose **Live** to return to
+the newest projection. The control remains synchronized when switching views.
+
 Strategic systems and territory share the flat galaxy chart plane. The camera
 still rotates and tilts that plane in 3D, while the System view retains orbital
 depth. Multiplayer claims create one smooth, player-colored region around each

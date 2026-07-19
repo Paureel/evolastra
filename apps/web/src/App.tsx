@@ -8,6 +8,7 @@ import { GalaxyCanvas } from "./components/GalaxyCanvas";
 import { Inspector } from "./components/Inspector";
 import { MapBrief } from "./components/MapBrief";
 import { MultiplayerPanel } from "./components/MultiplayerPanel";
+import { ReplayTransport } from "./components/ReplayTransport";
 import { Shipyard } from "./components/Shipyard";
 import { StatusMark } from "./components/StatusMark";
 import { WorkspaceView } from "./components/WorkspaceView";
@@ -156,6 +157,13 @@ export default function App() {
   }, [activeRunId, replaySequence, showcaseActive]);
 
   const latestSequence = Math.max(1, showcase?.state.last_sequence ?? live.state?.last_sequence ?? 1);
+  const replayStatus = showcase && replaySequence === null
+    ? `PUBLIC EXPEDITION · ${latestSequence} PHASES COMPLETE`
+    : showcase && replaySequence !== null
+      ? `${replayPlaying ? "PLAYING" : "REPLAY PAUSED"} · PHASE ${replaySequence} / ${latestSequence} · ${showcasePhaseLabel(showcase, replaySequence)}`
+      : replaySequence === null
+        ? "LIVE EVENT HORIZON"
+        : `${replayPlaying ? "PLAYING" : "REPLAY PAUSED"} · EVENT ${replaySequence} / ${latestSequence}`;
 
   useEffect(() => {
     if (!replayPlaying || replaySequence === null) return;
@@ -353,6 +361,20 @@ export default function App() {
                 onOpenAdvanced={() => setView("advanced")}
                 readOnly={showcaseActive}
               />
+              {view === "galaxy" && <aside className="galaxy-replay-dock" aria-label="Galaxy timeline">
+                <ReplayTransport
+                  compact
+                  playing={replayPlaying}
+                  sequence={replaySequence}
+                  latestSequence={latestSequence}
+                  status={replayStatus}
+                  unitLabel={showcaseActive ? "Phase" : "Event"}
+                  rangeLabel={showcaseActive ? "Replay phase" : "Replay sequence"}
+                  onToggle={startOrPauseReplay}
+                  onLive={returnLive}
+                  onSequenceChange={(sequence) => { setReplayPlaying(false); setReplaySequence(sequence); }}
+                />
+              </aside>}
             </>
           ) : <WorkspaceView view={advancedView} state={state} runs={runs} currentRunId={activeRunId} onSelect={setSelectedId} onOpenShipyard={(blueprintId) => openShipyard(blueprintId)} onOpenArtifact={setArtifact} readOnly={showcaseActive} />}
         </section>
@@ -360,21 +382,17 @@ export default function App() {
       </main>
 
       {advanced && <footer className="timeline-dock" aria-label="Advanced run controls">
-        <div className="timeline-actions">
-          <button className={`replay-button${replayPlaying ? " playing" : ""}`} onClick={startOrPauseReplay} aria-pressed={replayPlaying} aria-label={replayPlaying ? "Pause replay" : replaySequence === null ? "Replay from beginning" : "Play replay"}><span aria-hidden="true">{replayPlaying ? "Ⅱ" : replaySequence === null ? "↻" : "▶"}</span>{replayPlaying ? "Pause" : replaySequence === null ? "Replay" : "Play"}</button>
-          <button className="quiet-button live-button" onClick={returnLive} disabled={replaySequence === null}>Live</button>
-        </div>
-        <label className="timeline-range">
-          <output aria-live="polite">{showcase && replaySequence === null
-            ? `PUBLIC EXPEDITION · ${latestSequence} PHASES COMPLETE`
-            : showcase && replaySequence !== null
-              ? `${replayPlaying ? "PLAYING" : "REPLAY PAUSED"} · PHASE ${replaySequence} / ${latestSequence} · ${showcasePhaseLabel(showcase, replaySequence)}`
-              : replaySequence === null
-                ? "LIVE EVENT HORIZON"
-                : `${replayPlaying ? "PLAYING" : "REPLAY PAUSED"} · EVENT ${replaySequence} / ${latestSequence}`}</output>
-          <input type="range" min={1} max={latestSequence} value={replaySequence ?? latestSequence} onChange={(event) => { setReplayPlaying(false); setReplaySequence(Number(event.target.value)); }} aria-label={showcaseActive ? "Replay phase" : "Replay sequence"} />
-          <small>{showcaseActive ? "Phase" : "Event"} 1</small><small>{showcaseActive ? "Phase" : "Event"} {latestSequence}</small>
-        </label>
+        <ReplayTransport
+          playing={replayPlaying}
+          sequence={replaySequence}
+          latestSequence={latestSequence}
+          status={replayStatus}
+          unitLabel={showcaseActive ? "Phase" : "Event"}
+          rangeLabel={showcaseActive ? "Replay phase" : "Replay sequence"}
+          onToggle={startOrPauseReplay}
+          onLive={returnLive}
+          onSequenceChange={(sequence) => { setReplayPlaying(false); setReplaySequence(sequence); }}
+        />
         <div className="display-controls">
           <label className="replay-speed">REPLAY <select value={replayRate} onChange={(event) => setReplayRate(Number(event.target.value))} aria-label="Replay speed"><option value="1">1×</option><option value="4">4×</option><option value="12">12×</option></select></label>
           <button className="quiet-button" onClick={() => setAnimationPaused((value) => !value)} aria-pressed={animationPaused}>{animationPaused ? "Resume motion" : "Pause motion"}</button>

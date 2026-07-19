@@ -1,8 +1,8 @@
 <div align="center">
   <img src="apps/web/public/evolastra-mark.svg" alt="Evolastra mark" width="92" />
   <h1>Evolastra Observatory</h1>
-  <p><strong>Build your own space empire while Codex works.</strong></p>
-  <p>Commission agent ships, send them into the research frontier, and watch real work become systems, fleets, evidence, and expanding borders.</p>
+  <p><strong>Turn data analysis into a space empire while Codex works.</strong></p>
+  <p>A local-first observatory for agentic data analysis: commission Codex ships, explore hypotheses, inspect figures and evidence, and watch analytical work become systems, fleets, and expanding borders.</p>
 
   <p>
     <a href="https://evolastra.netlify.app"><strong>🚀 Open Evolastra</strong></a>
@@ -25,13 +25,13 @@
   </p>
 </div>
 
-## Your Codex workspace becomes a strategy game
+## Your data analysis becomes a strategy game
 
-Evolastra is a playable command layer for real agentic work. Your project starts
-as a command star. You build a fleet, issue missions in plain language, and
-Codex opens new tasks using the same local installation you already use. As the
-agents investigate, implement, validate, and discover, the galaxy grows around
-them.
+Evolastra is a playable command layer built primarily for real data analysis.
+Your dataset and analytical objective begin as a command star. You build a
+fleet, issue investigations in plain language, and Codex opens new tasks using
+the same local installation you already use. As agents inspect data, test
+hypotheses, validate results, and produce figures, the galaxy grows around them.
 
 | In your empire | In the underlying work |
 | --- | --- |

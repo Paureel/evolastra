@@ -14,6 +14,14 @@ test("live galaxy and system maps, synchronized views, search, and replay", asyn
   await expect(page.getByRole("heading", { name: /Churn atlas/i })).toBeVisible();
   await expect(page.getByText(/live.*0 lag/i)).toBeVisible();
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();
+  const galaxyTimeline = page.getByRole("complementary", { name: "Galaxy timeline" });
+  await expect(galaxyTimeline).toBeVisible();
+  const galaxyReplay = galaxyTimeline.getByRole("slider", { name: "Replay sequence" });
+  await expect.poll(async () => Number(await galaxyReplay.getAttribute("max"))).toBeGreaterThan(1);
+  await galaxyReplay.focus();
+  await page.keyboard.press("Home");
+  await expect(galaxyTimeline.getByRole("button", { name: "Live", exact: true })).toBeEnabled();
+  await galaxyTimeline.getByRole("button", { name: "Live", exact: true }).click();
 
   await page.getByRole("tab", { name: "System view" }).click();
   await expect(page.getByRole("img", { name: /Evolastra system view/i })).toBeVisible();
