@@ -126,6 +126,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -NoB
 
 The bootstrap installs locked dependencies, builds the viewer, installs and starts the Local Private companion, configures Codex hooks, verifies the result, and opens the local viewer. Restart Codex once, approve the commands shown by `/hooks`, then run `& .\.venv\Scripts\evolastra.exe pair` to connect the browser.
 
+If PowerShell blocks `npm.ps1`, use `npm.cmd` for npm commands. If the hosted
+viewer reports **Failed to fetch** while the local viewer works, open Netlify in
+ordinary Chrome rather than the Codex in-app browser and allow local/loopback
+network access for `https://evolastra.netlify.app`. The
+[installation troubleshooting guide](docs/getting-started.md#hosted-viewer-says-failed-to-fetch)
+includes a clean-profile fallback.
+
 If you only want the local viewer, the shorter supported command remains
 `npm run bootstrap`.
 

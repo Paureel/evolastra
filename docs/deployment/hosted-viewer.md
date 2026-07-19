@@ -59,6 +59,15 @@ choose **Explore public demo** without installing or pairing anything. Every
 user-authored Codex session, event, projection, export, and portable analysis
 remains under their OS account.
 
+Recent Chrome releases gate public-site access to loopback behind a local or
+loopback network permission. If pairing reports `Failed to fetch`, use ordinary
+Chrome rather than an embedded browser, allow that permission for the exact
+viewer origin, and follow the [clean-profile diagnostic](../getting-started.md#hosted-viewer-says-failed-to-fetch)
+if the normal profile never prompts. A working local viewer paired with a
+failing hosted viewer isolates the problem to this browser permission boundary;
+it is not a reason to proxy data through Netlify or expose the companion beyond
+loopback.
+
 ## Privacy boundary
 
 The hosted server receives ordinary static-asset requests, including the public

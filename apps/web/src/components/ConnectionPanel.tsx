@@ -124,6 +124,11 @@ export function ConnectionPanel({ open, required, onClose, onConnected, onExplor
               <a href="https://github.com/Paureel/evolastra/blob/main/AGENTS.md" target="_blank" rel="noreferrer">AGENTS.md ↗</a>
             </div>
           </div>}
+          <details className="setup-troubleshooting">
+            <summary>Seeing “Failed to fetch”?</summary>
+            <p>Use ordinary Chrome, allow local or loopback network access for this site, and try a fresh pairing code. If the local viewer works, the remaining issue is browser permission—do not expose the companion beyond this device.</p>
+            <a href="https://github.com/Paureel/evolastra/blob/main/docs/getting-started.md#hosted-viewer-says-failed-to-fetch" target="_blank" rel="noreferrer">Open the clean-profile fix ↗</a>
+          </details>
         </section>
         <label className="connection-field">
           <span>One-time pairing code</span>

@@ -36,6 +36,11 @@ describe("ConnectionPanel", () => {
     expect(humanPanel).toHaveTextContent("Windows 10+");
     expect(humanPanel).toHaveTextContent("git clone https://github.com/Paureel/evolastra.git");
     expect(humanPanel).toHaveTextContent("-Origin https://evolastra.netlify.app");
+    expect(screen.getByText(/Seeing .*Failed to fetch/i)).toBeVisible();
+    expect(screen.getByRole("link", { name: /Open the clean-profile fix/i })).toHaveAttribute(
+      "href",
+      "https://github.com/Paureel/evolastra/blob/main/docs/getting-started.md#hosted-viewer-says-failed-to-fetch",
+    );
     fireEvent.click(screen.getByRole("button", { name: "Copy install commands" }));
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(HUMAN_INSTALL_COMMAND));
 

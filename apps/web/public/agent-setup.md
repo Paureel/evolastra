@@ -56,6 +56,13 @@ pairing without moving analysis data to Netlify.
    Ask the user to enter that code at https://evolastra.netlify.app. Do not
    repeatedly generate codes.
 
+9. If the hosted viewer reports `Failed to fetch`, do not weaken the loopback
+   binding or expose user data. Verify `evolastra service status`, then ask the
+   user to open the site in ordinary Chrome and allow local/loopback network
+   access for the Netlify origin. The Codex in-app browser may not expose this
+   permission. If the local viewer works, direct the user to the clean-profile
+   fallback in `docs/getting-started.md#hosted-viewer-says-failed-to-fetch`.
+
 ## Expected architecture
 
 Codex hooks write redacted events to a local outbox. The local companion stores

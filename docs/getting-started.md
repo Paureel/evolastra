@@ -50,6 +50,13 @@ Run the safe prerequisite check after cloning:
 npm run bootstrap:check
 ```
 
+If PowerShell reports that `npm.ps1` cannot be loaded because script execution
+is disabled, invoke the executable shim instead:
+
+```powershell
+npm.cmd run bootstrap:check
+```
+
 Expected result:
 
 ```json
@@ -112,6 +119,8 @@ When the viewer asks for a pairing code, run:
 ```
 
 Enter the displayed one-use code in the browser. Pairing creates a short-lived, origin-bound browser grant; it does not reveal the root companion token.
+The code must contain all twelve characters and both hyphens in the form
+`XXXX-XXXX-XXXX`; it expires after five minutes and works once.
 
 ## ⚡ Run the demo only
 
@@ -220,6 +229,61 @@ Do not repeatedly reinstall hooks; installation is idempotent and preserves unre
 ```
 
 For a hosted viewer, reinstall with its exact scheme and hostname using `-Origin`, then restart the companion. See [Local Private deployment](deployment/local-private.md).
+
+### Hosted viewer says `Failed to fetch`
+
+This usually means the installation is healthy but the browser has blocked the
+public HTTPS page from reaching the loopback companion.
+
+1. Confirm that the companion is running and the exact Netlify origin is
+   allowed:
+
+   ```powershell
+   & .\.venv\Scripts\evolastra.exe service status
+   curl.exe -i http://127.0.0.1:8000/api/v1/pairing/info -H "Origin: https://evolastra.netlify.app"
+   ```
+
+   The probe should return HTTP `200` and
+   `Access-Control-Allow-Origin: https://evolastra.netlify.app`. If it does not,
+   rerun the hosted bootstrap command from Step 2.
+
+2. Open `https://evolastra.netlify.app` in ordinary Chrome. The Codex in-app
+   browser may deny loopback access without exposing a permission prompt.
+3. In Chrome's site settings for Evolastra, allow **Local network access** or
+   **loopback network access**, then reload and generate a fresh pairing code.
+4. If no permission appears or the profile has stale state, launch an isolated
+   Chrome profile:
+
+   ```powershell
+   $chrome = @(
+       "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe",
+       "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
+   ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+
+   if (!$chrome) { throw "Google Chrome was not found." }
+
+   $profile = Join-Path $env:LOCALAPPDATA "Evolastra\ChromeProfile"
+   New-Item -ItemType Directory -Force -Path $profile | Out-Null
+   $profileArgument = '--user-data-dir="' + $profile + '"'
+
+   Start-Process -FilePath $chrome -ArgumentList @(
+       '--new-window',
+       '--no-first-run',
+       '--no-default-browser-check',
+       $profileArgument,
+       'https://evolastra.netlify.app/'
+   )
+   ```
+
+   Keep the quotes inside the complete `--user-data-dir="..."` argument when
+   the Windows path contains spaces; otherwise Chrome may silently reuse the
+   old profile.
+
+If `http://127.0.0.1:8000` works but Netlify still does not, the companion and
+pairing exchange are available—the remaining problem is the browser's
+hosted-origin-to-loopback permission. Use the local viewer if browser or
+enterprise policy cannot grant that permission. Never expose the companion on
+a non-loopback address to work around it.
 
 ## 🔗 Next steps
 
