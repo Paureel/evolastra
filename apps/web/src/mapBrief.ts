@@ -1,4 +1,5 @@
 import { stellarProfilesFor } from "./galaxyFrontier";
+import { parseSemanticSignature } from "./semanticLayout";
 import type { Entity, GraphState, SceneEntity } from "./types";
 
 export interface MapBriefFact {
@@ -106,6 +107,13 @@ export function buildMapBrief(state: GraphState, scene: SceneEntity[], selectedI
     const systemIds = scene.filter((entity) => ["home", "node"].includes(entity.kind)).map((entity) => entity.id);
     const stellarProfile = stellarProfilesFor(systemIds, seed).get(sceneEntity.id);
     const agents = stationedAgents.map((agent) => String(agent.name ?? agent.id));
+    const semantic = parseSemanticSignature(record.semantic_signature);
+    const semanticFacts = semantic ? [
+      { label: "Research program", value: compactType(semantic.program) },
+      { label: "Alteration", value: compactType(semantic.alterationDirection) },
+      { label: "Genes", value: semantic.genes.join(" · ") || "Not specified" },
+      { label: "Mechanism", value: semantic.mechanisms.join(" · ") || "Not specified" },
+    ] : [];
     return {
       id: sceneEntity.id,
       kind: sceneEntity.kind,
@@ -118,6 +126,7 @@ export function buildMapBrief(state: GraphState, scene: SceneEntity[], selectedI
       assignmentLabel: agents.length ? "Agents on station" : "Operational state",
       assignmentValue: agents.length ? agents.slice(0, 3).join(" · ") : status,
       facts: [
+        ...semanticFacts,
         { label: "Stellar class", value: stellarProfile?.label ?? "Main-sequence star" },
         { label: "Progress", value: `${Math.round(Number(record.progress ?? sceneEntity.progress ?? 0) * 100)}%` },
         { label: "Tracked objects", value: trackedObjects.toLocaleString() },

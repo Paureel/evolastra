@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { layoutScene, stableHash } from "./layout";
 import { createFrontierField, DEFAULT_UNCLAIMED_SYSTEMS, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfile, stellarProfilesFor, territoryGrowth } from "./galaxyFrontier";
 import { connectedHyperlanes } from "./mapGraph";
+import { semanticLayoutMetrics } from "./semanticLayout";
 import { angleDegrees, normalizeAngle, projectLayout3D, projectPoint3D } from "./spatial";
+import { STAD_SEMANTIC_FIXTURE } from "./stadSemanticFixture";
 import type { SceneEntity } from "./types";
 
 const fixture: SceneEntity[] = [
@@ -47,6 +49,26 @@ describe("deterministic layout", () => {
   });
 
   it("hashes stably", () => expect(stableHash("evidence", 9)).toBe(stableHash("evidence", 9)));
+
+  it("places claimed research directions by semantic rather than arbitrary distance", () => {
+    const semanticEntities: SceneEntity[] = [
+      { id: "node_semantic_home", title: "STAD", kind: "home", status: "running" },
+      ...STAD_SEMANTIC_FIXTURE.map((system, index) => ({
+        id: system.id,
+        title: `Hypothesis ${index + 1}`,
+        kind: "node" as const,
+        status: "running",
+        parentId: "node_semantic_home",
+        semanticSignature: system.semanticSignature,
+      })),
+    ];
+    const positioned = layoutScene(semanticEntities, 874049);
+    const points = new Map(positioned.filter((entity) => entity.semanticSignature).map((entity) => [entity.id, entity]));
+    const metrics = semanticLayoutMetrics(STAD_SEMANTIC_FIXTURE, points);
+    expect(metrics.spearman).toBeGreaterThanOrEqual(0.8);
+    expect(metrics.meanWithinProgram).toBeLessThan(metrics.meanBetweenPrograms);
+    expect(metrics.sameProgramNearestNeighbors).toBe(6);
+  });
 
   it("opens a selected branch as a distinct orbital system", () => {
     const system = layoutScene(fixture, 42, "system", "node_branch001");

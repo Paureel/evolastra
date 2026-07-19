@@ -8,10 +8,10 @@ Executed 2026-07-19 on Windows with Python 3.12, Node.js 20, and npm 10.
 
 - Ruff and strict mypy
 - Ten repository harness checks covering navigation, links, accessible diagrams, architecture, privacy, Codex dispatch, multiplayer boundaries, and plan state
-- 120 Python domain, API, contract, integration, security, quality, property, chaos, bootstrap, shipyard, multiplayer, and harness tests
+- 122 Python domain, API, contract, integration, security, quality, property, chaos, bootstrap, shipyard, multiplayer, simulation, and harness tests
 - Alembic migration
-- TypeScript typecheck and 32 Vitest tests
-- Production Vite build: 279.74 kB JavaScript / 87.85 kB gzip; 71.87 kB CSS / 15.65 kB gzip
+- TypeScript typecheck and 35 Vitest tests
+- Production Vite build: 282.28 kB JavaScript / 88.74 kB gzip; 72.59 kB CSS / 15.81 kB gzip
 - Six Playwright scenarios covering live views, search, replay, stellar identity, ship construction, research hull unlocks, multiplayer entry, explicit map zoom, safe figures, and an axe serious/critical scan
 - Asset manifest and focused source-security scans
 - npm audit and Python locked-requirements audit: no known vulnerabilities
@@ -42,11 +42,36 @@ Executed 2026-07-19 on Windows with Python 3.12, Node.js 20, and npm 10.
   instead of an uninformative black panel.
 - Both 3D maps expose a percentage slider, keyboard-operable minus/plus controls,
   wheel zoom, and reset behavior while retaining unrestricted camera rotation.
+- Camera state is independent of streamed layout updates, so arriving analysis
+  events animate ships and territory without resetting the operator's zoom or
+  orientation. The exact zoom browser scenario passed three consecutive runs.
 - Unit tests cover CNA rendering and the empty state. Playwright covers exact zoom,
   figure discovery, modal opening, and the figure dialog's accessibility surface.
 - A local end-to-end check against the completed STAD CNA run found all six bounded
   analysis figures, opened the CNA plate at 185% map zoom, and reported no browser
   console errors.
+
+## Three-empire STAD simulation verification
+
+- The ignored private simulation result records three synthetic empires, six
+  falsifiable hypothesis systems, six multiplayer hypothesis claims, one command
+  capital claim, and six deliberately published bounded summaries.
+- The Amplification Dominion explores MYC–ATR and CCNE1 replication stress; the
+  Loss Cartographers explore CDKN2A checkpoint and ARID1A chromatin loss; the
+  Constellation Pact explores ERBB2–CCNE1 and TERT–RICTOR combinations.
+- Weighted semantic distance uses declared program, gene, cytoband, mechanism,
+  therapeutic, alteration, and validation features. Coordinates are derived in
+  the browser and never persisted in canonical event payloads.
+- The frozen 600-iteration method failed its registered threshold (`rho=0.7366`).
+  Root-cause investigation identified incomplete convergence; the documented
+  exploratory 1,200-iteration product revision reproduced `rho=0.8455`, mean
+  within-program distance `514.70` versus `797.02` between programs, and six of
+  six program-local nearest neighbors. This is method validation, not biological
+  confirmation.
+- Live browser inspection at 1728 × 960 confirmed three colored influence
+  corridors, the semantic-geography key, three online synthetic players, all six
+  publications, and textual semantic details for one system per empire. The
+  browser reported zero errors.
 
 ## 3D map and graph verification
 

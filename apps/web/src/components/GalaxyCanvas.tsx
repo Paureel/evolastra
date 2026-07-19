@@ -413,6 +413,63 @@ function drawTerritory(context: CanvasRenderingContext2D, layout: PositionedEnti
   context.restore();
 }
 
+function claimColor(color: string, alpha: string): string {
+  return /^#[0-9a-f]{6}$/i.test(color) ? `${color}${alpha}` : color;
+}
+
+function drawMultiplayerTerritories(
+  context: CanvasRenderingContext2D,
+  layout: PositionedEntity[],
+  claims: Record<string, string>,
+  zoom: number,
+  time: number,
+): void {
+  const groups = new Map<string, PositionedEntity[]>();
+  layout.filter((entity) => entity.kind === "node" && claims[entity.id]).forEach((entity) => {
+    const color = claims[entity.id].toUpperCase();
+    groups.set(color, [...(groups.get(color) ?? []), entity]);
+  });
+  groups.forEach((systems, color) => {
+    if (!systems.length) return;
+    const center = systems.reduce((sum, system) => ({ x: sum.x + system.x, y: sum.y + system.y }), { x: 0, y: 0 });
+    center.x /= systems.length;
+    center.y /= systems.length;
+    systems.sort((left, right) => Math.atan2(left.y - center.y, left.x - center.x) - Math.atan2(right.y - center.y, right.x - center.x));
+    context.save();
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    if (systems.length === 1) {
+      context.beginPath();
+      context.arc(systems[0].x, systems[0].y, 58 / zoom, 0, Math.PI * 2);
+      context.fillStyle = claimColor(color, "19");
+      context.fill();
+    } else {
+      context.beginPath();
+      context.moveTo(systems[0].x, systems[0].y);
+      systems.slice(1).forEach((system) => context.lineTo(system.x, system.y));
+      if (systems.length > 2) context.closePath();
+      context.strokeStyle = claimColor(color, "18");
+      context.lineWidth = 86 / zoom;
+      context.stroke();
+      context.strokeStyle = claimColor(color, "D0");
+      context.lineWidth = 1.4 / zoom;
+      context.setLineDash([10 / zoom, 7 / zoom]);
+      context.lineDashOffset = -(time * 0.009) / zoom;
+      context.shadowColor = color;
+      context.shadowBlur = 13 / zoom;
+      context.stroke();
+    }
+    systems.forEach((system) => {
+      const influence = context.createRadialGradient(system.x, system.y, 0, system.x, system.y, 72 / zoom);
+      influence.addColorStop(0, claimColor(color, "24"));
+      influence.addColorStop(1, claimColor(color, "00"));
+      context.fillStyle = influence;
+      context.fillRect(system.x - 74 / zoom, system.y - 74 / zoom, 148 / zoom, 148 / zoom);
+    });
+    context.restore();
+  });
+}
+
 function drawOrbits(context: CanvasRenderingContext2D, seed: number, zoom: number, time: number, camera: SpatialCamera): void {
   context.save();
   const radii = [92, 150, 220, 285, 350];
@@ -1003,6 +1060,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
   const zoomPercent = Math.round((zoomLevel / defaultCameraZoom) * 100);
   const minZoomPercent = Math.ceil((0.26 / defaultCameraZoom) * 100);
   const maxZoomPercent = Math.floor((3.4 / defaultCameraZoom) * 100);
+  const cameraScope = mode === "system" ? focusSystemId : "galaxy";
   const frontier = useMemo(() => createFrontierField(seed, unclaimedSystemCount), [seed, unclaimedSystemCount]);
   const connectedLanes = useMemo(() => connectedHyperlanes(layout, edges), [layout, edges]);
   const frontierBridges = useMemo(
@@ -1015,6 +1073,9 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
     camera.current = { x: 0, y: 0, zoom: defaultCameraZoom, ...view };
     setZoomLevel(defaultCameraZoom);
     setOrientation({ yaw: view.yaw, pitch: view.pitch });
+  }, [cameraScope, defaultCameraZoom, mode]);
+
+  useEffect(() => {
     const worker = new Worker(new URL("../layout.worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (event: MessageEvent<PositionedEntity[]>) => {
       layoutRef.current = event.data;
@@ -1023,7 +1084,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
     };
     worker.postMessage({ entities, seed, mode, focusSystemId });
     return () => worker.terminate();
-  }, [entities, seed, mode, focusSystemId, defaultCameraZoom]);
+  }, [entities, seed, mode, focusSystemId]);
 
   const focusTitle = useMemo(() => entities.find((entity) => entity.id === focusSystemId)?.title ?? "Run nexus", [entities, focusSystemId]);
   const focusProfile = stellarProfiles.get(focusSystemId);
@@ -1066,6 +1127,7 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
         drawGalaxyPlane(context, current, current.zoom);
         drawFrontierNetwork(context, projectFrontier3D(frontier, current), frameLayout, frontierBridges, current.zoom, motionTime, highContrast);
         drawTerritory(context, frameLayout, current.zoom, motionTime);
+        drawMultiplayerTerritories(context, frameLayout, multiplayerClaims, current.zoom, motionTime);
       } else {
         drawSystemField(context, seed, current.zoom, motionTime, highContrast, current);
         drawOrbits(context, seed, current.zoom, motionTime, current);
@@ -1266,6 +1328,9 @@ export function GalaxyCanvas({ entities, edges, seed, mode, focusSystemId, selec
       ) : (
         <div className="map-legend" aria-hidden="true"><i className="legend-complete" /> complete <i className="legend-active" /> active <i className="legend-disputed" /> disputed</div>
       )}
+      {mode === "galaxy" && layout.some((entity) => Boolean(entity.semanticSignature)) && <aside className="semantic-proximity-key" aria-label="Semantic map distance">
+        <span>SEMANTIC GEOGRAPHY</span><strong>Nearby systems share research meaning</strong><small>Program · genes · cytobands · mechanisms · therapy · validation</small>
+      </aside>}
       {mode === "galaxy" && <div className="canvas-hint map-frontier-hint">Drag to rotate · Shift-drag to pan · scroll to zoom · double-click to enter</div>}
       <div className="canvas-hint">{mode === "galaxy" ? "Drag to rotate · Shift-drag to pan · scroll to zoom" : shipyardEnabled ? "Click command star for shipyard · W/A/S/D camera · Home resets" : "Drag to rotate · Shift-drag to pan · W/A/S/D camera · Home resets"}</div>
     </div>

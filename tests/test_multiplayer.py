@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
 from asterism_api import multiplayer as multiplayer_module
 from asterism_api import multiplayer_api
 from asterism_api.database import SessionLocal
-from asterism_api.db_models import MultiplayerSessionRecord
+from asterism_api.db_models import MultiplayerPlayerRecord, MultiplayerSessionRecord
 from asterism_api.event_store import EventStore
 from asterism_api.main import app
 from asterism_api.multiplayer import (
@@ -119,6 +120,18 @@ def test_host_invite_member_claim_and_publication_are_separate_from_replay(
         member_token = joined.json()["member_token"]
         player_id = joined.json()["player"]["id"]
         member_headers = {**tailnet, "Authorization": f"Bearer {member_token}"}
+        with SessionLocal() as db:
+            simulated = db.get(MultiplayerSessionRecord, invite["session_id"])
+            player = db.get(MultiplayerPlayerRecord, player_id)
+            assert simulated is not None and player is not None
+            simulated.remote_state = {"simulation_active": True}
+            player.last_seen_at = datetime.now(UTC) - timedelta(hours=1)
+            db.commit()
+        simulation_state = client.get(f"/api/v1/multiplayer/runs/{run_id}").json()
+        assert simulation_state["session"]["simulation_active"] is True
+        assert next(player for player in simulation_state["players"] if player["id"] == player_id)[
+            "online"
+        ] is True
 
         root_id = host_state["claims"][0]["node_id"]
         node_id = next(node["id"] for node in analysis["nodes"] if node["id"] != root_id)

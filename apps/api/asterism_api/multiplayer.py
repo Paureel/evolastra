@@ -267,6 +267,9 @@ def session_snapshot(db: Session, session: MultiplayerSessionRecord) -> dict[str
             .limit(100)
         )
     )
+    simulation_active = bool(
+        isinstance(session.remote_state, dict) and session.remote_state.get("simulation_active")
+    )
     return {
         "enabled": True,
         "session": {
@@ -279,6 +282,7 @@ def session_snapshot(db: Session, session: MultiplayerSessionRecord) -> dict[str
             "project_fingerprint": session.project_fingerprint,
             "local_player_id": session.local_player_id,
             "title": run.title,
+            "simulation_active": simulation_active,
         },
         "players": [
             {
@@ -287,7 +291,10 @@ def session_snapshot(db: Session, session: MultiplayerSessionRecord) -> dict[str
                 "color": player.color,
                 "role": player.role,
                 "online": session.status == "active"
-                and (now - _aware(player.last_seen_at)).total_seconds() <= PRESENCE_SECONDS,
+                and (
+                    simulation_active
+                    or (now - _aware(player.last_seen_at)).total_seconds() <= PRESENCE_SECONDS
+                ),
                 "last_seen_at": _aware(player.last_seen_at).isoformat(),
             }
             for player in players

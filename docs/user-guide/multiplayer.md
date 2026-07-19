@@ -22,6 +22,11 @@ datasets, artifacts, and project copy on their own computer.
 The collaboration overlay is separate from the durable semantic event log.
 Claims and presence never change replay or single-player exports.
 
+For demonstrations, a local session may be explicitly labeled as a simulation.
+Synthetic players then remain visibly active and are identified as synthetic in
+the federation console. This flag is confined to the multiplayer overlay and is
+never used to present simulated work as independent human validation.
+
 ## 🛠️ Prerequisites
 
 Every participant needs:
@@ -83,6 +88,12 @@ select **Release system**; transfers are performed by release followed by claim.
 
 Each player's ships still launch through their own local Codex. Territory is a
 coordination signal, not remote control over another person's agents.
+
+New directions are not claimed as arbitrary empty coordinates. The analysis
+first promotes a falsifiable direction into a semantic system; the renderer
+derives its position from program, genes, mechanisms, therapy, and validation
+features. Similar directions therefore appear nearer even across players, while
+genuinely orthogonal programs expand into distant regions.
 
 ## 📡 Publish a discovery
 

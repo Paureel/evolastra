@@ -6,4 +6,23 @@ Drag to rotate the 3D camera through a complete 360° orbit on either axis, Shif
 
 Every generated frontier is a connected minimum-spanning network with local neighbor lanes. A sparse inner approach band places some unclaimed systems close to the command system before the field broadens into the outer frontier. Claimed systems receive a deterministic connected spine and full bridges into that frontier, so every visible system belongs to one traversable graph.
 
+## Semantic research geography
+
+An unclaimed frontier point has no scientific meaning by itself. A direction
+becomes a charted, claimable analysis system only after it records a bounded
+research objective and semantic signature: program, alteration direction,
+genes, cytobands, mechanisms, therapeutic modalities, and validation
+modalities. Coordinates are then derived—not stored—from that signature.
+
+For signed systems, nearby means more shared research meaning under a documented
+weighted-Jaccard distance; an orthogonal direction is placed farther away. The
+map shows this contract in the **Semantic geography** key, while the selected
+system brief exposes the program, alteration, genes, and mechanism as text.
+Position and territory color remain disposable navigation aids, never evidence.
+
+Multiplayer claims add player-colored influence corridors between an empire's
+nearby systems. A claim is still a collaboration overlay: it does not rewrite
+the system's scientific event history or move a system independently of its
+semantic signature.
+
 Pause animation affects rendering only. Event ingestion and the live projection continue. Reduced-motion and high-contrast controls are in the lower dock.

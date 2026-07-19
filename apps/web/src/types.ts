@@ -20,6 +20,16 @@ export interface NodeEntity extends Entity {
   assigned_agent_ids?: string[];
 }
 
+export interface SemanticSignature {
+  program: string;
+  alterationDirection: string;
+  genes: string[];
+  cytobands: string[];
+  mechanisms: string[];
+  therapeuticModalities: string[];
+  validationModalities: string[];
+}
+
 export interface EdgeEntity extends Entity {
   source_id: string;
   target_id: string;
@@ -76,6 +86,7 @@ export interface SceneEntity {
   parentId?: string | null;
   progress?: number;
   sequence?: number;
+  semanticSignature?: SemanticSignature;
 }
 
 export interface PositionedEntity extends SceneEntity {
@@ -156,6 +167,7 @@ export interface MultiplayerState {
     project_fingerprint: string;
     local_player_id: string;
     title: string;
+    simulation_active?: boolean;
   };
   players?: MultiplayerPlayer[];
   claims?: MultiplayerClaim[];

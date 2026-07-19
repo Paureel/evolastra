@@ -59,7 +59,16 @@ flowchart LR
     class events,seed,pins,projection storage
 ```
 
-Top-level branches use stable radial sectors derived from the run seed and semantic identifiers. Cluster-local relaxation has a fixed iteration budget, stable ordering, and seeded randomness. Incremental updates limit movement so existing positions retain the user's mental map. User pins constrain the derived layout but remain projection-only state.
+Top-level branches without a semantic signature use stable radial sectors derived
+from the run seed and semantic identifiers. Signed research directions use a
+bounded categorical signature—program, alteration direction, genes, cytobands,
+mechanisms, therapeutic modalities, and validation modalities—to calculate an
+interpretable weighted-Jaccard distance. A fixed-iteration, seeded 3D stress
+layout approximates those distances. Signature fields are analytical labels;
+the resulting coordinates, stress, and neighborhood geometry remain disposable
+projection state.
+
+Cluster-local relaxation has a fixed iteration budget, stable ordering, and seeded randomness. Incremental updates limit movement so existing positions retain the user's mental map. User pins constrain the derived layout but remain projection-only state.
 
 ## 3D camera and connected topology
 
@@ -74,6 +83,12 @@ The interaction contract is shared by the Galaxy and System views:
 - `Home` restores the mode-specific camera
 
 Connectivity is an explicit projection invariant rather than a distance-based visual side effect. The unclaimed frontier starts with a deterministic minimum-spanning tree and then receives local neighbor lanes. Claimed systems are joined across semantic components by the nearest deterministic bridge. Each claimed system also receives a full-length bridge to its nearest frontier system. Consequently, every generated system belongs to one traversable graph while the semantic edge set remains unchanged.
+
+An anonymous frontier point cannot be claimed as if it already represented a
+scientific idea. A workflow first promotes a bounded, falsifiable direction to a
+semantic node; only then can the renderer place it and multiplayer claim it.
+Player-colored influence corridors are derived from claim overlays and never
+alter semantic coordinates or canonical evidence.
 
 ## ⚡ Streaming and coalescing
 

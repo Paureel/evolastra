@@ -14,6 +14,7 @@ import { WorkspaceView } from "./components/WorkspaceView";
 import { useLiveProjection } from "./hooks/useLiveProjection";
 import { advanceReplay, replayStart } from "./replay";
 import { AUTH_REQUIRED_EVENT, CONNECTION_CHANGED_EVENT, getConnection } from "./connection";
+import { parseSemanticSignature } from "./semanticLayout";
 import type { Entity, GraphState, MultiplayerState, SceneEntity, ViewName } from "./types";
 
 const PRIMARY_VIEWS: Array<{ id: ViewName; label: string }> = [
@@ -47,7 +48,7 @@ export function sceneFromState(state: GraphState): { entities: SceneEntity[]; ro
   };
   const nodes: SceneEntity[] = state.nodes
     .filter((node) => node.id !== rootId)
-    .map((node) => ({ id: node.id, title: String(node.title ?? node.id), kind: "node", status: String(node.status ?? "created"), parentId: node.parent_node_id || rootId, progress: node.progress, sequence: node._sequence }));
+    .map((node) => ({ id: node.id, title: String(node.title ?? node.id), kind: "node", status: String(node.status ?? "created"), parentId: node.parent_node_id || rootId, progress: node.progress, sequence: node._sequence, semanticSignature: parseSemanticSignature(node.semantic_signature) }));
   const artifacts: SceneEntity[] = state.artifacts.map((artifact) => ({ id: artifact.id, title: String(artifact.title ?? artifact.id), kind: "artifact", status: String(artifact.status ?? "created"), parentId: String(artifact.node_id ?? rootId), sequence: artifact._sequence }));
   const findings: SceneEntity[] = state.findings.map((finding) => ({ id: finding.id, title: String(finding.title ?? finding.id), kind: "finding", status: String(finding.status ?? finding.validation_status ?? "created"), parentId: String(finding.node_id ?? rootId), sequence: finding._sequence }));
   const anomalies: SceneEntity[] = state.anomalies.map((anomaly) => ({ id: anomaly.id, title: String(anomaly.title ?? anomaly.id), kind: "anomaly", status: String(anomaly.status ?? "created"), parentId: String(anomaly.node_id ?? rootId), sequence: anomaly._sequence }));

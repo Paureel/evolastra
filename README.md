@@ -39,7 +39,7 @@ For a demo without Codex integration, follow [Run the demo only](docs/getting-st
 - **See the analysis happen.** Runs, branches, agents, tools, artifacts, findings, anomalies, and approvals become distinct inspectable objects; bounded numeric artifacts become safe local figures rather than executable uploads.
 - **Navigate in 3D.** Both maps support perspective depth, unrestricted 360° rotation, tilt, pan, zoom, and keyboard camera controls.
 - **Launch work from the map.** Build Codex vessels at the command star, unlock problem-specific hulls through research, and dispatch explicit missions into new local Codex tasks.
-- **Federate a project privately.** Opt into host-authoritative multiplayer through Tailscale, claim systems with player colors, and publish selected finding summaries while Netlify stays storage-free.
+- **Federate a project privately.** Opt into host-authoritative multiplayer through Tailscale, claim semantically positioned research systems with player colors, and publish selected finding summaries while Netlify stays storage-free.
 - **Never lose the trail.** Replay, deterministic projections, typed relationships, and portable exports preserve how a conclusion was reached.
 - **Keep data local.** The companion, SQLite database, artifacts, Codex outbox, and access capability remain on the user’s machine.
 - **Integrate without lock-in.** CloudEvents, W3C trace concepts, JSONL, OpenLineage exports, SDKs, and narrow adapters provide explicit boundaries.
