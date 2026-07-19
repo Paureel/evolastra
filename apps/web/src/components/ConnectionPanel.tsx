@@ -9,6 +9,25 @@ export const AGENT_SETUP_PROMPT = `Set up Evolastra on this Windows computer and
 If there is no checkout, clone https://github.com/Paureel/evolastra.git first. Read AGENTS.md and docs/getting-started.md completely. Run npm run bootstrap:check, then run powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\bootstrap.ps1 -NoBrowser -Origin ${HOSTED_VIEWER_ORIGIN}. Verify the companion and Codex hook status. Preserve the local-private boundary and never read or print ~/.evolastra/companion-token.
 Then stop and tell me to restart Codex, open /hooks, review the Evolastra commands, and approve them. Only when I confirm this browser's pairing screen is open, run & .\\.venv\\Scripts\\evolastra.exe pair once and ask me to enter the five-minute code.`;
 
+async function writeSetupClipboard(value: string): Promise<void> {
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
+    await navigator.clipboard.writeText(value);
+    return;
+  } catch {
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.readOnly = true;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.append(textarea);
+    textarea.select();
+    const copied = document.execCommand("copy");
+    textarea.remove();
+    if (!copied) throw new Error("Clipboard write failed");
+  }
+}
+
 interface ConnectionPanelProps {
   open: boolean;
   required: boolean;
@@ -57,7 +76,7 @@ export function ConnectionPanel({ open, required, onClose, onConnected, onExplor
   };
   const copySetup = async (kind: "human" | "agent", value: string) => {
     try {
-      await navigator.clipboard.writeText(value);
+      await writeSetupClipboard(value);
       setCopied(kind);
       window.setTimeout(() => setCopied((current) => current === kind ? null : current), 2_000);
     } catch {

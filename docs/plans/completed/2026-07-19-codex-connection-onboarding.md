@@ -45,6 +45,9 @@ is now public, so anonymous cloning is the supported first step.
   human trust actions. It explicitly forbids reading the companion token.
 - Removing pairing-field autofocus prevents the scrollable first-run sheet from
   skipping past the installation explanation on entry.
+- A production smoke check showed that clipboard permission can be denied even
+  on HTTPS, so copy actions fall back to a temporary selected textarea without
+  reading clipboard contents.
 
 ## Validation
 
@@ -57,3 +60,5 @@ is now public, so anonymous cloning is the supported first step.
 - `npm run verify` — passed, including 7 browser tests, accessibility, build,
   security scan, npm audit, and locked Python dependency audit.
 - `git diff --check` — passed.
+- Production `/agent-setup.md` returned `text/markdown` and `/llms.txt` returned
+  `text/plain`, both with the expected hosted-origin instructions.
