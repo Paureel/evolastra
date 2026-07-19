@@ -1,8 +1,8 @@
 <div align="center">
   <img src="apps/web/public/evolastra-mark.svg" alt="Evolastra mark" width="92" />
   <h1>Evolastra Observatory</h1>
-  <p><strong>A local-first mission control for agentic analysis, evidence, and provenance.</strong></p>
-  <p>Watch an investigation become a navigable 3D galaxy without surrendering its data.</p>
+  <p><strong>Build your own space empire while Codex works.</strong></p>
+  <p>Commission agent ships, send them into the research frontier, and watch real work become systems, fleets, evidence, and expanding borders.</p>
 
   <p>
     <a href="https://github.com/paureel/evolastra/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/paureel/evolastra/actions/workflows/ci.yml/badge.svg" /></a>
@@ -13,25 +13,40 @@
     <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-F3C969" /></a>
     <img alt="Private by design" src="https://img.shields.io/badge/data-local--first-71E6E1?labelColor=071B26" />
   </p>
+
+  <p>
+    <a href="https://github.com/Paureel/evolastra">GitHub</a>
+    ·
+    <a href="https://x.com/aurel_pr">Follow @aurel_pr on X</a>
+  </p>
 </div>
 
-## Explore an investigation as a living galaxy
+## Your Codex workspace becomes a strategy game
 
-Evolastra turns agentic work into a navigable research universe. Hypotheses
-become star systems, analytical similarity becomes distance, agents travel as
-ships, evidence forms orbital bodies, and validated progress expands territorial
-borders. Rotate, tilt, pan, and zoom the Galaxy and System maps in full 3D while
-the underlying append-only evidence graph remains authoritative.
+Evolastra is a playable command layer for real agentic work. Your project starts
+as a command star. You build a fleet, issue missions in plain language, and
+Codex opens new tasks using the same local installation you already use. As the
+agents investigate, implement, validate, and discover, the galaxy grows around
+them.
 
-<p align="center">
-  <img src="output/playwright/galaxy-3d.png" alt="A rotatable 3D Evolastra galaxy showing connected research branches, agent ships, semantic borders, and an expanding frontier" width="100%" />
-</p>
+| In your empire | In the underlying work |
+| --- | --- |
+| The command star | Your project and primary objective |
+| Frigates | Focused Codex tasks for implementation, diagnosis, or review |
+| Motherships | Coordinated Codex tasks that can dispatch bounded subagents |
+| Colony ships | Missions prompted to explore novel, testable directions |
+| Research systems | Semantic branches, hypotheses, and technical directions |
+| Planets and orbital bodies | Evidence, artifacts, tools, findings, and anomalies |
+| Hyperlanes | Provenance, dependency, and analytical relationships |
+| Expanding borders | Validated progress and multiplayer ownership |
 
-<p align="center">
-  <img src="output/playwright/system-3d.png" alt="Evolastra System View showing one analytical branch and its orbiting agents, tools, evidence, and artifacts" width="100%" />
-</p>
+The galaxy is not a decorative dashboard. Similar research directions are placed
+near one another, genuinely different directions expand into distant regions,
+and every system remains connected through a traversable frontier. The durable
+event history and semantic evidence graph stay authoritative underneath the
+game.
 
-## Build a fleet and launch real Codex work
+### 1. Commission your Codex fleet
 
 Click the command star to open the shipyard. Build a **Frigate** for one focused
 task, a **Mothership** for coordinated subagents, or a **Colony ship** to explore
@@ -48,7 +63,28 @@ from untrusted analytical context, command network access and web search are
 disabled, ambient credentials are filtered, and writes stay inside the
 repository workspace without approval escalation.
 
-## Inspect evidence, replay discoveries, and explore together
+### 2. Watch the empire expand while Codex works
+
+Agents appear as moving ships. New analytical directions become claimable star
+systems. Evidence and tools accumulate in orbit. Validated advances grow smooth
+territorial borders across the flat galactic plane. Rotate, tilt, pan, and zoom
+the strategic map in full 3D while work continues in the background.
+
+<p align="center">
+  <img src="output/playwright/galaxy-3d.png" alt="A rotatable 3D Evolastra galaxy showing connected research branches, agent ships, semantic borders, and an expanding frontier" width="100%" />
+</p>
+
+### 3. Enter a system and inspect what your ships found
+
+Every claimed system opens into an orbital view of its local agents, tool calls,
+evidence, artifacts, findings, and anomalies. The same work is also available
+through searchable text views, inspectors, the tech tree, and provenance tables.
+
+<p align="center">
+  <img src="output/playwright/system-3d.png" alt="Evolastra System View showing one analytical branch and its orbiting agents, tools, evidence, and artifacts" width="100%" />
+</p>
+
+### 4. Replay discoveries or divide the frontier with friends
 
 <table>
   <tr>
@@ -89,17 +125,16 @@ The bootstrap installs locked dependencies, builds the viewer, installs and star
 
 For a demo without Codex integration, follow [Run the demo only](docs/getting-started.md#-run-the-demo-only). The complete installation guide includes prerequisites, verification checkpoints, options, and exact troubleshooting steps.
 
-## Why Evolastra
+## The gameplay loop is real work
 
-- **See the analysis happen.** Runs, branches, agents, tools, artifacts, findings, anomalies, and approvals become distinct inspectable objects; bounded numeric artifacts become safe local figures rather than executable uploads.
-- **Navigate in 3D.** Both maps support perspective depth, unrestricted 360° rotation, tilt, pan, zoom, and keyboard camera controls.
-- **Launch work from the map.** Build Codex vessels at the command star, unlock problem-specific hulls through research, and dispatch explicit missions into new local Codex tasks.
-- **Federate a project privately.** Opt into host-authoritative multiplayer through Tailscale, claim semantically positioned research systems with player colors, and publish selected finding summaries while Netlify stores no user project or session state.
-- **Show the finished expedition.** Launch the one curated, aggregate-only three-empire showcase from any hosted build without connecting Codex.
-- **Never lose the trail.** Replay, deterministic projections, typed relationships, and portable exports preserve how a conclusion was reached.
-- **Keep data local.** The companion, SQLite database, artifacts, Codex outbox, and access capability remain on the user’s machine.
-- **Integrate without lock-in.** CloudEvents, W3C trace concepts, JSONL, OpenLineage exports, SDKs, and narrow adapters provide explicit boundaries.
-- **Stay connected.** A sparse inner frontier flows out from the command star, while claimed systems and the full generated field remain one traversable hyperlane graph—no isolated islands.
+- **Build:** commission core ships and research-unlocked specialist vessels.
+- **Command:** dispatch explicit missions into new local Codex tasks.
+- **Explore:** turn novel directions into semantically positioned systems rather than arbitrary dots.
+- **Expand:** watch agents move, evidence accumulate, and borders grow without disconnected islands.
+- **Inspect:** open safe figures, lineage, findings, contradictions, metrics, and every orbital object.
+- **Replay:** scrub the complete durable event horizon or compare independent runs.
+- **Federate:** let trusted collaborators approach the same project from different colored empires over Tailscale.
+- **Keep control:** retain the companion, database, artifacts, Codex outbox, and access capability on your own machine.
 
 ## How it works
 

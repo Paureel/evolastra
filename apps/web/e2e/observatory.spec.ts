@@ -9,6 +9,8 @@ test.beforeEach(async ({ request }) => {
 test("live galaxy and system maps, synchronized views, search, and replay", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/evolastra-mark.svg");
+  await expect(page.getByRole("link", { name: "Evolastra on GitHub" })).toHaveAttribute("href", "https://github.com/Paureel/evolastra");
+  await expect(page.getByRole("link", { name: "Aurel on X" })).toHaveAttribute("href", "https://x.com/aurel_pr");
   await expect(page.getByRole("heading", { name: /Churn atlas/i })).toBeVisible();
   await expect(page.getByText(/live.*0 lag/i)).toBeVisible();
   await expect(page.getByRole("img", { name: /Evolastra galaxy map/i })).toBeVisible();

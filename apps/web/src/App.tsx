@@ -282,7 +282,13 @@ export default function App() {
       <header className="run-header">
         <div className="brand-lockup" aria-label="Evolastra Observatory">
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
-          <div><strong>EVOLASTRA</strong><span>ANALYSIS CONSTELLATION</span></div>
+          <div>
+            <strong>EVOLASTRA</strong>
+            <nav className="brand-links" aria-label="Evolastra project links">
+              <a href="https://github.com/Paureel/evolastra" target="_blank" rel="noreferrer" aria-label="Evolastra on GitHub">GITHUB <i aria-hidden="true">↗</i></a>
+              <a href="https://x.com/aurel_pr" target="_blank" rel="noreferrer" aria-label="Aurel on X">X @AUREL_PR <i aria-hidden="true">↗</i></a>
+            </nav>
+          </div>
         </div>
         <div className="run-identity">
           <span className="eyebrow">{showcaseActive ? "PUBLIC SHOWCASE · THREE EMPIRES" : `ACTIVE RUN · ${run?.id.slice(-8).toUpperCase() ?? "CONNECTING"}`}</span>
