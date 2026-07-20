@@ -44,11 +44,11 @@ hypotheses, validate results, and produce figures, the galaxy grows around them.
 | Hyperlanes | Provenance, dependency, and analytical relationships |
 | Expanding borders | Validated progress and multiplayer ownership |
 
-The galaxy is not a decorative dashboard. Similar research directions are placed
-near one another, genuinely different directions expand into distant regions,
-and every system remains connected through a traversable frontier. The durable
-event history and semantic evidence graph stay authoritative underneath the
-game.
+The galaxy is not a decorative dashboard. Analysis systems colonize stars that
+were already visible in the connected frontier, retaining those coordinates and
+hyperlanes as the investigation grows. Semantic signatures remain inspectable
+metadata rather than controlling map distance. The durable event history and
+semantic evidence graph stay authoritative underneath the game.
 
 ### 1. Commission your Codex fleet
 
@@ -179,6 +179,72 @@ The architecture deliberately separates three concerns:
 | Visualization | Coordinates, animation, camera, visual aggregation | Canonical evidence |
 
 Read the [architecture overview](docs/architecture/overview.md) and [shared contract](docs/architecture/shared-contract.md) for the complete model.
+
+## How I Used ChatGPT and Codex
+
+### Original idea and direction
+
+The original idea for Evolastra came from me and was shaped by years of
+experience playing space real-time strategy games. I defined the core concept,
+product direction, and domain-specific logic behind the application.
+
+I first worked with ChatGPT to turn the idea into a detailed development plan.
+That plan was deliberately structured so it could be used as the initial
+implementation prompt for Codex.
+
+### How Codex contributed
+
+Codex supported the project throughout the full development lifecycle,
+including:
+
+- Planning and implementing the backend
+- Designing and building the frontend interface
+- Finding, generating, and integrating frontend icons
+- Creating ship and star models
+- Developing the visual design and user experience
+- Deploying the application to Netlify
+- Creating and managing the Git repository
+- Setting up continuous integration
+- Creating automated tests
+- Producing visualizations
+- Writing and organizing the project documentation
+
+The main Codex capabilities used during development were:
+
+- Multi-agent orchestration
+- Skills for frontend development
+- Browser-based research and testing
+- Hooks for automating development workflows
+
+The implementation and repository were created during OpenAI Build Week using
+GPT-5.6 through Codex. The dated commit history and Codex session records
+document this work.
+
+### Decisions I made
+
+Although Codex handled the implementation, I made the central product,
+architectural, and domain decisions. The most important backend decisions
+included modeling ships as agents and treating star systems as the primary
+hypotheses evaluated by the system. I also directed the broader visual style,
+including the intended appearance of planets, ships, stars, and the overall
+space-strategy interface.
+
+My main expertise was in data analysis and defining how the system should
+behave. I reviewed the generated work, provided direction, refined
+requirements, and made the key decisions that shaped the final product.
+
+### How Codex accelerated development
+
+Codex accelerated every part of the development process. It allowed me to turn
+a detailed product concept into a working application without manually writing
+code. All implementation code was produced with Codex under my direction. My
+contribution focused on the original idea, domain expertise, system logic,
+architectural decisions, design direction, and evaluation of the resulting
+application.
+
+This collaboration allowed me to focus on what the product should do and why,
+while Codex handled how it was implemented, tested, documented, versioned, and
+deployed.
 
 ## Manual development setup
 

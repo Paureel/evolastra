@@ -1,5 +1,4 @@
 import type { PositionedEntity, SceneEntity, SpaceMapMode } from "./types";
-import { semanticCoordinates } from "./semanticLayout";
 
 export function stableHash(value: string, seed = 0): number {
   let hash = (2166136261 ^ seed) >>> 0;
@@ -125,22 +124,8 @@ function layoutGalaxy(entities: SceneEntity[], seed: number): PositionedEntity[]
     positions.set(home.id, { ...home, x: -18, y: 12, z: 0, radius: 17, angle: 0 });
   }
   const nodes = entities.filter((entity) => entity.kind === "node");
-  const semanticPositions = semanticCoordinates(
-    nodes.flatMap((entity) => entity.semanticSignature ? [{ id: entity.id, semanticSignature: entity.semanticSignature }] : []),
-    seed,
-  );
 
   nodes.forEach((entity) => {
-    const semantic = semanticPositions.get(entity.id);
-    if (semantic) {
-      positions.set(entity.id, {
-        ...entity,
-        ...semantic,
-        radius: 8 + Math.min(4, (entity.progress ?? 0) * 4),
-        angle: Math.atan2(semantic.y, semantic.x),
-      });
-      return;
-    }
     const parent = entity.parentId ? positions.get(entity.parentId) : undefined;
     if (parent) {
       const slot = stableHash(entity.id, seed) % 360;

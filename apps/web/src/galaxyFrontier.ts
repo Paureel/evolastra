@@ -1,4 +1,5 @@
 import { stableHash } from "./layout";
+import type { PositionedEntity } from "./types";
 
 export const DEFAULT_UNCLAIMED_SYSTEMS = 200;
 export const FRONTIER_EXPANSION_SIZE = 100;
@@ -10,6 +11,7 @@ export interface FrontierSystem {
   z: number;
   radius: number;
   singularity: boolean;
+  occupiedBy?: string;
   depth?: number;
 }
 
@@ -26,6 +28,12 @@ export interface FrontierField {
 export interface FrontierBridge {
   claimedId: string;
   frontier: number;
+}
+
+export interface FrontierOccupation {
+  layout: PositionedEntity[];
+  frontier: FrontierField;
+  occupiedCount: number;
 }
 
 export interface StellarProfile {
@@ -151,9 +159,64 @@ export function createFrontierField(seed: number, count = DEFAULT_UNCLAIMED_SYST
   return { systems, lanes };
 }
 
+export function occupyFrontierSystems(
+  frontier: FrontierField,
+  layout: PositionedEntity[],
+): FrontierOccupation {
+  const claimed = layout
+    .filter((entity) => entity.kind === "node")
+    .sort((left, right) => (
+      (left.sequence ?? Number.MAX_SAFE_INTEGER) - (right.sequence ?? Number.MAX_SAFE_INTEGER)
+      || left.id.localeCompare(right.id)
+    ))
+    .slice(0, frontier.systems.length);
+  const assignments = new Map(claimed.map((entity, index) => [entity.id, frontier.systems[index]]));
+  const rawSystems = new Map(
+    layout.filter((entity) => entity.kind === "home" || entity.kind === "node").map((entity) => [entity.id, entity]),
+  );
+  const promotedSystems = new Map<string, PositionedEntity>();
+  for (const entity of rawSystems.values()) {
+    const slot = assignments.get(entity.id);
+    promotedSystems.set(entity.id, slot ? {
+      ...entity,
+      x: slot.x,
+      y: slot.y,
+      z: slot.z,
+      angle: Math.atan2(slot.y, slot.x),
+    } : entity);
+  }
+  const promotedLayout = layout.map((entity) => {
+    const promoted = promotedSystems.get(entity.id);
+    if (promoted) return promoted;
+    if (entity.kind !== "agent" || !entity.parentId) return entity;
+    const rawParent = rawSystems.get(entity.parentId);
+    const promotedParent = promotedSystems.get(entity.parentId);
+    if (!rawParent || !promotedParent) return entity;
+    const x = promotedParent.x + entity.x - rawParent.x;
+    const y = promotedParent.y + entity.y - rawParent.y;
+    return {
+      ...entity,
+      x,
+      y,
+      z: promotedParent.z + entity.z - rawParent.z,
+      angle: Math.atan2(promotedParent.y - y, promotedParent.x - x),
+    };
+  });
+  const occupiedByIndex = new Map(claimed.map((entity, index) => [index, entity.id]));
+  return {
+    layout: promotedLayout,
+    frontier: {
+      lanes: frontier.lanes,
+      systems: frontier.systems.map((system, index) => ({ ...system, occupiedBy: occupiedByIndex.get(index) })),
+    },
+    occupiedCount: claimed.length,
+  };
+}
+
 export function frontierClaimedBridges(frontier: FrontierField, claimed: Array<{ id: string; x: number; y: number; z: number }>): FrontierBridge[] {
   if (frontier.systems.length === 0) return [];
-  return claimed.map((system) => {
+  const promotedIds = new Set(frontier.systems.flatMap((system) => system.occupiedBy ? [system.occupiedBy] : []));
+  return claimed.filter((system) => !promotedIds.has(system.id)).map((system) => {
     let frontierIndex = 0;
     let nearestDistance = Number.POSITIVE_INFINITY;
     frontier.systems.forEach((candidate, index) => {

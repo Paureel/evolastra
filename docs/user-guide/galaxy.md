@@ -6,19 +6,18 @@ Drag to rotate the 3D camera through a complete 360° orbit on either axis, Shif
 
 Every generated frontier is a connected minimum-spanning network with local neighbor lanes. A sparse inner approach band places some unclaimed systems close to the command system before the field broadens into the outer frontier. Claimed systems receive a deterministic connected spine and full bridges into that frontier, so every visible system belongs to one traversable graph.
 
-## Semantic research geography
+## Frontier promotion
 
-An unclaimed frontier point has no scientific meaning by itself. A direction
-becomes a charted, claimable analysis system only after it records a bounded
-research objective and semantic signature: program, alteration direction,
-genes, cytobands, mechanisms, therapeutic modalities, and validation
-modalities. Coordinates are then derived—not stored—from that signature.
+An unclaimed frontier point has no scientific meaning by itself. When analysis
+creates a bounded research direction, that node colonizes one of the stars
+already visible on the map. The star keeps its coordinates and hyperlanes while
+its appearance and territory change from unclaimed to claimed. This makes
+growth legible and prevents new work from creating overlapping stars.
 
-For signed systems, nearby means more shared research meaning under a documented
-weighted-Jaccard distance; an orthogonal direction is placed farther away. The
-map shows this contract in the **Semantic geography** key, while the selected
-system brief exposes the program, alteration, genes, and mechanism as text.
-Position and territory color remain disposable navigation aids, never evidence.
+Semantic signatures—program, alteration direction, genes, cytobands,
+mechanisms, therapeutic modalities, and validation modalities—remain visible
+in the selected-system brief. They do not determine spatial distance. Position
+and territory color remain disposable navigation aids, never evidence.
 
 The compact **Mission recorder** at the bottom of Galaxy view scrubs the same
 durable event horizon as the full Advanced timeline. Use **Replay** to start at

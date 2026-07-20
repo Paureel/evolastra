@@ -59,16 +59,17 @@ flowchart LR
     class events,seed,pins,projection storage
 ```
 
-Top-level branches without a semantic signature use stable radial sectors derived
-from the run seed and semantic identifiers. Signed research directions use a
-bounded categorical signature—program, alteration direction, genes, cytobands,
-mechanisms, therapeutic modalities, and validation modalities—to calculate an
-interpretable weighted-Jaccard distance. A fixed-iteration, seeded 3D stress
-layout approximates those distances. Signature fields are analytical labels;
-the resulting coordinates, stress, and neighborhood geometry remain disposable
-projection state.
+The run seed creates a stable, connected frontier before analysis systems are
+claimed. Each new analysis node promotes the next pre-existing frontier star:
+the star changes from unclaimed to claimed while retaining its coordinates and
+hyperlanes. Semantic signatures—program, alteration direction, genes,
+cytobands, mechanisms, therapeutic modalities, and validation modalities—stay
+available as analytical labels but do not control spatial distance.
 
-Cluster-local relaxation has a fixed iteration budget, stable ordering, and seeded randomness. The client keeps a run-scoped registry of every system position it has issued. Recomputed layouts are aligned to those anchors, existing coordinates remain exact, and only newly discovered systems receive new positions. Timeline rewind and replay therefore cannot move an already revealed system. User pins constrain the derived layout but remain projection-only state.
+Frontier promotion uses stable event-sequence ordering. The client also keeps a
+run-scoped registry of every system position it has issued. Existing coordinates
+remain exact through updates, rewind, and replay; only the claim state of a
+frontier star changes. User pins remain projection-only state.
 
 ## 3D camera and connected topology
 

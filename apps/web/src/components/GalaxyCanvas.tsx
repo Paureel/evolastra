@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { syncCanvasBackingStore } from "../canvasBackingStore";
-import { createFrontierField, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfilesFor, type FrontierBridge, type FrontierField, type StellarProfile } from "../galaxyFrontier";
+import { createFrontierField, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, occupyFrontierSystems, stellarProfilesFor, type FrontierBridge, type FrontierField, type StellarProfile } from "../galaxyFrontier";
 import layoutWorkerUrl from "../layout.worker.ts?worker&url";
 import { stableHash, stabilizeGalaxyLayout, type GalaxyPositionRegistry } from "../layout";
 import { connectedHyperlanes, type ConnectedLane } from "../mapGraph";
@@ -316,6 +316,7 @@ function drawFrontierNetwork(
 
   context.globalCompositeOperation = "screen";
   frontier.systems.forEach((system, index) => {
+    if (system.occupiedBy) return;
     const pulse = time ? Math.sin(time * 0.0011 + index * 1.73) * 0.12 : 0;
     if (system.singularity) {
       context.strokeStyle = highContrast ? "rgba(210,218,224,.72)" : "rgba(139,147,156,.52)";
@@ -1023,17 +1024,21 @@ export function GalaxyCanvas({ entities, edges, seed, projectionScope, mode, foc
   const keyboardIndex = useRef(0);
   const stellarSystemIds = useMemo(() => entities.filter((entity) => entity.kind === "home" || entity.kind === "node").map((entity) => entity.id), [entities]);
   const claimedSystemCount = stellarSystemIds.length;
+  const claimedFrontierCount = Math.max(0, claimedSystemCount - 1);
   const territorialEmpireCount = new Set(Object.values(multiplayerClaims)).size;
   const stellarProfiles = useMemo(() => stellarProfilesFor(stellarSystemIds, seed), [stellarSystemIds, seed]);
   const stellarOrdinals = useMemo(() => new Map(stellarSystemIds.map((id, ordinal) => [id, ordinal])), [stellarSystemIds]);
-  const unclaimedSystemCount = frontierSystemCount(claimedSystemCount);
-  const defaultGalaxyZoom = galaxyCameraZoom(unclaimedSystemCount);
+  const frontierCapacity = frontierSystemCount(claimedFrontierCount);
+  const defaultGalaxyZoom = galaxyCameraZoom(frontierCapacity);
   const defaultCameraZoom = mode === "galaxy" ? defaultGalaxyZoom : 1.08;
   const zoomPercent = Math.round((zoomLevel / defaultCameraZoom) * 100);
   const minZoomPercent = Math.ceil((0.26 / defaultCameraZoom) * 100);
   const maxZoomPercent = Math.floor((3.4 / defaultCameraZoom) * 100);
   const cameraScope = mode === "system" ? focusSystemId : "galaxy";
-  const frontier = useMemo(() => createFrontierField(seed, unclaimedSystemCount), [seed, unclaimedSystemCount]);
+  const baseFrontier = useMemo(() => createFrontierField(seed, frontierCapacity), [seed, frontierCapacity]);
+  const frontierOccupation = useMemo(() => occupyFrontierSystems(baseFrontier, layout), [baseFrontier, layout]);
+  const frontier = frontierOccupation.frontier;
+  const unclaimedSystemCount = frontierCapacity - frontierOccupation.occupiedCount;
   const connectedLanes = useMemo(() => connectedHyperlanes(layout, edges), [layout, edges]);
   const frontierBridges = useMemo(
     () => frontierClaimedBridges(frontier, layout.filter((entity) => entity.kind === "home" || entity.kind === "node")),
@@ -1069,7 +1074,7 @@ export function GalaxyCanvas({ entities, edges, seed, projectionScope, mode, foc
     );
     worker.onmessage = (event: MessageEvent<PositionedEntity[]>) => {
       const nextLayout = mode === "galaxy"
-        ? stabilizeGalaxyLayout(event.data, stableGalaxyPositionsRef.current)
+        ? stabilizeGalaxyLayout(occupyFrontierSystems(baseFrontier, event.data).layout, stableGalaxyPositionsRef.current)
         : event.data;
       layoutRef.current = nextLayout;
       renderedLayoutRef.current = nextLayout;
@@ -1077,7 +1082,7 @@ export function GalaxyCanvas({ entities, edges, seed, projectionScope, mode, foc
     };
     worker.postMessage({ entities, seed, mode, focusSystemId });
     return () => worker.terminate();
-  }, [entities, seed, projectionScope, mode, focusSystemId]);
+  }, [entities, seed, projectionScope, mode, focusSystemId, baseFrontier]);
 
   useEffect(() => {
     if (territoryTransitionRef.current.signature === territorySnapshot.signature) return;
@@ -1329,9 +1334,6 @@ export function GalaxyCanvas({ entities, edges, seed, projectionScope, mode, foc
       ) : (
         <div className="map-legend" aria-hidden="true"><i className="legend-complete" /> complete <i className="legend-active" /> active <i className="legend-disputed" /> disputed</div>
       )}
-      {mode === "galaxy" && layout.some((entity) => Boolean(entity.semanticSignature)) && <aside className="semantic-proximity-key" aria-label="Semantic map distance">
-        <span>SEMANTIC GEOGRAPHY</span><strong>Nearby systems share research meaning</strong><small>Program · genes · cytobands · mechanisms · therapy · validation</small>
-      </aside>}
       {mode === "galaxy" && <div className="canvas-hint map-frontier-hint">Drag to rotate · Shift-drag to pan · scroll to zoom · double-click to enter</div>}
       <div className="canvas-hint">{mode === "galaxy" ? "Drag to rotate · Shift-drag to pan · scroll to zoom" : shipyardEnabled ? "Click command star for shipyard · W/A/S/D camera · Home resets" : "Drag to rotate · Shift-drag to pan · W/A/S/D camera · Home resets"}</div>
     </div>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import stadShowcaseJson from "../public/demo/stad-three-empires-v1.json";
 import { sceneFromState } from "./App";
+import { createFrontierField, occupyFrontierSystems } from "./galaxyFrontier";
 import { layoutScene, stabilizeGalaxyLayout } from "./layout";
 import { parsePublicShowcase, PUBLIC_SHOWCASE_PATH, searchPublicShowcase, showcaseMultiplayerAtState, showcasePhaseLabel, showcaseStateAtSequence, type PublicShowcaseBundle } from "./showcase";
 
@@ -59,9 +60,10 @@ describe("public showcase", () => {
   it("keeps the actual three-empire STAD systems and prior owners fixed through every phase", () => {
     const stadBundle = parsePublicShowcase(stadShowcaseJson as unknown as PublicShowcaseBundle);
     const seed = stadBundle.run.seed;
+    const frontier = createFrontierField(seed);
     const finalScene = sceneFromState(showcaseStateAtSequence(stadBundle, null)).entities;
     const registry = new Map();
-    const initial = stabilizeGalaxyLayout(layoutScene(finalScene, seed, "galaxy"), registry);
+    const initial = stabilizeGalaxyLayout(occupyFrontierSystems(frontier, layoutScene(finalScene, seed, "galaxy")).layout, registry);
     const initialSystems = new Map(
       initial.filter((entity) => entity.kind === "home" || entity.kind === "node").map((entity) => [entity.id, entity]),
     );
@@ -70,7 +72,7 @@ describe("public showcase", () => {
     for (let sequence = 1; sequence <= stadBundle.replay.last_sequence; sequence += 1) {
       const state = showcaseStateAtSequence(stadBundle, sequence);
       const scene = sceneFromState(state).entities;
-      const positioned = stabilizeGalaxyLayout(layoutScene(scene, seed, "galaxy"), registry);
+      const positioned = stabilizeGalaxyLayout(occupyFrontierSystems(frontier, layoutScene(scene, seed, "galaxy")).layout, registry);
       for (const system of positioned.filter((entity) => entity.kind === "home" || entity.kind === "node")) {
         const expected = initialSystems.get(system.id);
         expect(system).toMatchObject({ x: expected?.x, y: expected?.y, z: expected?.z });

@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { layoutScene, stabilizeGalaxyLayout, stableHash } from "./layout";
-import { createFrontierField, DEFAULT_UNCLAIMED_SYSTEMS, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, stellarProfile, stellarProfilesFor } from "./galaxyFrontier";
+import { createFrontierField, DEFAULT_UNCLAIMED_SYSTEMS, frontierClaimedBridges, frontierSystemCount, galaxyCameraZoom, occupyFrontierSystems, stellarProfile, stellarProfilesFor } from "./galaxyFrontier";
 import { connectedHyperlanes } from "./mapGraph";
-import { semanticLayoutMetrics } from "./semanticLayout";
 import { angleDegrees, normalizeAngle, projectLayout3D, projectPoint3D } from "./spatial";
 import { STAD_SEMANTIC_FIXTURE } from "./stadSemanticFixture";
 import type { SceneEntity } from "./types";
@@ -48,9 +47,38 @@ describe("deterministic layout", () => {
     expect(after).toMatchObject({ x: before?.x, y: before?.y });
   });
 
+  it("promotes pre-existing frontier stars when a live run claims systems", () => {
+    const liveRun: SceneEntity[] = [
+      { id: "node_live_home", title: "Codex turn 1", kind: "home", status: "completed", sequence: 1 },
+      ...Array.from({ length: 29 }, (_, index) => ({
+        id: `node_live_${String(index + 2).padStart(2, "0")}`,
+        title: `Codex turn ${index + 2}`,
+        kind: "node" as const,
+        status: "completed",
+        parentId: "node_live_home",
+        sequence: index + 2,
+      })),
+    ];
+
+    const frontier = createFrontierField(14908375);
+    const occupied = occupyFrontierSystems(frontier, layoutScene(liveRun, 14908375, "galaxy"));
+    const branches = occupied.layout.filter((entity) => entity.kind === "node");
+
+    branches.forEach((entity, index) => {
+      expect(entity).toMatchObject({
+        x: frontier.systems[index].x,
+        y: frontier.systems[index].y,
+        z: frontier.systems[index].z,
+      });
+      expect(occupied.frontier.systems[index].occupiedBy).toBe(entity.id);
+    });
+    expect(occupied.occupiedCount).toBe(29);
+    expect(occupied.frontier.systems.filter((system) => !system.occupiedBy)).toHaveLength(171);
+  });
+
   it("hashes stably", () => expect(stableHash("evidence", 9)).toBe(stableHash("evidence", 9)));
 
-  it("places claimed research directions by semantic rather than arbitrary distance", () => {
+  it("keeps semantic signatures as metadata without overriding frontier positions", () => {
     const semanticEntities: SceneEntity[] = [
       { id: "node_semantic_home", title: "STAD", kind: "home", status: "running" },
       ...STAD_SEMANTIC_FIXTURE.map((system, index) => ({
@@ -62,12 +90,12 @@ describe("deterministic layout", () => {
         semanticSignature: system.semanticSignature,
       })),
     ];
-    const positioned = layoutScene(semanticEntities, 874049);
-    const points = new Map(positioned.filter((entity) => entity.semanticSignature).map((entity) => [entity.id, entity]));
-    const metrics = semanticLayoutMetrics(STAD_SEMANTIC_FIXTURE, points);
-    expect(metrics.spearman).toBeGreaterThanOrEqual(0.8);
-    expect(metrics.meanWithinProgram).toBeLessThan(metrics.meanBetweenPrograms);
-    expect(metrics.sameProgramNearestNeighbors).toBe(6);
+    const frontier = createFrontierField(874049);
+    const positioned = occupyFrontierSystems(frontier, layoutScene(semanticEntities, 874049)).layout;
+    positioned.filter((entity) => entity.kind === "node").forEach((entity, index) => {
+      expect(entity.semanticSignature).toBeDefined();
+      expect(entity).toMatchObject({ x: frontier.systems[index].x, y: frontier.systems[index].y });
+    });
   });
 
   it("does not move occupied semantic systems when later systems appear", () => {
@@ -82,13 +110,14 @@ describe("deterministic layout", () => {
         semanticSignature: system.semanticSignature,
       })),
     ];
+    const frontier = createFrontierField(874049);
     const registry = new Map();
     const earlier = stabilizeGalaxyLayout(
-      layoutScene(semanticEntities.slice(0, 3), 874049, "galaxy"),
+      occupyFrontierSystems(frontier, layoutScene(semanticEntities.slice(0, 3), 874049, "galaxy")).layout,
       registry,
     );
     const later = stabilizeGalaxyLayout(
-      layoutScene(semanticEntities, 874049, "galaxy"),
+      occupyFrontierSystems(frontier, layoutScene(semanticEntities, 874049, "galaxy")).layout,
       registry,
     );
 
@@ -100,10 +129,7 @@ describe("deterministic layout", () => {
       });
     }
 
-    const laterPoints = new Map(later.filter((entity) => entity.semanticSignature).map((entity) => [entity.id, entity]));
-    const metrics = semanticLayoutMetrics(STAD_SEMANTIC_FIXTURE, laterPoints);
-    expect(metrics.spearman).toBeGreaterThanOrEqual(0.7);
-    expect(metrics.meanWithinProgram).toBeLessThan(metrics.meanBetweenPrograms);
+    expect(later.filter((entity) => entity.kind === "node")).toHaveLength(STAD_SEMANTIC_FIXTURE.length);
   });
 
   it("restores exact system locations through showcase rewind and replay", () => {
@@ -118,10 +144,11 @@ describe("deterministic layout", () => {
         semanticSignature: system.semanticSignature,
       })),
     ];
+    const frontier = createFrontierField(874049);
     const registry = new Map();
-    const initial = stabilizeGalaxyLayout(layoutScene(semanticEntities, 874049, "galaxy"), registry);
-    stabilizeGalaxyLayout(layoutScene(semanticEntities.slice(0, 4), 874049, "galaxy"), registry);
-    const replayed = stabilizeGalaxyLayout(layoutScene(semanticEntities, 874049, "galaxy"), registry);
+    const initial = stabilizeGalaxyLayout(occupyFrontierSystems(frontier, layoutScene(semanticEntities, 874049, "galaxy")).layout, registry);
+    stabilizeGalaxyLayout(occupyFrontierSystems(frontier, layoutScene(semanticEntities.slice(0, 4), 874049, "galaxy")).layout, registry);
+    const replayed = stabilizeGalaxyLayout(occupyFrontierSystems(frontier, layoutScene(semanticEntities, 874049, "galaxy")).layout, registry);
 
     for (const occupied of initial) {
       expect(replayed.find((entity) => entity.id === occupied.id)).toMatchObject({
@@ -130,8 +157,6 @@ describe("deterministic layout", () => {
         z: occupied.z,
       });
     }
-    const replayedPoints = new Map(replayed.filter((entity) => entity.semanticSignature).map((entity) => [entity.id, entity]));
-    expect(semanticLayoutMetrics(STAD_SEMANTIC_FIXTURE, replayedPoints).spearman).toBeGreaterThanOrEqual(0.8);
   });
 
   it("keeps nested semantic research branches visible on the galaxy map", () => {
